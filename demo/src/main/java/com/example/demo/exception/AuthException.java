@@ -1,56 +1,69 @@
 package com.example.demo.exception;
 
-public class AuthException extends RuntimeException {
-    private final String code;
+import jakarta.mail.MessagingException;
+import org.springframework.http.HttpStatus;
 
-    public AuthException(String message, String code) {
-        super(message);
-        this.code = code;
+public class AuthException extends BaseServiceException {
+    public AuthException(String code, String message, HttpStatus httpStatus) {
+        super(code, message, httpStatus);
     }
 
-    public String getCode() {
-        return code;
-    }
-
-    public static class UserNotFoundException extends AuthException {
-        public UserNotFoundException() {
-            super("User not found", "USER_NOT_FOUND");
+    // Token & Credentials
+    public static class InvalidCredentials extends AuthException {
+        public InvalidCredentials() {
+            super("INVALID_CREDENTIALS", "Invalid username or password", HttpStatus.UNAUTHORIZED);
         }
     }
 
-    public static class InvalidCredentialsException extends AuthException {
-        public InvalidCredentialsException() {
-            super("Invalid password", "INVALID_CREDENTIALS");
+    public static class InvalidToken extends AuthException {
+        public InvalidToken() {
+            super("INVALID_TOKEN", "Token is invalid or expired", HttpStatus.BAD_REQUEST);
         }
     }
 
-    public static class EmailAlreadyExistsException extends AuthException {
-        public EmailAlreadyExistsException() {
-            super("Email Address already exists", "EMAIL_EXISTS");
+    public static class TokenExpired extends AuthException {
+        public TokenExpired() {
+            super("TOKEN_EXPIRED", "Token has expired", HttpStatus.UNAUTHORIZED);
         }
     }
 
-    public static class PhoneNumberAlreadyExistsException extends AuthException {
-        public PhoneNumberAlreadyExistsException() {
-            super("Phone Number already exists", "PHONE_EXISTS");
+    // Verification code
+    public static class CodeGenerationFailed extends AuthException {
+        public CodeGenerationFailed() {
+            super("CODE_GENERATION_FAILED", "Failed to generate verification code", HttpStatus.SERVICE_UNAVAILABLE);
         }
     }
 
-    public static class UnverifiedAccountException extends AuthException {
-        public UnverifiedAccountException() {
-            super("Please verify your email address. A new verification email has been sent.", "UNVERIFIED_ACCOUNT");
+    public static class VerificationCodeExpired extends AuthException {
+        public VerificationCodeExpired() {
+            super("CODE_EXPIRED", "Verification code has expired", HttpStatus.BAD_REQUEST);
         }
     }
 
-    public static class InvalidTokenException extends AuthException {
-        public InvalidTokenException(String message) {
-            super(message, "INVALID_TOKEN");
+    public static class VerificationCodeInvalid extends AuthException {
+        public VerificationCodeInvalid() {
+            super("CODE_INVALID", "Verification code is invalid", HttpStatus.BAD_REQUEST);
         }
     }
 
-    public static class EmailSendFailedException extends AuthException {
-        public EmailSendFailedException() {
-            super("Failed to send verification email", "EMAIL_SEND_FAILED");
+    // Mail
+    public static class EmailSendFailed extends AuthException {
+        public EmailSendFailed() {
+            super("EMAIL_SEND_FAILED", "Failed to send email", HttpStatus.SERVICE_UNAVAILABLE);
         }
     }
+
+    // Account status
+    public static class UnverifiedAccount extends AuthException {
+        public UnverifiedAccount() {
+            super("UNVERIFIED_ACCOUNT", "Please verify your email address", HttpStatus.FORBIDDEN);
+        }
+    }
+
+    public static class AccountBlocked extends AuthException {
+        public AccountBlocked() {
+            super("ACCOUNT_BLOCKED", "This account is blocked", HttpStatus.FORBIDDEN);
+        }
+    }
+
 }

@@ -1,9 +1,12 @@
 package com.example.demo.model.entity;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -11,12 +14,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 @Builder
 public class User {
+
+    // ================================
+    // COLUMNS - Database Fields
+    // ================================
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "full_name", nullable = false, length = 255)
     private String fullName;
@@ -47,6 +54,14 @@ public class User {
     @Column(name = "update_at")
     private LocalDateTime updateAt;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Set<Vehicle> vehicles;
+
+    // ================================
+    // PRE/POST FUNCTIONS - Lifecycle Callbacks
+    // ================================
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -57,4 +72,25 @@ public class User {
     protected void onUpdate() {
         updateAt = LocalDateTime.now();
     }
+
+    @PostConstruct
+    private void initCollections() {
+        if (vehicles == null) {
+            vehicles = new HashSet<>();
+        }
+    }
+
+    // ================================
+    // HELPER FUNCTIONS - Business Logic
+    // ================================
+
+//    public void addVehicle(Vehicle v) {
+//        vehicles.add(v);
+//        v.setCustomer(this);
+//    }
+//
+//    public void removeVehicle(Vehicle v) {
+//        vehicles.remove(v);
+//        v.setCustomer(null);
+//    }
 }

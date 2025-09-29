@@ -3,7 +3,8 @@ package com.example.demo.controller;
 import com.example.demo.model.dto.AuthResponse;
 import com.example.demo.model.dto.LoginRequest;
 import com.example.demo.model.dto.RegisterRequest;
-import com.example.demo.service.AuthService;
+import com.example.demo.model.dto.VerifyRequest;
+import com.example.demo.service.interfaces.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +25,8 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request.getEmailAddress(), request.getPassword()));
     }
 
-    @GetMapping("/verify")
-    public ResponseEntity<AuthResponse> verifyEmail(@RequestParam String token) {
-        return ResponseEntity.ok(authService.verifyEmail(token));
+    @PostMapping("/verify")
+    public ResponseEntity<AuthResponse> verifyEmail(@RequestBody VerifyRequest request) {
+        return ResponseEntity.ok(authService.verifyEmail(request));
     }
 }
