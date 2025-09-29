@@ -1,7 +1,7 @@
-package com.example.demo.service.interfaces;
+package com.example.demo.service.impl;
 
 import com.example.demo.exception.AuthException.EmailSendFailed;
-import com.example.demo.service.impl.IMailService;
+import com.example.demo.service.interfaces.IMailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

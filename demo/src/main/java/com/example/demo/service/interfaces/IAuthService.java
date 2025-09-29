@@ -1,4 +1,4 @@
-package com.example.demo.service.impl;
+package com.example.demo.service.interfaces;
 
 import com.example.demo.model.dto.AuthResponse;
 import com.example.demo.model.dto.RegisterRequest;

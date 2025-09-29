@@ -1,11 +1,11 @@
-package com.example.demo.service.interfaces;
+package com.example.demo.service.impl;
 
 import com.example.demo.exception.AuthException.*;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.entity.VerificationCode;
 import com.example.demo.repo.VerificationCodeRepo;
-import com.example.demo.service.impl.IVerificationCodeService;
-import com.example.demo.util.CodeGenerator;
+import com.example.demo.service.interfaces.IVerificationCodeService;
+import com.example.demo.utils.CodeGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

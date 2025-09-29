@@ -1,4 +1,4 @@
-package com.example.demo.service.interfaces;
+package com.example.demo.service.impl;
 
 import com.example.demo.exception.UserException.*;
 import com.example.demo.repo.UserRepo;

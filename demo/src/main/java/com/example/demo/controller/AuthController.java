@@ -4,7 +4,7 @@ import com.example.demo.model.dto.AuthResponse;
 import com.example.demo.model.dto.LoginRequest;
 import com.example.demo.model.dto.RegisterRequest;
 import com.example.demo.model.dto.VerifyRequest;
-import com.example.demo.service.interfaces.AuthService;
+import com.example.demo.service.impl.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

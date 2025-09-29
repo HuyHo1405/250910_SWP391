@@ -1,4 +1,4 @@
-package com.example.demo.service.interfaces;
+package com.example.demo.service.impl;
 
 import com.example.demo.exception.AuthException.*;
 import com.example.demo.exception.UserException.*;
@@ -11,9 +11,9 @@ import com.example.demo.model.entity.User;
 import com.example.demo.model.entity.EntityStatus;
 import com.example.demo.repo.RoleRepo;
 import com.example.demo.repo.UserRepo;
-import com.example.demo.service.impl.IAuthService;
-import com.example.demo.service.impl.IMailService;
-import com.example.demo.service.impl.IVerificationCodeService;
+import com.example.demo.service.interfaces.IAuthService;
+import com.example.demo.service.interfaces.IMailService;
+import com.example.demo.service.interfaces.IVerificationCodeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
