@@ -22,7 +22,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request.getEmailAddress(), request.getPassword()));
+        return ResponseEntity.ok(authService.login(request.getUserName(), request.getPassword()));
     }
 
     @PostMapping("/verify")

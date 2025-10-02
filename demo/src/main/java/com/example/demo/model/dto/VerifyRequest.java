@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class VerifyRequest {
     @NotBlank(message = "Email address cannot be blank")
     @Email(message = "Email address must be valid")
-    private String emailAddress;
+    private String userName;
 
     @NotBlank(message = "Verification code cannot be blank")
     private String code;

@@ -46,8 +46,11 @@ public class AuthService implements IAuthService {
                 registerRequest.getPhoneNumber());
 
         User savedUser = createAndSaveUser(registerRequest);
-
-        return buildAuthResponse(savedUser, false);
+        
+        // Return simple success message
+        return AuthResponse.builder()
+                .message("Registration successful. Please check your email for verification code.")
+                .build();
     }
 
     @Override
@@ -82,7 +85,7 @@ public class AuthService implements IAuthService {
     @Override
     @Transactional
     public AuthResponse verifyEmail(@Valid @RequestBody VerifyRequest verifyRequest) {
-        String email = verifyRequest.getEmailAddress();
+        String email = verifyRequest.getUserName();
         String code = verifyRequest.getCode();
 
         User user = userRepo.findByEmailAddress(email)
@@ -122,13 +125,43 @@ public class AuthService implements IAuthService {
     }
 
     private AuthResponse buildAuthResponse(User user, boolean verified) {
-        return AuthResponse.builder()
-                .token(verified ? jwtUtil.generateToken(user) : null)
-                .emailAddress(user.getEmailAddress())
-                .roleId(user.getRole().getId())
-                .roleName(user.getRole().getName())
-                .isVerified(verified)
-                .requiresVerification(!verified)
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+
+        String accessToken = verified ? jwtUtil.generateToken(user) : null;
+        String refreshToken = verified ? jwtUtil.generateRefreshToken(user) : null;
+
+        AuthResponse.AuthResponseBuilder responseBuilder = AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer");
+
+        if (verified) {
+            responseBuilder.expiresIn(jwtUtil.getExpirationInSeconds());
+        }
+
+        if (user.getRole() == null) {
+            throw new IllegalStateException("User role cannot be null");
+        }
+
+        if (user.getStatus() == null) {
+            throw new IllegalStateException("User status cannot be null");
+        }
+
+        AuthResponse.UserInfo userInfo = AuthResponse.UserInfo.builder()
+                .id(user.getId())
+                .email(user.getEmailAddress())
+                .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .role(user.getRole().getName())
+                .status(user.getStatus().name())
+                .createdAt(user.getCreatedAt())
+                .lastLogin(user.getLoginAt())
+                .build();
+
+        return responseBuilder
+                .user(userInfo)
                 .build();
     }
 }

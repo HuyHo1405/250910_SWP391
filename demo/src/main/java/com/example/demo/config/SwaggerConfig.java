@@ -13,7 +13,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .servers(List.of(
                         // Ngrok
-                        new Server().url("https://eff7cce18015.ngrok-free.app/").description("Ngrok server"),
+                        new Server().url("https://41778679112c.ngrok-free.app").description("Ngrok server"),
                         // Local
                         new Server().url("http://localhost:8080/").description("Local server")
                 ));

@@ -118,4 +118,31 @@ public class JwtUtil {
                 .parseClaimsJws(token)     // Parse and verify the token
                 .getBody();                // Extract the claims body
     }
+
+    /**
+     * Generates a refresh token with a longer expiration time than the access token.
+     * Refresh tokens are used to obtain new access tokens without requiring re-authentication.
+     *
+     * @param user The user entity for whom the refresh token is being generated
+     * @return A signed JWT refresh token string valid for 7 days
+     */
+    public String generateRefreshToken(User user) {
+        // Refresh token expires in 7 days (7 * 24 * 60 * 60 * 1000 = 604800000 ms)
+        return Jwts.builder()
+                .setSubject(user.getEmailAddress())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 604800000))
+                .signWith(key)
+                .compact();
+    }
+
+    /**
+     * Returns the JWT token expiration time in seconds.
+     * This is useful for clients to know when to refresh the token.
+     *
+     * @return The number of seconds until the token expires
+     */
+    public long getExpirationInSeconds() {
+        return jwtExpiration / 1000; // Convert milliseconds to seconds
+    }
 }
