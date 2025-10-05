@@ -2,10 +2,10 @@ package com.example.demo.service.impl;
 
 import com.example.demo.exception.AuthException.*;
 import com.example.demo.exception.UserException.*;
+import com.example.demo.model.dto.*;
+import com.example.demo.model.entity.RefreshToken;
+import com.example.demo.repo.RefreshTokenRepo;
 import com.example.demo.security.JwtUtil;
-import com.example.demo.model.dto.AuthResponse;
-import com.example.demo.model.dto.RegisterRequest;
-import com.example.demo.model.dto.VerifyRequest;
 import com.example.demo.model.entity.Role;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.entity.EntityStatus;
@@ -13,14 +13,13 @@ import com.example.demo.repo.RoleRepo;
 import com.example.demo.repo.UserRepo;
 import com.example.demo.service.interfaces.IAuthService;
 import com.example.demo.service.interfaces.IMailService;
+import com.example.demo.service.interfaces.IPasswordService;
 import com.example.demo.service.interfaces.IVerificationCodeService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
 
@@ -34,11 +33,13 @@ public class AuthService implements IAuthService {
     private final JwtUtil jwtUtil;
     private final IVerificationCodeService verificationCodeService;
     private final IMailService mailService;
+    private final IPasswordService passwordService;
     private final UserValidationService userValidationService;
+    private final RefreshTokenRepo refreshTokenRepo;
 
     @Override
     @Transactional
-    public AuthResponse register(@Valid @RequestBody RegisterRequest registerRequest) {
+    public AuthResponse register(AuthRequest.Register registerRequest) {
         log.info("Starting registration process for email: {}", registerRequest.getEmailAddress());
 
         userValidationService.checkEmailAndPhoneAvailability(
@@ -70,7 +71,7 @@ public class AuthService implements IAuthService {
         if (user.getStatus() == EntityStatus.INACTIVE) {
             // Generate and send verification code
             String verificationCode = verificationCodeService.addVerificationCode(user);
-            mailService.sendVerificationEmail(user.getEmailAddress(), verificationCode);
+            mailService.sendVerificationMail(user.getEmailAddress(), verificationCode);
 
             return AuthResponse.builder()
                     .requiresVerification(true)
@@ -79,12 +80,20 @@ public class AuthService implements IAuthService {
         }
 
         updateLoginTimestamp(user);
-        return buildAuthResponse(user, true);
+        
+        // Revoke all existing refresh tokens for this user
+        refreshTokenRepo.revokeAllUserTokens(user.getId());
+        
+        // Generate new tokens
+        String accessToken = jwtUtil.generateToken(user);
+        String refreshToken = createRefreshToken(user);
+        
+        return buildAuthResponse(user, accessToken, refreshToken);
     }
 
     @Override
     @Transactional
-    public AuthResponse verifyEmail(@Valid @RequestBody VerifyRequest verifyRequest) {
+    public AuthResponse verifyEmail(AuthRequest.Verify verifyRequest) {
         String email = verifyRequest.getUserName();
         String code = verifyRequest.getCode();
 
@@ -97,12 +106,45 @@ public class AuthService implements IAuthService {
         user.setStatus(EntityStatus.ACTIVE);
         user.setUpdateAt(LocalDateTime.now());
         userRepo.save(user);
+        
+        // Generate tokens
+        String accessToken = jwtUtil.generateToken(user);
+        String refreshToken = createRefreshToken(user);
+        
+        return buildAuthResponse(user, accessToken, refreshToken);
+    }
 
-        return buildAuthResponse(user, true);
+    @Override
+    @Transactional
+    public AuthResponse logout(AuthRequest.Logout logoutRequest) {
+        String refreshTokenStr = logoutRequest.getRefreshToken();
+
+        // Find the refresh token
+        RefreshToken refreshToken = refreshTokenRepo.findByToken(refreshTokenStr)
+                .orElseThrow(InvalidToken::new);
+
+        // Revoke the token
+        refreshToken.setRevoked(true);
+        refreshTokenRepo.save(refreshToken);
+
+        // Return success response
+        return AuthResponse.builder()
+                .message("Logout successful")
+                .build();
+    }
+
+    @Override
+    public AuthResponse forgotPassword(AuthRequest.ForgotPassword forgotPasswordRequest) {
+        return passwordService.forgotPassword(forgotPasswordRequest);
+    }
+
+    @Override
+    public AuthResponse resetPassword(AuthRequest.ResetPassword resetPasswordRequest) {
+        return passwordService.resetPassword(resetPasswordRequest);
     }
 
     // Helper methods
-    private User createAndSaveUser(RegisterRequest request) {
+    private User createAndSaveUser(AuthRequest.Register request) {
         Role customerRole = roleRepo.findByName("CUSTOMER")
                 .orElseThrow(RoleNotFound::new);
 
@@ -124,31 +166,45 @@ public class AuthService implements IAuthService {
         userRepo.save(user);
     }
 
-    private AuthResponse buildAuthResponse(User user, boolean verified) {
-        if (user == null) {
-            throw new IllegalArgumentException("User cannot be null");
+    @Transactional
+    public AuthResponse refreshToken(String refreshToken) {
+        RefreshToken token = refreshTokenRepo.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+                
+        if (token.isRevoked() || token.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Refresh token is expired or revoked");
         }
-
-        String accessToken = verified ? jwtUtil.generateToken(user) : null;
-        String refreshToken = verified ? jwtUtil.generateRefreshToken(user) : null;
-
-        AuthResponse.AuthResponseBuilder responseBuilder = AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .tokenType("Bearer");
-
-        if (verified) {
-            responseBuilder.expiresIn(jwtUtil.getExpirationInSeconds());
+        
+        User user = userRepo.findById(token.getUserId())
+                .orElseThrow(UserNotFound::new);
+                
+        if (user.getStatus() != EntityStatus.ACTIVE) {
+            throw new AccountBlocked();
         }
-
-        if (user.getRole() == null) {
-            throw new IllegalStateException("User role cannot be null");
-        }
-
-        if (user.getStatus() == null) {
-            throw new IllegalStateException("User status cannot be null");
-        }
-
+        
+        // Generate new tokens
+        String newAccessToken = jwtUtil.generateToken(user);
+        String newRefreshToken = createRefreshToken(user);
+        
+        // Revoke the old refresh token
+        refreshTokenRepo.revokeAllUserTokens(user.getId());
+        
+        return buildAuthResponse(user, newAccessToken, newRefreshToken);
+    }
+    
+    private String createRefreshToken(User user) {
+        RefreshToken refreshToken = RefreshToken.builder()
+                .userId(user.getId())
+                .token(jwtUtil.generateRefreshToken(user))
+                .expiryDate(LocalDateTime.now().plusDays(7)) // 7 days expiry
+                .revoked(false)
+                .build();
+                
+        refreshToken = refreshTokenRepo.save(refreshToken);
+        return refreshToken.getToken();
+    }
+    
+    private AuthResponse buildAuthResponse(User user, String accessToken, String refreshToken) {
         AuthResponse.UserInfo userInfo = AuthResponse.UserInfo.builder()
                 .id(user.getId())
                 .email(user.getEmailAddress())
@@ -160,7 +216,11 @@ public class AuthService implements IAuthService {
                 .lastLogin(user.getLoginAt())
                 .build();
 
-        return responseBuilder
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .tokenType("Bearer")
+                .expiresIn(jwtUtil.getExpirationInSeconds())
                 .user(userInfo)
                 .build();
     }
