@@ -43,6 +43,8 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         // Add user's role name as a claim for authorization purposes
         claims.put("role", user.getRole().getName());
+        // Add user's ID as a claim for user identification
+        claims.put("userId", user.getId());
 
         // Create and return the JWT token with claims and user email as subject
         return createToken(claims, user.getEmailAddress());
@@ -84,6 +86,16 @@ public class JwtUtil {
      */
     public String extractRole(String token) {
         return extractClaims(token).get("role", String.class);
+    }
+
+    /**
+     * Extracts the user ID from a JWT token's custom claims.
+     *
+     * @param token The JWT token string
+     * @return The user ID stored in the token's claims
+     */
+    public Long extractUserId(String token) {
+        return extractClaims(token).get("userId", Long.class);
     }
 
     /**
