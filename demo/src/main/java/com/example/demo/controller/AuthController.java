@@ -42,4 +42,10 @@ public class AuthController {
     public ResponseEntity<AuthResponse> resetPassword(@RequestBody @Valid AuthRequest.ResetPassword request) {
         return ResponseEntity.ok(authService.resetPassword(request));
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody AuthRequest.RefreshToken request) {
+        AuthResponse response = authService.refreshToken(request.getRefreshToken());
+        return ResponseEntity.ok(response);
+    }
 }
