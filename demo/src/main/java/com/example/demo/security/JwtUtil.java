@@ -8,6 +8,8 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,62 +17,72 @@ import java.util.Map;
 /**
  * JWT (JSON Web Token) utility class for handling token generation, validation, and extraction.
  * This component provides methods to create secure tokens for user authentication and authorization.
- * 
+ *
  * Features:
- * - Token generation with user role information
+ * - Access Token: 15 minutes expiration (for API requests)
+ * - Refresh Token: 7 days expiration (for obtaining new access tokens)
  * - Token validation and expiration checking
  * - Extraction of user email and role from tokens
  * - Secure token signing with HS256 algorithm
  */
 @Component
 public class JwtUtil {
-    
+
     /** Secret key used for signing JWT tokens with HS256 algorithm */
     private final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    
-    /** JWT token expiration time in milliseconds (24 hours = 86400000 ms) */
-    private final long jwtExpiration = 86400000; // 24 hours
+
+    /** Access token expiration time: 15 minutes = 900000 ms */
+    private final long accessTokenExpiration = 900000; // 15 minutes
+
+    /** Refresh token expiration time: 7 days = 604800000 ms */
+    private final long refreshTokenExpiration = 604800000; // 7 days
 
     /**
-     * Generates a JWT token for the given user.
+     * Generates an ACCESS TOKEN for the given user.
      * The token includes the user's role as a custom claim and email as the subject.
-     * 
+     * This token is SHORT-LIVED (15 minutes) for security purposes.
+     *
      * @param user The user entity containing email and role information
-     * @return A signed JWT token string valid for 24 hours
+     * @return A signed JWT access token string valid for 15 minutes
      */
     public String generateToken(User user) {
-        // Create a map to store custom claims
         Map<String, Object> claims = new HashMap<>();
-        // Add user's role name as a claim for authorization purposes
         claims.put("role", user.getRole().getName());
-        // Add user's ID as a claim for user identification
-        claims.put("userId", user.getId());
+        claims.put("type", "access"); // Đánh dấu đây là access token
 
-        // Create and return the JWT token with claims and user email as subject
-        return createToken(claims, user.getEmailAddress());
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(user.getEmailAddress())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .signWith(key)
+                .compact();
     }
 
     /**
-     * Creates a JWT token with the specified claims and subject.
-     * This is a private helper method that builds the actual JWT structure.
-     * 
-     * @param claims Custom claims to be included in the token
-     * @param subject The subject of the token (typically user email)
-     * @return A compact JWT token string
+     * Generates a REFRESH TOKEN with a longer expiration time than the access token.
+     * Refresh tokens are used to obtain new access tokens without requiring re-authentication.
+     * This token is LONG-LIVED (7 days).
+     *
+     * @param user The user entity for whom the refresh token is being generated
+     * @return A signed JWT refresh token string valid for 7 days
      */
-    private String createToken(Map<String, Object> claims, String subject) {
+    public String generateRefreshToken(User user) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refresh"); // Đánh dấu đây là refresh token
+
         return Jwts.builder()
-                .setClaims(claims)                                                    // Set custom claims
-                .setSubject(subject)                                                  // Set subject (user email)
-                .setIssuedAt(new Date(System.currentTimeMillis()))                   // Set token creation time
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration)) // Set expiration time
-                .signWith(key)                                                        // Sign with secret key
-                .compact();                                                           // Build compact token string
+                .setClaims(claims)
+                .setSubject(user.getEmailAddress())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
+                .signWith(key)
+                .compact();
     }
 
     /**
      * Extracts the email address (subject) from a JWT token.
-     * 
+     *
      * @param token The JWT token string
      * @return The email address stored as the token's subject
      */
@@ -80,7 +92,7 @@ public class JwtUtil {
 
     /**
      * Extracts the user role from a JWT token's custom claims.
-     * 
+     *
      * @param token The JWT token string
      * @return The role name stored in the token's claims
      */
@@ -100,61 +112,65 @@ public class JwtUtil {
 
     /**
      * Validates a JWT token by checking its signature and expiration time.
-     * 
+     *
      * @param token The JWT token string to validate
      * @return true if the token is valid and not expired, false otherwise
      */
     public boolean validateToken(String token) {
         try {
-            // Extract claims and check if token is not expired
             Claims claims = extractClaims(token);
             return !claims.getExpiration().before(new Date());
         } catch (Exception e) {
-            // Return false if token parsing fails (invalid signature, malformed token, etc.)
             return false;
         }
     }
 
     /**
+     * Extracts the expiration date from a JWT token.
+     * Useful for blacklisting tokens until they naturally expire.
+     *
+     * @param token The JWT token string
+     * @return LocalDateTime representing when the token expires
+     */
+    public LocalDateTime getExpirationDateFromToken(String token) {
+        Date expirationDate = extractClaims(token).getExpiration();
+        return expirationDate.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+    }
+
+    /**
      * Extracts all claims from a JWT token.
      * This is a private helper method that parses and validates the token signature.
-     * 
+     *
      * @param token The JWT token string
      * @return Claims object containing all token data
      * @throws Exception if token is invalid or signature verification fails
      */
     private Claims extractClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(key)        // Set the signing key for verification
-                .build()                   // Build the parser
-                .parseClaimsJws(token)     // Parse and verify the token
-                .getBody();                // Extract the claims body
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     /**
-     * Generates a refresh token with a longer expiration time than the access token.
-     * Refresh tokens are used to obtain new access tokens without requiring re-authentication.
-     *
-     * @param user The user entity for whom the refresh token is being generated
-     * @return A signed JWT refresh token string valid for 7 days
-     */
-    public String generateRefreshToken(User user) {
-        // Refresh token expires in 7 days (7 * 24 * 60 * 60 * 1000 = 604800000 ms)
-        return Jwts.builder()
-                .setSubject(user.getEmailAddress())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 604800000))
-                .signWith(key)
-                .compact();
-    }
-
-    /**
-     * Returns the JWT token expiration time in seconds.
+     * Returns the ACCESS TOKEN expiration time in seconds.
      * This is useful for clients to know when to refresh the token.
      *
-     * @return The number of seconds until the token expires
+     * @return The number of seconds until the access token expires (900 seconds = 15 minutes)
      */
     public long getExpirationInSeconds() {
-        return jwtExpiration / 1000; // Convert milliseconds to seconds
+        return accessTokenExpiration / 1000;
+    }
+
+    /**
+     * Returns the REFRESH TOKEN expiration time in seconds.
+     *
+     * @return The number of seconds until the refresh token expires (604800 seconds = 7 days)
+     */
+    public long getRefreshTokenExpirationInSeconds() {
+        return refreshTokenExpiration / 1000;
     }
 }

@@ -44,6 +44,10 @@ public class Vehicle {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "entity_status", nullable = false)
+    private EntityStatus entityStatus = EntityStatus.ACTIVE;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "customer_id", nullable = false)
     private User user;

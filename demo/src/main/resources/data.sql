@@ -2,10 +2,10 @@
 -- Insert Roles
 -- ================================
 INSERT INTO roles (name) VALUES
-                                 ('ADMIN'),
-                                 ('STAFF'),
-                                 ('TECHNICIAN'),
-                                 ('CUSTOMER');
+    ('ADMIN'),
+    ('STAFF'),
+    ('TECHNICIAN'),
+    ('CUSTOMER');
 
 -- ================================
 -- Insert Vehicle Models
@@ -22,7 +22,51 @@ VALUES
 -- ================================
 INSERT INTO users (full_name, email_address, phone_number, hashed_password, role_id, status, created_at, update_at)
 VALUES
-    ('Nguyen Van A', 'admin@example.com', '0901234567', '$2a$10$ZslYG6ImfTbRaj5tYH0qoOayE9Pd8yd6quKOoAGcWo1b6/2f6m8Cy', 1, 'ACTIVE', GETDATE(), GETDATE()),
-    ('Tran Thi B', 'staff@example.com', '0902345678', '$2a$10$ZslYG6ImfTbRaj5tYH0qoOayE9Pd8yd6quKOoAGcWo1b6/2f6m8Cy', 2, 'ACTIVE', GETDATE(), GETDATE()),
-    ('Le Van C', 'tech@example.com', '0903456789', '$2a$10$ZslYG6ImfTbRaj5tYH0qoOayE9Pd8yd6quKOoAGcWo1b6/2f6m8Cy', 3, 'ACTIVE', GETDATE(), GETDATE()),
-    ('Pham Thi D', 'customer@example.com', '0904567890', '$2a$10$ZslYG6ImfTbRaj5tYH0qoOayE9Pd8yd6quKOoAGcWo1b6/2f6m8Cy', 4, 'ACTIVE', GETDATE(), GETDATE());
+    ('Nguyen Van A', 'admin@example.com', '0901234567', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 1, 'ACTIVE', GETDATE(), GETDATE()),
+    ('Tran Thi B', 'staff@example.com', '0902345678', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 2, 'ACTIVE', GETDATE(), GETDATE()),
+    ('Le Van C', 'technician@example.com', '0903456789', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'ACTIVE', GETDATE(), GETDATE()),
+    ('Pham Thi D', 'customer@example.com', '0904567890', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 4, 'ACTIVE', GETDATE(), GETDATE()),
+    ('Nguyen Van E', 'user@example.com', '0905678901','$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 4, 'ACTIVE', GETDATE(), GETDATE());
+
+-- ================================
+-- Insert Vehicles (thuộc user và model)
+-- ================================
+INSERT INTO vehicles
+(plate_number, color, vin, customer_id, vehicle_model_id, entity_status, created_at, purchased_at)
+VALUES
+    ('51H-12345', 'Red', '1HGCM82633A123456', 4, 1, 'ACTIVE', GETDATE(), GETDATE()),
+    ('51H-67890', 'Blue', '1HGCM82633A654321', 4, 2, 'ACTIVE', GETDATE(), GETDATE()),
+    ('60A-22222', 'White', '1HGCM82633A888888', 4, 3, 'INACTIVE', GETDATE(), GETDATE()),
+    ('51G-55555', 'Black', '5YJSA1E26HF123001', 5, 1, 'ACTIVE', GETDATE(), GETDATE()),  -- Tesla Model S
+    ('59A-66666', 'Silver', '5YJSA1E26HF123002', 5, 2, 'ACTIVE', GETDATE(), GETDATE()), -- VinFast VF8
+    ('51C-77777', 'White', '5YJSA1E26HF123003', 5, 3, 'INACTIVE', GETDATE(), GETDATE());
+
+-- ================================
+-- Insert Vehicle Permissions
+-- ================================
+INSERT INTO permissions (resource, action, is_active) VALUES
+    ('vehicle', 'read', 1),
+    ('vehicle', 'create', 1),
+    ('vehicle', 'update', 1),
+    ('vehicle', 'delete', 1);
+
+
+-- ================================
+-- Role - Permission mapping
+-- ================================
+-- ADMIN có tất cả quyền
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 1, p.id FROM permissions p;
+
+-- STAFF: can CRUD vehicles
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 2, p.id FROM permissions p
+
+-- TECHNICIAN: can only read any vehicle
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 3, p.id FROM permissions p
+WHERE p.resource = 'vehicle' AND p.action = 'read';
+
+-- CUSTOMER: can CRUD vehicles, but access is ownership-based
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 4, p.id FROM permissions p

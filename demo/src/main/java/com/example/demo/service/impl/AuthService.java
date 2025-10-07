@@ -17,6 +17,7 @@ import com.example.demo.service.interfaces.IPasswordService;
 import com.example.demo.service.interfaces.IVerificationCodeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,15 +28,18 @@ import java.time.LocalDateTime;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthService implements IAuthService {
-    private final UserRepo userRepo;
-    private final RoleRepo roleRepo;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+
     private final IVerificationCodeService verificationCodeService;
     private final IMailService mailService;
     private final IPasswordService passwordService;
     private final UserValidationService userValidationService;
+
+    private final UserRepo userRepo;
+    private final RoleRepo roleRepo;
     private final RefreshTokenRepo refreshTokenRepo;
+
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
@@ -172,7 +176,7 @@ public class AuthService implements IAuthService {
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
                 
         if (token.isRevoked() || token.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Refresh token is expired or revoked");
+            throw new TokenExpired();
         }
         
         User user = userRepo.findById(token.getUserId())
@@ -224,4 +228,5 @@ public class AuthService implements IAuthService {
                 .user(userInfo)
                 .build();
     }
+
 }

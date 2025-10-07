@@ -22,13 +22,16 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class PasswordService implements IPasswordService {
+
     private static final int TOKEN_EXPIRATION_HOURS = 24;
 
-    private final AppConfig appConfig;
+    private final IMailService mailService;
+
     private final UserRepo userRepo;
     private final ResetPasswordTokenRepo tokenRepo;
+
     private final PasswordEncoder passwordEncoder;
-    private final IMailService mailService;
+    private final AppConfig appConfig;
 
     @Override
     @Transactional

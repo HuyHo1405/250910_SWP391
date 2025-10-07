@@ -67,5 +67,11 @@ public class AuthRequest {
         @Size(min = 6, message = "New password must be at least 6 characters long")
         private String newPassword;
     }
+
+    @Data
+    public static class RefreshToken {
+        @NotBlank(message = "Refresh token is required")
+        private String refreshToken;
+    }
 }
 

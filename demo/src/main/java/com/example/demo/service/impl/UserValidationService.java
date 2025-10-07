@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserValidationService {
+
     private final UserRepo userRepo;
 
     public void checkEmailAndPhoneAvailability(String email, String phone) {
