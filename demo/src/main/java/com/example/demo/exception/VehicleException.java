@@ -8,7 +8,7 @@ public class VehicleException extends BaseServiceException {
         super(code, message, httpStatus);
     }
 
-    // --- SPECIFIC EXCEPTIONS ---
+    // --- VEHICLE EXCEPTIONS ---
 
     public static class VehicleAlreadyExists extends VehicleException {
         public VehicleAlreadyExists(String vin) {
@@ -42,11 +42,28 @@ public class VehicleException extends BaseServiceException {
         }
     }
 
+    // --- MODEL EXCEPTIONS ---
     public static class InvalidVehicleModel extends VehicleException {
         public InvalidVehicleModel(Long modelId) {
             super("INVALID_VEHICLE_MODEL",
                     "Vehicle model not found with ID '" + modelId + "'.",
                     HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public static class ModelAlreadyExists extends VehicleException {
+        public ModelAlreadyExists(String brandName, String modelName) {
+            super("MODEL_ALREADY_EXISTS",
+                    "Vehicle model '" + brandName + " " + modelName + "' already exists.",
+                    HttpStatus.CONFLICT);
+        }
+    }
+
+    public static class ModelInUse extends VehicleException {
+        public ModelInUse(Long id) {
+            super("MODEL_IN_USE",
+                    "Cannot delete vehicle model with ID: " + id + " as it is currently in use by vehicles.",
+                    HttpStatus.CONFLICT);
         }
     }
 }

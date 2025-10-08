@@ -1,16 +1,17 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.UserException;
-import com.example.demo.exception.UserException.UserNotFound;
 import com.example.demo.model.entity.User;
 import com.example.demo.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CurrentUserService {
 
     private final UserRepo userRepo;
@@ -21,7 +22,7 @@ public class CurrentUserService {
             throw new IllegalStateException("No authenticated user found");
         }
 
-        String email = auth.getName(); // từ JWT
+        String email = auth.getName();
         return userRepo.findByEmailAddress(email)
                 .orElseThrow(UserException.UserNotFound::new);
     }
@@ -34,31 +35,8 @@ public class CurrentUserService {
         return getCurrentUser().getEmailAddress();
     }
 
-    public boolean isStaffOrAdmin() {
+    public String getCurrentUserRole() {
         User user = getCurrentUser();
-        if (user == null) {
-            return false;
-        }
-        String roleName = user.getRole().getName().toUpperCase();
-        return "ADMIN".equals(roleName) || "STAFF".equals(roleName);
+        return user.getRole() != null ? user.getRole().getName() : null;
     }
-
-    public boolean isTechnician() {
-        User user = getCurrentUser();
-        if (user == null) {
-            return false;
-        }
-        String roleName = user.getRole().getName().toUpperCase();
-        return "TECHNICIAN".equals(roleName);
-    }
-
-    public boolean isCustomer() {
-        User user = getCurrentUser();
-        if (user == null) {
-            return false;
-        }
-        String roleName = user.getRole().getName().toUpperCase();
-        return "CUSTOMER".equals(roleName);
-    }
-
 }

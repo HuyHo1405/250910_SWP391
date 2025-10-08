@@ -1,95 +1,140 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.exception.AccessDeniedException;
 import com.example.demo.exception.VehicleException;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.entity.Vehicle;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Centralized access control service
- * Logic: ADMIN/STAFF have full access, CUSTOMER only access their own resources
+ * Centralized DYNAMIC access control service
+ * All authorization logic driven by database permissions
+ * NO HARD-CODED ROLES!
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AccessControlService {
 
     private final CurrentUserService currentUserService;
     private final PermissionService permissionService;
 
+    /**
+     * Verify vehicle access with ownership check
+     */
     public void verifyVehicleAccess(Vehicle vehicle, String action) {
-        verifyVehicleAccess(vehicle.getUser().getId(), action);
+        verifyResourceAccess(vehicle.getUser().getId(), "VEHICLE", action);
     }
 
+    /**
+     * Verify vehicle access by owner ID
+     */
     public void verifyVehicleAccess(Long ownerId, String action) {
-        User currentUser = currentUserService.getCurrentUser();
-
-        // Admin/Staff have full access - check by role first (fast path)
-        if (currentUserService.isStaffOrAdmin()) {
-            return;
-        }
-
-        // Technician can only READ
-        if (currentUserService.isTechnician()) {
-            if (!"read".equalsIgnoreCase(action)) {
-                throw new VehicleException.UnauthorizedAccess();
-            }
-            return;
-        }
-
-        // Customer can only access their own vehicles
-        if (currentUserService.isCustomer()) {
-            if (!currentUser.getId().equals(ownerId)) {
-                throw new VehicleException.UnauthorizedAccess();
-            }
-
-            // Additionally verify customer has the required permission
-            permissionService.checkPermission(currentUser, "VEHICLE", action);
-            return;
-        }
-
-        // Unknown role - deny by default
-        throw new VehicleException.UnauthorizedAccess();
+        verifyResourceAccess(ownerId, "VEHICLE", action);
     }
 
-    public void verifyAdminOrStaffAccess() {
-        if (!currentUserService.isStaffOrAdmin()) {
-            throw new VehicleException.UnauthorizedAccess();
-        }
+    /**
+     * Verify vehicle model access (no ownership)
+     */
+    public void verifyVehicleModelAccess(String action) {
+        verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", action);
     }
 
+    /**
+     * CORE METHOD: Dynamic resource access with ownership check
+     * All logic driven by database permissions
+     */
     public void verifyResourceAccess(Long resourceOwnerId, String resourceType, String action) {
         User currentUser = currentUserService.getCurrentUser();
 
-        // Admin/Staff have full access
-        if (currentUserService.isStaffOrAdmin()) {
-            return;
+        log.debug("Checking access: user={}, resource={}, action={}, owner={}",
+                currentUser.getId(), resourceType, action, resourceOwnerId);
+
+        // 1. Check if user has the required permission in database
+        if (!permissionService.hasPermission(currentUser, resourceType, action)) {
+            log.warn("Permission denied: user {} lacks {} permission on {}",
+                    currentUser.getId(), action, resourceType);
+            throw new VehicleException.UnauthorizedAccess();
         }
 
-        // Technician can only READ
-        if (currentUserService.isTechnician()) {
-            if (!"read".equalsIgnoreCase(action)) {
+        // 2. Check ownership if required (for non-admin/staff users)
+        if (requiresOwnershipCheck(currentUser) && resourceOwnerId != null) {
+            if (!currentUser.getId().equals(resourceOwnerId)) {
+                log.warn("Ownership check failed: user {} tried to {} resource owned by {}",
+                        currentUser.getId(), action, resourceOwnerId);
                 throw new VehicleException.UnauthorizedAccess();
             }
-            return;
         }
 
-        // Customer can only access their own resources
-        if (currentUserService.isCustomer()) {
-            if (!currentUser.getId().equals(resourceOwnerId)) {
-                throw new AccessDeniedException("Access denied. You can only " + action + " your own " + resourceType);
-            }
-
-            // Verify permission
-            permissionService.checkPermission(currentUser, resourceType, action);
-            return;
-        }
-
-        throw new AccessDeniedException("Access denied for resource: " + resourceType);
+        log.debug("Access granted: user {} can {} on {} (owner={})",
+                currentUser.getId(), action, resourceType, resourceOwnerId);
     }
 
+    /**
+     * CORE METHOD: Dynamic resource access WITHOUT ownership check
+     * For resources like models, lookups, etc. that don't have owners
+     */
+    public void verifyResourceAccessWithoutOwnership(String resourceType, String action) {
+        User currentUser = currentUserService.getCurrentUser();
+
+        log.debug("Checking access (no ownership): user={}, resource={}, action={}",
+                currentUser.getId(), resourceType, action);
+
+        // Only check permission, no ownership validation
+        if (!permissionService.hasPermission(currentUser, resourceType, action)) {
+            log.warn("Permission denied: user {} lacks {} permission on {}",
+                    currentUser.getId(), action, resourceType);
+            throw new VehicleException.UnauthorizedAccess();
+        }
+
+        log.debug("Access granted: user {} can {} on {}",
+                currentUser.getId(), action, resourceType);
+    }
+
+    /**
+     * Verify user can access ALL resources (requires bypass_ownership)
+     * Used for operations like getAllVehicles, getAllBookings, etc.
+     */
+    public void verifyCanAccessAllResources(String resourceType, String action) {
+        User currentUser = currentUserService.getCurrentUser();
+
+        log.debug("Checking access to ALL {}: user={}, action={}",
+                resourceType, currentUser.getId(), action);
+
+        // 1. Must have bypass_ownership permission
+        if (!permissionService.hasPermission(currentUser, "SYSTEM", "bypass_ownership")) {
+            log.warn("User {} lacks bypass_ownership, cannot access all {}",
+                    currentUser.getId(), resourceType);
+            throw new VehicleException.UnauthorizedAccess();
+        }
+
+        // 2. Must have the required permission on the resource
+        if (!permissionService.hasPermission(currentUser, resourceType, action)) {
+            log.warn("User {} lacks {} permission on {}",
+                    currentUser.getId(), action, resourceType);
+            throw new VehicleException.UnauthorizedAccess();
+        }
+
+        log.debug("Access granted: user {} can access ALL {} with {}",
+                currentUser.getId(), resourceType, action);
+    }
+
+
+    /**
+     * Check if current user is resource owner
+     */
     public boolean isResourceOwner(Long resourceOwnerId) {
         return currentUserService.getCurrentUserId().equals(resourceOwnerId);
+    }
+
+    /**
+     * Helper: Determine if ownership check is required
+     * Based on role privileges in database
+     */
+    private boolean requiresOwnershipCheck(User user) {
+        // Check if user has "bypass_ownership" privilege
+        // This can be a special permission in database
+        return !permissionService.hasPermission(user, "SYSTEM", "bypass_ownership");
     }
 }

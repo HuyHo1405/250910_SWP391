@@ -44,29 +44,90 @@ VALUES
 -- ================================
 -- Insert Vehicle Permissions
 -- ================================
-INSERT INTO permissions (resource, action, is_active) VALUES
-    ('vehicle', 'read', 1),
-    ('vehicle', 'create', 1),
-    ('vehicle', 'update', 1),
-    ('vehicle', 'delete', 1);
-
+INSERT INTO permissions (resource, action, is_active, description) VALUES
+   ('SYSTEM', 'bypass_ownership', 1, 'Bypass ownership checks for all resources'),
+   ('VEHICLE', 'read', 1, 'Read vehicles'),  -- ← THÊM description
+   ('VEHICLE', 'create', 1, 'Create vehicles'),  -- ← THÊM description
+   ('VEHICLE', 'update', 1, 'Update vehicles'),  -- ← THÊM description
+   ('VEHICLE', 'delete', 1, 'Delete vehicles'),  -- ← THÊM description
+   ('VEHICLE_MODEL', 'read', 1, 'Read vehicle models'),
+   ('VEHICLE_MODEL', 'create', 1, 'Create vehicle models'),
+   ('VEHICLE_MODEL', 'update', 1, 'Update vehicle models'),
+   ('VEHICLE_MODEL', 'delete', 1, 'Delete vehicle models');
 
 -- ================================
--- Role - Permission mapping
+-- Role - Permission Mapping
 -- ================================
--- ADMIN có tất cả quyền
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT 1, p.id FROM permissions p;
 
--- STAFF: can CRUD vehicles
+-- 1) ADMIN: grant ALL permissions
 INSERT INTO role_permissions (role_id, permission_id)
-SELECT 2, p.id FROM permissions p
+SELECT 1, p.id
+FROM permissions p
+WHERE NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 1 AND rp.permission_id = p.id
+);
 
--- TECHNICIAN: can only read any vehicle
+-- 2) STAFF: Grant bypass_ownership FIRST! ← FIX
 INSERT INTO role_permissions (role_id, permission_id)
-SELECT 3, p.id FROM permissions p
-WHERE p.resource = 'vehicle' AND p.action = 'read';
+SELECT 2, p.id
+FROM permissions p
+WHERE p.resource = 'SYSTEM'
+  AND p.action = 'bypass_ownership'
+  AND NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 2 AND rp.permission_id = p.id
+);
 
--- CUSTOMER: can CRUD vehicles, but access is ownership-based
+-- 2a) STAFF: VEHICLE all
 INSERT INTO role_permissions (role_id, permission_id)
-SELECT 4, p.id FROM permissions p
+SELECT 2, p.id
+FROM permissions p
+WHERE p.resource = 'VEHICLE'
+  AND NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 2 AND rp.permission_id = p.id
+);
+
+-- 2b) STAFF: VEHICLE_MODEL read/create/update (no delete)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 2, p.id
+FROM permissions p
+WHERE p.resource = 'VEHICLE_MODEL'
+  AND p.action IN ('read','create','update')
+  AND NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 2 AND rp.permission_id = p.id
+);
+
+-- 3) TECHNICIAN: VEHICLE + VEHICLE_MODEL read only
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 3, p.id
+FROM permissions p
+WHERE p.resource IN ('VEHICLE','VEHICLE_MODEL')
+  AND p.action = 'read'
+  AND NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 3 AND rp.permission_id = p.id
+);
+
+-- 4) CUSTOMER: VEHICLE all (NO bypass_ownership)
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 4, p.id
+FROM permissions p
+WHERE p.resource = 'VEHICLE'
+  AND NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 4 AND rp.permission_id = p.id
+);
+
+-- 4b) CUSTOMER: VEHICLE_MODEL read only
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 4, p.id
+FROM permissions p
+WHERE p.resource = 'VEHICLE_MODEL'
+  AND p.action = 'read'
+  AND NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 4 AND rp.permission_id = p.id
+);

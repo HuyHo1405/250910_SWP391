@@ -13,6 +13,7 @@ import com.example.demo.repo.VehicleModelRepo;
 import com.example.demo.repo.VehicleRepo;
 import com.example.demo.service.interfaces.IVehicleService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class VehicleService implements IVehicleService {
 
     private final AccessControlService accessControlService;
@@ -32,11 +34,13 @@ public class VehicleService implements IVehicleService {
     @Override
     @Transactional
     public VehicleResponse createVehicle(VehicleRequest.Create request) {
-        // 1. Validate business rules
-        validateVehicleUniqueness(request.getVin(), request.getPlateNumber());
+        log.info("Creating vehicle with VIN: {}", request.getVin());
 
-        // 2. Check access permission
-        accessControlService.verifyVehicleAccess(request.getUserId(), "create");
+        // 1. Check access permission (ownership-based for customers)
+        accessControlService.verifyResourceAccess(request.getUserId(), "VEHICLE", "create");
+
+        // 2. Validate business rules
+        validateVehicleUniqueness(request.getVin(), request.getPlateNumber());
 
         // 3. Fetch and validate related entities
         VehicleModel vehicleModel = getVehicleModelOrThrow(request.getVehicleModelId());
@@ -44,39 +48,52 @@ public class VehicleService implements IVehicleService {
 
         // 4. Create and save vehicle
         Vehicle vehicle = buildVehicle(request, user, vehicleModel);
-        return VehicleResponse.fromEntity(vehicleRepo.save(vehicle));
+        Vehicle saved = vehicleRepo.save(vehicle);
+
+        log.info("Vehicle created successfully with VIN: {}", saved.getVin());
+        return VehicleResponse.fromEntity(saved);
     }
 
     @Override
     @Transactional
     public VehicleResponse updateVehicle(String vin, VehicleRequest.Update request) {
+        log.info("Updating vehicle with VIN: {}", vin);
+
         // 1. Find vehicle
         Vehicle vehicle = getActiveVehicleOrThrow(vin);
 
-        // 2. Check access permission
-        accessControlService.verifyVehicleAccess(vehicle, "update");
+        // 2. Check access permission (ownership-based for customers)
+        accessControlService.verifyResourceAccess(vehicle.getUser().getId(), "VEHICLE", "update");
 
         // 3. Update fields
         updateVehicleFields(vehicle, request);
 
         // 4. Save and return
-        return VehicleResponse.fromEntity(vehicleRepo.save(vehicle));
+        Vehicle updated = vehicleRepo.save(vehicle);
+        log.info("Vehicle updated successfully with VIN: {}", vin);
+        return VehicleResponse.fromEntity(updated);
     }
 
     @Override
     @Transactional(readOnly = true)
     public VehicleResponse getVehicleByVin(String vin) {
+        log.info("Fetching vehicle with VIN: {}", vin);
+
         Vehicle vehicle = getActiveVehicleOrThrow(vin);
-        accessControlService.verifyVehicleAccess(vehicle, "read");
+
+        // Check access permission (ownership-based for customers)
+        accessControlService.verifyResourceAccess(vehicle.getUser().getId(), "VEHICLE", "read");
+
         return VehicleResponse.fromEntity(vehicle);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<VehicleResponse> getVehiclesByUser(Long userId) {
-        // Customer can only view their own vehicles
-        // Staff/Admin can view any user's vehicles
-        accessControlService.verifyVehicleAccess(userId, "read");
+        log.info("Fetching vehicles for user ID: {}", userId);
+
+        // Check access permission (ownership-based for customers)
+        accessControlService.verifyResourceAccess(userId, "VEHICLE", "read");
 
         return vehicleRepo.findByUserIdAndEntityStatus(userId, EntityStatus.ACTIVE)
                 .stream()
@@ -87,8 +104,9 @@ public class VehicleService implements IVehicleService {
     @Override
     @Transactional(readOnly = true)
     public List<VehicleResponse> getAllVehicles() {
-        // Only Staff/Admin can view all vehicles
-        accessControlService.verifyAdminOrStaffAccess();
+        log.info("Fetching all vehicles");
+
+        accessControlService.verifyCanAccessAllResources("VEHICLE", "read");
 
         return vehicleRepo.findAllByEntityStatus(EntityStatus.ACTIVE)
                 .stream()
@@ -96,19 +114,26 @@ public class VehicleService implements IVehicleService {
                 .collect(Collectors.toList());
     }
 
+
     @Override
     @Transactional
     public VehicleResponse deleteVehicle(String vin) {
+        log.info("Deleting vehicle with VIN: {}", vin);
+
         Vehicle vehicle = getActiveVehicleOrThrow(vin);
-        accessControlService.verifyVehicleAccess(vehicle, "delete");
+
+        // Check access permission (ownership-based for customers)
+        accessControlService.verifyResourceAccess(vehicle.getUser().getId(), "VEHICLE", "delete");
 
         vehicleRepo.softDelete(vin);
         vehicle.setEntityStatus(EntityStatus.INACTIVE);
 
+        log.info("Vehicle soft-deleted successfully with VIN: {}", vin);
         return VehicleResponse.fromEntity(vehicle);
     }
 
     // === Private Helper Methods ===
+
     private void validateVehicleUniqueness(String vin, String plateNumber) {
         if (vehicleRepo.existsByVinAndEntityStatus(vin, EntityStatus.ACTIVE)) {
             throw new VehicleException.VehicleAlreadyExists(vin);
