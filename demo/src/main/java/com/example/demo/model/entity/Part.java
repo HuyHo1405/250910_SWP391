@@ -6,13 +6,13 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "vehicle_models")
+@Table(name = "parts")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
-public class VehicleModel {
+public class Part {
 
     // ================================
     // COLUMNS - Database Fields
@@ -22,35 +22,23 @@ public class VehicleModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "brand_name", nullable = false, length = 255)
-    private String brandName;
+    @Column(name = "name", nullable = false, length = 255)
+    private String name;
 
-    @Column(name = "model_name", nullable = false, length = 255)
-    private String modelName;
+    @Column(name = "part_number", nullable = false)
+    private Integer partNumber;
 
-    @Column(name = "dimensions", length = 255)
-    private String dimensions;
+    @Column(name = "manufacturer", nullable = false, length = 255)
+    private String manufacturer;
 
-    @Column(name = "year_introduce", length = 4)
-    private String yearIntroduce;
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
-    @Column(name = "seats", nullable = false)
-    private Integer seats;
+    @Column(name = "current_unit_price", nullable = false)
+    private Double currentUnitPrice;
 
-    @Column(name = "battery_capacity_kwh")
-    private Double batteryCapacityKwh;
-
-    @Column(name = "range_km")
-    private Double rangeKm;
-
-    @Column(name = "charging_time_hours")
-    private Double chargingTimeHours;
-
-    @Column(name = "motor_power_kw")
-    private Double motorPowerKw;
-
-    @Column(name = "weight_kg")
-    private Double weightKg;
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
