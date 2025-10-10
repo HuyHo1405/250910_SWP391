@@ -1,7 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.exception.UserException;
-import com.example.demo.exception.VehicleException;
+import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.VehicleRequest;
 import com.example.demo.model.dto.VehicleResponse;
 import com.example.demo.model.entity.EntityStatus;
@@ -136,26 +135,26 @@ public class VehicleService implements IVehicleService {
 
     private void validateVehicleUniqueness(String vin, String plateNumber) {
         if (vehicleRepo.existsByVinAndEntityStatus(vin, EntityStatus.ACTIVE)) {
-            throw new VehicleException.VehicleAlreadyExists(vin);
+            throw new CommonException.AlreadyExists("Vehicle", "VIN", vin);
         }
         if (vehicleRepo.existsByPlateNumberAndEntityStatus(plateNumber, EntityStatus.ACTIVE)) {
-            throw new VehicleException.DuplicatePlateNumber(plateNumber);
+            throw new CommonException.AlreadyExists("Vehicle", "plate number", plateNumber);
         }
     }
 
     private Vehicle getActiveVehicleOrThrow(String vin) {
         return vehicleRepo.findByVinAndEntityStatus(vin, EntityStatus.ACTIVE)
-                .orElseThrow(() -> new VehicleException.VehicleNotFound(vin));
+                .orElseThrow(() -> new CommonException.NotFound("Vehicle", vin));
     }
 
     private User getUserOrThrow(Long userId) {
         return userRepo.findById(userId)
-                .orElseThrow(UserException.UserNotFound::new);
+                .orElseThrow(() -> new CommonException.NotFound("User", userId));
     }
 
     private VehicleModel getVehicleModelOrThrow(Long modelId) {
         return vehicleModelRepo.findById(modelId)
-                .orElseThrow(() -> new VehicleException.InvalidVehicleModel(modelId));
+                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model", modelId));
     }
 
     private Vehicle buildVehicle(VehicleRequest.Create request, User user, VehicleModel model) {
@@ -208,7 +207,7 @@ public class VehicleService implements IVehicleService {
 
     private void validatePlateNumberUniqueness(String plateNumber) {
         if (vehicleRepo.existsByPlateNumberAndEntityStatus(plateNumber, EntityStatus.ACTIVE)) {
-            throw new VehicleException.DuplicatePlateNumber(plateNumber);
+            throw new CommonException.AlreadyExists("Vehicle", "plate number", plateNumber);
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.exception.AuthException.*;
-import com.example.demo.exception.UserException.*;
+import com.example.demo.exception.AuthException;
+import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.*;
 import com.example.demo.model.entity.RefreshToken;
 import com.example.demo.repo.RefreshTokenRepo;
@@ -17,7 +17,6 @@ import com.example.demo.service.interfaces.IPasswordService;
 import com.example.demo.service.interfaces.IVerificationCodeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +50,7 @@ public class AuthService implements IAuthService {
                 registerRequest.getPhoneNumber());
 
         User savedUser = createAndSaveUser(registerRequest);
-        
+
         // Return simple success message
         return AuthResponse.builder()
                 .message("Registration successful. Please check your email for verification code.")
@@ -62,14 +61,14 @@ public class AuthService implements IAuthService {
     @Transactional
     public AuthResponse login(String email, String password) {
         User user = userRepo.findByEmailAddress(email)
-                .orElseThrow(UserNotFound::new);
+                .orElseThrow(() -> new CommonException.NotFound("User", email));
 
         if (user.getStatus() == EntityStatus.ARCHIVED) {
-            throw new AccountBlocked();
+            throw new AuthException.AccountBlocked();
         }
 
         if (!passwordEncoder.matches(password, user.getHashedPassword())) {
-            throw new InvalidCredentials();
+            throw new AuthException.InvalidCredentials();
         }
 
         if (user.getStatus() == EntityStatus.INACTIVE) {
@@ -84,14 +83,14 @@ public class AuthService implements IAuthService {
         }
 
         updateLoginTimestamp(user);
-        
+
         // Revoke all existing refresh tokens for this user
         refreshTokenRepo.revokeAllUserTokens(user.getId());
-        
+
         // Generate new tokens
         String accessToken = jwtUtil.generateToken(user);
         String refreshToken = createRefreshToken(user);
-        
+
         return buildAuthResponse(user, accessToken, refreshToken);
     }
 
@@ -102,7 +101,7 @@ public class AuthService implements IAuthService {
         String code = verifyRequest.getCode();
 
         User user = userRepo.findByEmailAddress(email)
-                .orElseThrow(UserNotFound::new);
+                .orElseThrow(() -> new CommonException.NotFound("User", email));
 
         verificationCodeService.verifyCode(user, code);
 
@@ -110,11 +109,11 @@ public class AuthService implements IAuthService {
         user.setStatus(EntityStatus.ACTIVE);
         user.setUpdateAt(LocalDateTime.now());
         userRepo.save(user);
-        
+
         // Generate tokens
         String accessToken = jwtUtil.generateToken(user);
         String refreshToken = createRefreshToken(user);
-        
+
         return buildAuthResponse(user, accessToken, refreshToken);
     }
 
@@ -125,7 +124,7 @@ public class AuthService implements IAuthService {
 
         // Find the refresh token
         RefreshToken refreshToken = refreshTokenRepo.findByToken(refreshTokenStr)
-                .orElseThrow(InvalidToken::new);
+                .orElseThrow(AuthException.InvalidToken::new);
 
         // Revoke the token
         refreshToken.setRevoked(true);
@@ -150,7 +149,7 @@ public class AuthService implements IAuthService {
     // Helper methods
     private User createAndSaveUser(AuthRequest.Register request) {
         Role customerRole = roleRepo.findByName("CUSTOMER")
-                .orElseThrow(RoleNotFound::new);
+                .orElseThrow(() -> new CommonException.NotFound("Role", "CUSTOMER"));
 
         User newUser = User.builder()
                 .fullName(request.getFullName())
@@ -173,29 +172,29 @@ public class AuthService implements IAuthService {
     @Transactional
     public AuthResponse refreshToken(String refreshToken) {
         RefreshToken token = refreshTokenRepo.findByToken(refreshToken)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
-                
+                .orElseThrow(AuthException.InvalidToken::new);
+
         if (token.isRevoked() || token.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new TokenExpired();
+            throw new AuthException.TokenExpired();
         }
-        
+
         User user = userRepo.findById(token.getUserId())
-                .orElseThrow(UserNotFound::new);
-                
+                .orElseThrow(() -> new CommonException.NotFound("User", token.getUserId()));
+
         if (user.getStatus() != EntityStatus.ACTIVE) {
-            throw new AccountBlocked();
+            throw new AuthException.AccountBlocked();
         }
-        
+
         // Generate new tokens
         String newAccessToken = jwtUtil.generateToken(user);
         String newRefreshToken = createRefreshToken(user);
-        
+
         // Revoke the old refresh token
         refreshTokenRepo.revokeAllUserTokens(user.getId());
-        
+
         return buildAuthResponse(user, newAccessToken, newRefreshToken);
     }
-    
+
     private String createRefreshToken(User user) {
         RefreshToken refreshToken = RefreshToken.builder()
                 .userId(user.getId())
@@ -203,11 +202,11 @@ public class AuthService implements IAuthService {
                 .expiryDate(LocalDateTime.now().plusDays(7)) // 7 days expiry
                 .revoked(false)
                 .build();
-                
+
         refreshToken = refreshTokenRepo.save(refreshToken);
         return refreshToken.getToken();
     }
-    
+
     private AuthResponse buildAuthResponse(User user, String accessToken, String refreshToken) {
         AuthResponse.UserInfo userInfo = AuthResponse.UserInfo.builder()
                 .id(user.getId())

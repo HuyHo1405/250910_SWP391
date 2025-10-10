@@ -3,43 +3,64 @@ package com.example.demo.exception;
 import jakarta.validation.ConstraintViolationException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.context.request.WebRequest;
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+            DataIntegrityViolationException ex,
+            WebRequest request) {
+
         String message = "Data integrity violation";
-        if (ex.getCause() instanceof ConstraintViolationException) {
-            ConstraintViolationException cve = (ConstraintViolationException) ex.getCause();
+        if (ex.getCause() instanceof ConstraintViolationException cve) {
             message = cve.getMessage();
         }
+
         log.warn("Data integrity violation: {}", message);
+
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse("DATA_INTEGRITY_VIOLATION", message));
+                .body(new ErrorResponse(
+                        "DATA_INTEGRITY_VIOLATION",
+                        message,
+                        LocalDateTime.now(),
+                        request.getDescription(false)
+                ));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            AccessDeniedException ex,
+            WebRequest request) {
+
         log.warn("Access denied: {}", ex.getMessage());
+
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(new ErrorResponse("ACCESS_DENIED", "You don't have permission to perform this action"));
+                .body(new ErrorResponse(
+                        "ACCESS_DENIED",
+                        "You don't have permission to perform this action",
+                        LocalDateTime.now(),
+                        request.getDescription(false)
+                ));
     }
 
-    // Handle validation exception
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
-        // Lấy field lỗi đầu tiên hoặc gom hết lỗi vào danh sách
+    public ResponseEntity<ErrorResponse> handleValidationException(
+            MethodArgumentNotValidException ex,
+            WebRequest request) {
+
         String errorMsg = ex.getBindingResult().getFieldErrors()
                 .stream()
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
@@ -49,23 +70,46 @@ public class GlobalExceptionHandler {
         log.warn("Validation failed: {}", errorMsg);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse("INVALID_INPUT", errorMsg));
+                .body(new ErrorResponse(
+                        "INVALID_INPUT",
+                        errorMsg,
+                        LocalDateTime.now(),
+                        request.getDescription(false)
+                ));
     }
 
-    // Handle tất cả exception từ service
+    // Handle tất cả DomainException (CommonException, AuthException, VehicleException, BookingException, etc.)
     @ExceptionHandler(BaseServiceException.class)
-    public ResponseEntity<ErrorResponse> handleServiceException(BaseServiceException ex) {
-        log.error("Service error occurred: {} - {}", ex.getCode(), ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleDomainException(
+            BaseServiceException ex,
+            WebRequest request) {
+
+        log.error("Domain error occurred: {} - {}", ex.getCode(), ex.getMessage());
+
         return ResponseEntity.status(ex.getHttpStatus())
-                .body(new ErrorResponse(ex.getCode(), ex.getMessage()));
+                .body(new ErrorResponse(
+                        ex.getCode(),
+                        ex.getMessage(),
+                        LocalDateTime.now(),
+                        request.getDescription(false)
+                ));
     }
 
     // Catch-all cho exception bất ngờ
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleAllExceptions(
+            Exception ex,
+            WebRequest request) {
+
         log.error("Unexpected error occurred: ", ex);
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse("INTERNAL_ERROR", "An unexpected error occurred"));
+                .body(new ErrorResponse(
+                        "INTERNAL_ERROR",
+                        "An unexpected error occurred",
+                        LocalDateTime.now(),
+                        request.getDescription(false)
+                ));
     }
 }
 
@@ -74,4 +118,6 @@ public class GlobalExceptionHandler {
 class ErrorResponse {
     private final String code;
     private final String message;
+    private final LocalDateTime timestamp;
+    private final String path;
 }

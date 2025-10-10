@@ -1,12 +1,12 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.exception.CommonException;
 import com.example.demo.exception.UserException;
 import com.example.demo.model.entity.Permission;
 import com.example.demo.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -24,7 +24,7 @@ public class PermissionService {
     @Cacheable(value = "permissions", key = "#user.id + ':' + #resource + ':' + #action")
     public boolean hasPermission(User user, String resource, String action) {
         if (user.getRole() == null) {
-            throw new UserException.RoleNotFound();
+            throw new CommonException.NotFound("Role", "user role");
         }
 
         boolean hasPermission = user.getRole().getPermissions().stream()
@@ -47,9 +47,7 @@ public class PermissionService {
         if (!hasPermission(user, resource, action)) {
             log.warn("Access denied: user {} lacks {} permission on {}",
                     user.getId(), action, resource);
-            throw new AccessDeniedException(
-                    "Access denied. Required permission: " + action + " on " + resource
-            );
+            throw new UserException.InsufficientPermissions();
         }
     }
 
@@ -83,7 +81,7 @@ public class PermissionService {
     @Cacheable(value = "userPermissions", key = "#user.id + ':' + #resource")
     public Set<String> getUserPermissions(User user, String resource) {
         if (user.getRole() == null) {
-            throw new UserException.RoleNotFound();
+            throw new CommonException.NotFound("Role", "user role");
         }
 
         return user.getRole().getPermissions().stream()

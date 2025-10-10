@@ -5,9 +5,8 @@ import com.example.demo.model.entity.EntityStatus;
 import com.example.demo.model.entity.User;
 import com.example.demo.repo.UserRepo;
 import com.example.demo.service.interfaces.IUserProfileService;
-import com.example.demo.exception.UserException;
+import com.example.demo.exception.CommonException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +26,7 @@ public class UserProfileService implements IUserProfileService {
     @Override
     public UserDTO getProfileById(Long userId) {
         User user = userRepo.findById(userId)
-            .orElseThrow(() -> new UserException("USER_NOT_FOUND", "User not found with ID: " + userId, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CommonException.NotFound("User", userId));
 
         return convertToDTO(user);
     }
@@ -35,16 +34,16 @@ public class UserProfileService implements IUserProfileService {
     public List<UserDTO> getAllProfiles() {
         List<User> users = userRepo.findAll();
         return users.stream()
-            .map(this::convertToDTO)
-            .toList();
+                .map(this::convertToDTO)
+                .toList();
     }
 
     public List<UserDTO> getActiveProfiles() {
         return userRepo.findByStatus(EntityStatus.ACTIVE, null)
-            .getContent()
-            .stream()
-            .map(this::convertToDTO)
-            .toList();
+                .getContent()
+                .stream()
+                .map(this::convertToDTO)
+                .toList();
     }
 
     // ========== UPDATE ==========
@@ -52,7 +51,7 @@ public class UserProfileService implements IUserProfileService {
     @Override
     public void updateProfile(Long userId, String fullName, String email, String phoneNumber) {
         User user = userRepo.findById(userId)
-            .orElseThrow(() -> new UserException("USER_NOT_FOUND", "User not found with ID: " + userId, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CommonException.NotFound("User", userId));
 
         // Update fields if provided
         if (fullName != null && !fullName.trim().isEmpty()) {
@@ -62,7 +61,7 @@ public class UserProfileService implements IUserProfileService {
             // Check if email already exists for another user
             Optional<User> existingUser = userRepo.findByEmailAddress(email);
             if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
-                throw new UserException("EMAIL_ALREADY_EXISTS", "Email already exists: " + email, HttpStatus.CONFLICT);
+                throw new CommonException.AlreadyExists("User", "email", email);
             }
             user.setEmailAddress(email.trim());
         }
@@ -70,7 +69,7 @@ public class UserProfileService implements IUserProfileService {
             // Check if phone number already exists for another user
             Optional<User> existingUser = userRepo.findByPhoneNumber(phoneNumber);
             if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
-                throw new UserException("PHONE_ALREADY_EXISTS", "Phone number already exists: " + phoneNumber, HttpStatus.CONFLICT);
+                throw new CommonException.AlreadyExists("User", "phone number", phoneNumber);
             }
             user.setPhoneNumber(phoneNumber.trim());
         }
@@ -81,7 +80,7 @@ public class UserProfileService implements IUserProfileService {
 
     public UserDTO updateCompleteProfile(Long userId, UserDTO userDTO) {
         User user = userRepo.findById(userId)
-            .orElseThrow(() -> new UserException("USER_NOT_FOUND", "User not found with ID: " + userId, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CommonException.NotFound("User", userId));
 
         // Update all fields
         user.setFullName(userDTO.getFullName());
@@ -98,7 +97,7 @@ public class UserProfileService implements IUserProfileService {
     @Override
     public void deleteProfile(Long userId, String fullName, String email, String phoneNumber) {
         User user = userRepo.findById(userId)
-            .orElseThrow(() -> new UserException("USER_NOT_FOUND", "User not found with ID: " + userId, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CommonException.NotFound("User", userId));
 
         // Selective deletion - clear specific fields if provided
         if (fullName != null) {
@@ -123,7 +122,7 @@ public class UserProfileService implements IUserProfileService {
     // Delete user by ID (hard delete)
     public void deleteProfileById(Long userId) {
         if (!userRepo.existsById(userId)) {
-            throw new UserException("USER_NOT_FOUND", "User not found with ID: " + userId, HttpStatus.NOT_FOUND);
+            throw new CommonException.NotFound("User", userId);
         }
         userRepo.deleteById(userId);
     }
@@ -131,7 +130,7 @@ public class UserProfileService implements IUserProfileService {
     // Soft delete - set status to INACTIVE
     public void softDeleteProfile(Long userId) {
         User user = userRepo.findById(userId)
-            .orElseThrow(() -> new UserException("USER_NOT_FOUND", "User not found with ID: " + userId, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CommonException.NotFound("User", userId));
 
         user.setStatus(EntityStatus.INACTIVE);
         user.setUpdateAt(LocalDateTime.now());
@@ -164,7 +163,7 @@ public class UserProfileService implements IUserProfileService {
     @Override
     public void manageProfileStatus(Long userId, String action) {
         User user = userRepo.findById(userId)
-            .orElseThrow(() -> new UserException("USER_NOT_FOUND", "User not found with ID: " + userId, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CommonException.NotFound("User", userId));
 
         switch (action.toUpperCase()) {
             case "ACTIVATE":
@@ -177,7 +176,7 @@ public class UserProfileService implements IUserProfileService {
                 userRepo.deleteById(userId);
                 return;
             default:
-                throw new UserException("INVALID_ACTION", "Invalid action: " + action, HttpStatus.BAD_REQUEST);
+                throw new CommonException.InvalidOperation("Invalid action: " + action);
         }
 
         user.setUpdateAt(LocalDateTime.now());
@@ -188,21 +187,21 @@ public class UserProfileService implements IUserProfileService {
 
     private UserDTO convertToDTO(User user) {
         return UserDTO.builder()
-            .id(user.getId())
-            .email(user.getEmailAddress())
-            .fullName(user.getFullName())
-            .phoneNumber(user.getPhoneNumber())
-            .role(user.getRole().getName())
-            .status(user.getStatus().name())
-            .createdAt(user.getCreatedAt())
-            .lastLogin(user.getLoginAt())
-            .build();
+                .id(user.getId())
+                .email(user.getEmailAddress())
+                .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .role(user.getRole().getName())
+                .status(user.getStatus().name())
+                .createdAt(user.getCreatedAt())
+                .lastLogin(user.getLoginAt())
+                .build();
     }
 
     // Restore deleted fields
     public void restoreProfile(Long userId, String fullName, String email, String phoneNumber) {
         User user = userRepo.findById(userId)
-            .orElseThrow(() -> new UserException("USER_NOT_FOUND", "User not found with ID: " + userId, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new CommonException.NotFound("User", userId));
 
         if (fullName != null && !fullName.trim().isEmpty()) {
             user.setFullName(fullName.trim());

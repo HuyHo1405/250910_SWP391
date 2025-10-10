@@ -1,8 +1,8 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.config.AppConfig;
-import com.example.demo.exception.AuthException.InvalidToken;
-import com.example.demo.exception.UserException.UserNotFound;
+import com.example.demo.exception.AuthException;
+import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.AuthRequest;
 import com.example.demo.model.dto.AuthResponse;
 import com.example.demo.model.entity.ResetPasswordToken;
@@ -38,7 +38,7 @@ public class PasswordService implements IPasswordService {
     public AuthResponse forgotPassword(AuthRequest.ForgotPassword request) {
         // Find user by email
         User user = userRepo.findByEmailAddress(request.getEmailAddress())
-                .orElseThrow(UserNotFound::new);
+                .orElseThrow(() -> new CommonException.NotFound("User", request.getEmailAddress()));
 
         // Generate token
         String token = UUID.randomUUID().toString();
@@ -70,16 +70,16 @@ public class PasswordService implements IPasswordService {
     public AuthResponse resetPassword(AuthRequest.ResetPassword request) {
         // Find the token
         ResetPasswordToken token = tokenRepo.findByToken(request.getToken())
-                .orElseThrow(InvalidToken::new);
+                .orElseThrow(AuthException.InvalidToken::new);
 
         // Validate token
         if (token.isRevoked() || token.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token has expired or is no longer valid");
+            throw new AuthException.TokenExpired();
         }
 
         // Find user
         User user = userRepo.findById(token.getUserId())
-                .orElseThrow(UserNotFound::new);
+                .orElseThrow(() -> new CommonException.NotFound("User", token.getUserId()));
 
         // Update password
         user.setHashedPassword(passwordEncoder.encode(request.getNewPassword()));

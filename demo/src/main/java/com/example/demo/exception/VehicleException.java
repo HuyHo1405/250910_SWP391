@@ -8,62 +8,37 @@ public class VehicleException extends BaseServiceException {
         super(code, message, httpStatus);
     }
 
-    // --- VEHICLE EXCEPTIONS ---
-
-    public static class VehicleAlreadyExists extends VehicleException {
-        public VehicleAlreadyExists(String vin) {
-            super("VEHICLE_EXISTS",
-                    "A vehicle with VIN '" + vin + "' already exists.",
-                    HttpStatus.CONFLICT);
-        }
-    }
-
-    public static class DuplicatePlateNumber extends VehicleException {
-        public DuplicatePlateNumber(String plateNumber) {
-            super("DUPLICATE_PLATE_NUMBER",
-                    "The plate number '" + plateNumber + "' is already in use.",
-                    HttpStatus.CONFLICT);
-        }
-    }
-
-    public static class UnauthorizedAccess extends VehicleException {
-        public UnauthorizedAccess() {
-            super("UNAUTHORIZED_ACCESS",
-                    "You are not authorized to perform this action.",
-                    HttpStatus.FORBIDDEN);
-        }
-    }
-
-    public static class VehicleNotFound extends VehicleException {
-        public VehicleNotFound(String vin) {
-            super("VEHICLE_NOT_FOUND",
-                    "Vehicle not found with VIN '" + vin + "'.",
-                    HttpStatus.NOT_FOUND);
-        }
-    }
-
-    // --- MODEL EXCEPTIONS ---
-    public static class InvalidVehicleModel extends VehicleException {
-        public InvalidVehicleModel(Long modelId) {
-            super("INVALID_VEHICLE_MODEL",
-                    "Vehicle model not found with ID '" + modelId + "'.",
-                    HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    public static class ModelAlreadyExists extends VehicleException {
-        public ModelAlreadyExists(String brandName, String modelName) {
-            super("MODEL_ALREADY_EXISTS",
-                    "Vehicle model '" + brandName + " " + modelName + "' already exists.",
-                    HttpStatus.CONFLICT);
-        }
-    }
+    // ================================
+    // BUSINESS RULES
+    // ================================
 
     public static class ModelInUse extends VehicleException {
-        public ModelInUse(Long id) {
-            super("MODEL_IN_USE",
-                    "Cannot delete vehicle model with ID: " + id + " as it is currently in use by vehicles.",
-                    HttpStatus.CONFLICT);
+        public ModelInUse(Long modelId) {
+            super(
+                    "MODEL_IN_USE",
+                    String.format("Cannot delete vehicle model %d - it is in use by vehicles", modelId),
+                    HttpStatus.CONFLICT
+            );
+        }
+    }
+
+    public static class InvalidOwnership extends VehicleException {
+        public InvalidOwnership() {
+            super(
+                    "INVALID_OWNERSHIP",
+                    "You don't own this vehicle",
+                    HttpStatus.FORBIDDEN
+            );
+        }
+    }
+
+    public static class InvalidVehicleStatus extends VehicleException {
+        public InvalidVehicleStatus(String status) {
+            super(
+                    "INVALID_VEHICLE_STATUS",
+                    String.format("Cannot perform operation on vehicle with status: %s", status),
+                    HttpStatus.BAD_REQUEST
+            );
         }
     }
 }

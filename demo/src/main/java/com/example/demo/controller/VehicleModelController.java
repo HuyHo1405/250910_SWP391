@@ -4,6 +4,7 @@ import com.example.demo.model.dto.VehicleModelRequest;
 import com.example.demo.model.dto.VehicleModelResponse;
 import com.example.demo.model.entity.EntityStatus;
 import com.example.demo.service.interfaces.IVehicleModelService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vehicle-models")
 @RequiredArgsConstructor
+@Tag(name = "Vehicle Model")
 public class VehicleModelController {
 
     private final IVehicleModelService vehicleModelService;

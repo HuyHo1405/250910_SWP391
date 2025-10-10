@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.exception.AuthException.EmailSendFailed;
+import com.example.demo.exception.AuthException;
 import com.example.demo.service.interfaces.IMailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -66,7 +66,7 @@ public class MailService implements IMailService {
             log.info("Email sent to: {} | subject: {}", toEmail, subject);
         } catch (MessagingException e) {
             log.error("Failed to send email to: {} | subject: {}", toEmail, subject, e);
-            throw new EmailSendFailed();
+            throw new AuthException.EmailSendFailed();
         }
     }
 }

@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.model.dto.UserDTO;
 import com.example.demo.service.interfaces.IUserProfileService;
 import com.example.demo.security.JwtUtil;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/userprofile")
+@Tag(name = "User Profile")
 @RequiredArgsConstructor
 public class UserProfileController {
     private final IUserProfileService userProfileService;
