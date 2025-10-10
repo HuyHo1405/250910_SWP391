@@ -1,6 +1,7 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.exception.VehicleException;
+import com.example.demo.exception.CommonException;
+import com.example.demo.exception.UserException;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.entity.Vehicle;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +56,8 @@ public class AccessControlService {
         if (!permissionService.hasPermission(currentUser, resourceType, action)) {
             log.warn("Permission denied: user {} lacks {} permission on {}",
                     currentUser.getId(), action, resourceType);
-            throw new VehicleException.UnauthorizedAccess();
+            // ✅ Sửa: Dùng UserException thay vì VehicleException
+            throw new UserException.InsufficientPermissions();
         }
 
         // 2. Check ownership if required (for non-admin/staff users)
@@ -63,7 +65,10 @@ public class AccessControlService {
             if (!currentUser.getId().equals(resourceOwnerId)) {
                 log.warn("Ownership check failed: user {} tried to {} resource owned by {}",
                         currentUser.getId(), action, resourceOwnerId);
-                throw new VehicleException.UnauthorizedAccess();
+                // ✅ Sửa: Dùng CommonException.Forbidden thay vì VehicleException
+                throw new CommonException.Forbidden(
+                        "You are not authorized to access this resource"
+                );
             }
         }
 
@@ -85,7 +90,8 @@ public class AccessControlService {
         if (!permissionService.hasPermission(currentUser, resourceType, action)) {
             log.warn("Permission denied: user {} lacks {} permission on {}",
                     currentUser.getId(), action, resourceType);
-            throw new VehicleException.UnauthorizedAccess();
+            // ✅ Sửa: Dùng UserException thay vì VehicleException
+            throw new UserException.InsufficientPermissions();
         }
 
         log.debug("Access granted: user {} can {} on {}",
@@ -106,20 +112,21 @@ public class AccessControlService {
         if (!permissionService.hasPermission(currentUser, "SYSTEM", "bypass_ownership")) {
             log.warn("User {} lacks bypass_ownership, cannot access all {}",
                     currentUser.getId(), resourceType);
-            throw new VehicleException.UnauthorizedAccess();
+            // ✅ Sửa: Dùng UserException thay vì VehicleException
+            throw new UserException.InsufficientPermissions();
         }
 
         // 2. Must have the required permission on the resource
         if (!permissionService.hasPermission(currentUser, resourceType, action)) {
             log.warn("User {} lacks {} permission on {}",
                     currentUser.getId(), action, resourceType);
-            throw new VehicleException.UnauthorizedAccess();
+            // ✅ Sửa: Dùng UserException thay vì VehicleException
+            throw new UserException.InsufficientPermissions();
         }
 
         log.debug("Access granted: user {} can access ALL {} with {}",
                 currentUser.getId(), resourceType, action);
     }
-
 
     /**
      * Check if current user is resource owner

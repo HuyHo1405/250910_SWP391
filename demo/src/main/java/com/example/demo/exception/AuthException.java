@@ -8,7 +8,10 @@ public class AuthException extends BaseServiceException {
         super(code, message, httpStatus);
     }
 
-    // Token & Credentials
+    // ================================
+    // AUTHENTICATION
+    // ================================
+
     public static class InvalidCredentials extends AuthException {
         public InvalidCredentials() {
             super("INVALID_CREDENTIALS", "Invalid username or password", HttpStatus.UNAUTHORIZED);
@@ -17,7 +20,7 @@ public class AuthException extends BaseServiceException {
 
     public static class InvalidToken extends AuthException {
         public InvalidToken() {
-            super("INVALID_TOKEN", "Token is invalid or expired", HttpStatus.BAD_REQUEST);
+            super("INVALID_TOKEN", "Token is invalid or expired", HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -27,43 +30,51 @@ public class AuthException extends BaseServiceException {
         }
     }
 
-    // Verification code
+    // ================================
+    // VERIFICATION CODE
+    // ================================
+
+    public static class CodeExpired extends AuthException {
+        public CodeExpired() {
+            super("CODE_EXPIRED", "Verification code has expired", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public static class CodeInvalid extends AuthException {
+        public CodeInvalid() {
+            super("CODE_INVALID", "Verification code is invalid", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     public static class CodeGenerationFailed extends AuthException {
         public CodeGenerationFailed() {
             super("CODE_GENERATION_FAILED", "Failed to generate verification code", HttpStatus.SERVICE_UNAVAILABLE);
         }
     }
 
-    public static class VerificationCodeExpired extends AuthException {
-        public VerificationCodeExpired() {
-            super("CODE_EXPIRED", "Verification code has expired", HttpStatus.BAD_REQUEST);
-        }
-    }
+    // ================================
+    // EMAIL
+    // ================================
 
-    public static class VerificationCodeInvalid extends AuthException {
-        public VerificationCodeInvalid() {
-            super("CODE_INVALID", "Verification code is invalid", HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    // Mail
     public static class EmailSendFailed extends AuthException {
         public EmailSendFailed() {
             super("EMAIL_SEND_FAILED", "Failed to send email", HttpStatus.SERVICE_UNAVAILABLE);
         }
     }
 
-    // Account status
-    public static class UnverifiedAccount extends AuthException {
-        public UnverifiedAccount() {
-            super("UNVERIFIED_ACCOUNT", "Please verify your email address", HttpStatus.FORBIDDEN);
+    // ================================
+    // ACCOUNT STATUS
+    // ================================
+
+    public static class AccountUnverified extends AuthException {
+        public AccountUnverified() {
+            super("ACCOUNT_UNVERIFIED", "Please verify your email", HttpStatus.FORBIDDEN);
         }
     }
 
     public static class AccountBlocked extends AuthException {
         public AccountBlocked() {
-            super("ACCOUNT_BLOCKED", "This account is blocked", HttpStatus.FORBIDDEN);
+            super("ACCOUNT_BLOCKED", "Account is blocked", HttpStatus.FORBIDDEN);
         }
     }
-
 }

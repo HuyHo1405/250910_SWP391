@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.exception.UserException;
+import com.example.demo.exception.CommonException;
 import com.example.demo.model.entity.User;
 import com.example.demo.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class CurrentUserService {
 
         String email = auth.getName();
         return userRepo.findByEmailAddress(email)
-                .orElseThrow(UserException.UserNotFound::new);
+                .orElseThrow(() -> new CommonException.NotFound("User", email));
     }
 
     public Long getCurrentUserId() {

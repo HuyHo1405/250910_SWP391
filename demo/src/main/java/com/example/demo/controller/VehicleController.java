@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.model.dto.VehicleRequest;
 import com.example.demo.model.dto.VehicleResponse;
 import com.example.demo.service.interfaces.IVehicleService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vehicles")
 @RequiredArgsConstructor
+@Tag(name = "Vehicle")
 public class VehicleController {
 
     private final IVehicleService vehicleService;

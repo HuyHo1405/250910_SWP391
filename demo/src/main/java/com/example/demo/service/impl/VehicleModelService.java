@@ -1,5 +1,6 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.exception.CommonException;
 import com.example.demo.exception.VehicleException;
 import com.example.demo.model.dto.VehicleModelRequest;
 import com.example.demo.model.dto.VehicleModelResponse;
@@ -34,7 +35,8 @@ public class VehicleModelService implements IVehicleModelService {
 
         // Check if model already exists
         if (vehicleModelRepo.existsByBrandNameAndModelName(request.getBrandName(), request.getModelName())) {
-            throw new VehicleException.ModelAlreadyExists(request.getBrandName(), request.getModelName());
+            throw new CommonException.AlreadyExists("Vehicle Model", "brand and model",
+                    request.getBrandName() + " " + request.getModelName());
         }
 
         VehicleModel vehicleModel = VehicleModel.builder()
@@ -66,13 +68,14 @@ public class VehicleModelService implements IVehicleModelService {
         accessControlService.verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", "update");
 
         VehicleModel vehicleModel = vehicleModelRepo.findById(id)
-                .orElseThrow(() -> new VehicleException.InvalidVehicleModel(id));
+                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model", id));
 
         // Check if updating to a name that already exists (excluding current model)
         vehicleModelRepo.findByBrandNameAndModelName(request.getBrandName(), request.getModelName())
                 .ifPresent(existing -> {
                     if (!existing.getId().equals(id)) {
-                        throw new VehicleException.ModelAlreadyExists(request.getBrandName(), request.getModelName());
+                        throw new CommonException.AlreadyExists("Vehicle Model", "brand and model",
+                                request.getBrandName() + " " + request.getModelName());
                     }
                 });
 
@@ -102,7 +105,7 @@ public class VehicleModelService implements IVehicleModelService {
         accessControlService.verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", "read");
 
         VehicleModel vehicleModel = vehicleModelRepo.findById(id)
-                .orElseThrow(() -> new VehicleException.InvalidVehicleModel(id));
+                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model", id));
 
         return mapToResponse(vehicleModel);
     }
@@ -155,7 +158,7 @@ public class VehicleModelService implements IVehicleModelService {
         accessControlService.verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", "delete");
 
         if (!vehicleModelRepo.existsById(id)) {
-            throw new VehicleException.InvalidVehicleModel(id);
+            throw new CommonException.NotFound("Vehicle Model", id);
         }
 
         // Optional: Check if model is in use before deletion

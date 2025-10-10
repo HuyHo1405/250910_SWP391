@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.exception.AuthException.*;
+import com.example.demo.exception.AuthException;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.entity.VerificationCode;
 import com.example.demo.repo.VerificationCodeRepo;
@@ -48,7 +48,7 @@ public class VerificationCodeService implements IVerificationCodeService {
 
         } catch (Exception e) {
             log.error("Failed to generate and save verification code for user: {}", user.getEmailAddress(), e);
-            throw new CodeGenerationFailed();
+            throw new AuthException.CodeGenerationFailed();
         }
     }
 
@@ -56,15 +56,15 @@ public class VerificationCodeService implements IVerificationCodeService {
     @Transactional
     public void verifyCode(User user, String code) {
         VerificationCode verificationCode = verificationCodeRepo
-                    .findValidVerificationCode(user, code, LocalDateTime.now())
-                    .orElseThrow(VerificationCodeInvalid::new);
+                .findValidVerificationCode(user, code, LocalDateTime.now())
+                .orElseThrow(() -> new AuthException.CodeInvalid());
 
         if (verificationCode.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new VerificationCodeExpired();
+            throw new AuthException.CodeExpired();
         }
 
         if (verificationCode.isUsed()) {
-            throw new VerificationCodeInvalid();
+            throw new AuthException.CodeInvalid();
         }
 
         // Mark code as used
