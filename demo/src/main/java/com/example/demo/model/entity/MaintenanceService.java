@@ -7,13 +7,13 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "services")
+@Table(name = "maintenance_services")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Service {
+public class MaintenanceService {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

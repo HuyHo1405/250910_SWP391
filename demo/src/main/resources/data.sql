@@ -42,9 +42,9 @@ VALUES
     ('51C-77777', 'White', '5YJSA1E26HF123003', 5, 3, 'INACTIVE', GETDATE(), GETDATE());
 
 -- ================================
--- Insert Services
+-- Insert Maintenance Services
 -- ================================
-INSERT INTO services (name, description, est_time_hours, current_price, status, created_at)
+INSERT INTO maintenance_services (name, description, est_time_hours, current_price, status, created_at)
 VALUES
     ('Battery Inspection', 'Complete battery health check and diagnostics', 1.0, 150000, 'ACTIVE', GETDATE()),
     ('Tire Rotation', 'Rotate all four tires for even wear', 0.5, 80000, 'ACTIVE', GETDATE()),
@@ -60,6 +60,9 @@ VALUES
 -- ================================
 -- Insert Vehicle Permissions
 -- ================================
+-- ================================
+-- Insert Permissions
+-- ================================
 INSERT INTO permissions (resource, action, is_active, description) VALUES
    ('SYSTEM', 'bypass_ownership', 1, 'Bypass ownership checks for all resources'),
    ('VEHICLE', 'read', 1, 'Read vehicles'),
@@ -69,7 +72,11 @@ INSERT INTO permissions (resource, action, is_active, description) VALUES
    ('VEHICLE_MODEL', 'read', 1, 'Read vehicle models'),
    ('VEHICLE_MODEL', 'create', 1, 'Create vehicle models'),
    ('VEHICLE_MODEL', 'update', 1, 'Update vehicle models'),
-   ('VEHICLE_MODEL', 'delete', 1, 'Delete vehicle models');
+   ('VEHICLE_MODEL', 'delete', 1, 'Delete vehicle models'),
+   ('BOOKING', 'create', 1, 'Create new booking'),
+   ('BOOKING', 'read', 1, 'Read booking details'),
+   ('BOOKING', 'update', 1, 'Update booking (staff/admin only)'),
+   ('BOOKING', 'cancel', 1, 'Cancel booking');
 
 -- ================================
 -- Role - Permission Mapping
@@ -168,7 +175,7 @@ VALUES
 -- ================================
 -- Insert Booking Details
 -- ================================
-INSERT INTO booking_details (booking_id, service_id, description, service_price)
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price)
 VALUES
     -- Booking 1 details (customer 4, booking 1)
     (1, 1, 'Battery showing signs of degradation', 150000),
@@ -252,6 +259,59 @@ SELECT 4, p.id
 FROM permissions p
 WHERE p.resource = 'BOOKING'
   AND p.action IN ('create','read','cancel')
+  AND NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 4 AND rp.permission_id = p.id
+);
+
+-- ================================
+-- MAINTENANCE_SERVICE DOMAIN - Permissions & Role Mapping
+-- ================================
+
+-- Insert Maintenance Service Permissions
+INSERT INTO permissions (resource, action, is_active, description) VALUES
+    ('MAINTENANCE_SERVICE', 'read', 1, 'Read maintenance services'),
+    ('MAINTENANCE_SERVICE', 'create', 1, 'Create maintenance services'),
+    ('MAINTENANCE_SERVICE', 'update', 1, 'Update maintenance services'),
+    ('MAINTENANCE_SERVICE', 'delete', 1, 'Delete maintenance services');
+
+-- 1) ADMIN: MAINTENANCE_SERVICE all permissions
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 1, p.id
+FROM permissions p
+WHERE p.resource = 'MAINTENANCE_SERVICE'
+  AND NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 1 AND rp.permission_id = p.id
+);
+
+-- 2) STAFF: MAINTENANCE_SERVICE all permissions
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 2, p.id
+FROM permissions p
+WHERE p.resource = 'MAINTENANCE_SERVICE'
+  AND NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 2 AND rp.permission_id = p.id
+);
+
+-- 3) TECHNICIAN: MAINTENANCE_SERVICE read only
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 3, p.id
+FROM permissions p
+WHERE p.resource = 'MAINTENANCE_SERVICE'
+  AND p.action = 'read'
+  AND NOT EXISTS (
+    SELECT 1 FROM role_permissions rp
+    WHERE rp.role_id = 3 AND rp.permission_id = p.id
+);
+
+-- 4) CUSTOMER: MAINTENANCE_SERVICE read only
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT 4, p.id
+FROM permissions p
+WHERE p.resource = 'MAINTENANCE_SERVICE'
+  AND p.action = 'read'
   AND NOT EXISTS (
     SELECT 1 FROM role_permissions rp
     WHERE rp.role_id = 4 AND rp.permission_id = p.id
