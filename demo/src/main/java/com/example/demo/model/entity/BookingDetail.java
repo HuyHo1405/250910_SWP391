@@ -21,8 +21,8 @@ public class BookingDetail {
     private Booking booking;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_id", nullable = false)
-    private Service service;
+    @JoinColumn(name = "maintenance_service_id", nullable = false)
+    private MaintenanceService service;
 
     @Column(columnDefinition = "text")
     private String description;

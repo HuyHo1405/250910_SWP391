@@ -3,10 +3,10 @@ package com.example.demo.service.impl;
 import com.example.demo.model.dto.BookingRequest;
 import com.example.demo.model.entity.Booking;
 import com.example.demo.model.entity.BookingDetail;
-import com.example.demo.model.entity.Service;
+import com.example.demo.model.entity.MaintenanceService;
 import com.example.demo.repo.BookingDetailRepo;
 import com.example.demo.repo.BookingRepo;
-import com.example.demo.repo.ServiceRepo;
+import com.example.demo.repo.MaintenanceServiceRepo;
 import com.example.demo.service.interfaces.IBookingDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ public class BookingDetailService implements IBookingDetailService {
 
     private final BookingDetailRepo bookingDetailRepository;
     private final BookingRepo bookingRepository;
-    private final ServiceRepo serviceRepository;
+    private final MaintenanceServiceRepo serviceRepository;
 
     @Override
     public BookingDetail addServiceToBooking(Long bookingId, BookingRequest.ServiceDetail serviceDetail) {
@@ -31,7 +31,7 @@ public class BookingDetailService implements IBookingDetailService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + bookingId));
 
-        Service service = serviceRepository.findById(serviceDetail.getServiceId())
+        MaintenanceService service = serviceRepository.findById(serviceDetail.getServiceId())
                 .orElseThrow(() -> new RuntimeException("Service not found with ID: " + serviceDetail.getServiceId()));
 
         BookingDetail bookingDetail = BookingDetail.builder()
