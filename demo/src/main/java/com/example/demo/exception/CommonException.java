@@ -94,4 +94,13 @@ public class CommonException extends BaseServiceException {
             super("SERVICE_UNAVAILABLE", message, HttpStatus.SERVICE_UNAVAILABLE);
         }
     }
+
+    // ================================
+    // BAD REQUEST - Dùng cho lỗi nhập liệu, validation fail, parse error
+    // ================================
+    public static class BadRequest extends CommonException {
+        public BadRequest(String message) {
+            super("BAD_REQUEST", message, HttpStatus.BAD_REQUEST);
+        }
+    }
 }

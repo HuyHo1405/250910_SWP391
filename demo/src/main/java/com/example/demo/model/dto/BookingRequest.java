@@ -26,10 +26,9 @@ public class BookingRequest {
     @NotNull(message = "Vehicle VIN is required")
     private String vehicleVin;
 
-    @NotNull(message = "Schedule date is required")
-    @Future(message = "Schedule date must be in the future")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime scheduleDate;
+    @NotNull(message = "Schedule date/time is required")
+    @Valid
+    private ScheduleDateTime scheduleDateTime;
 
     @NotEmpty(message = "Service list cannot be empty")
     @Valid

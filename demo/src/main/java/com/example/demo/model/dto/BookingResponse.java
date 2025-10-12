@@ -25,10 +25,11 @@ public class BookingResponse {
 
     private String vehicleModel;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime scheduleDate;
+    private ScheduleDateTime scheduleDateTime;
 
     private String status;
+
+    private String paymentStatus;
 
     private Double totalPrice;
 

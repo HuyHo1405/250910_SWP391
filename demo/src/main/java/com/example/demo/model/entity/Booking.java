@@ -1,5 +1,7 @@
 package com.example.demo.model.entity;
 
+import com.example.demo.model.modelEnum.BookingStatus;
+import com.example.demo.model.modelEnum.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,6 +37,10 @@ public class Booking {
     @Column(nullable = false, length = 50)
     private BookingStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false, length = 20)
+    private PaymentStatus paymentStatus;
+
     @Column(name = "total_price")
     private Double totalPrice;
 
@@ -54,6 +60,9 @@ public class Booking {
         updatedAt = LocalDateTime.now();
         if (status == null) {
             status = BookingStatus.PENDING;
+        }
+        if (paymentStatus == null) {
+            paymentStatus = PaymentStatus.UNPAID;
         }
     }
 

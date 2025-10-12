@@ -1,6 +1,8 @@
 
 package com.example.demo.model.entity;
 
+import com.example.demo.model.modelEnum.EntityStatus;
+import com.example.demo.model.modelEnum.MaintenanceServiceType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,14 +24,17 @@ public class MaintenanceService {
     @Column(nullable = false)
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    private MaintenanceServiceType maintenanceServiceType;
+
     @Column(columnDefinition = "text")
     private String description;
 
-    @Column(name = "est_time_hours")
-    private Double estTimeHours;
-
     @Column(name = "current_price")
     private Double currentPrice;
+
+    @Column(name = "est_time_minutes")
+    private Double estTimeMinutes;
 
     @Enumerated(EnumType.STRING)
     private EntityStatus status;

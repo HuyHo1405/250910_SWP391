@@ -1,7 +1,7 @@
 package com.example.demo.repo;
 
 import com.example.demo.model.entity.Booking;
-import com.example.demo.model.entity.BookingStatus;
+import com.example.demo.model.modelEnum.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

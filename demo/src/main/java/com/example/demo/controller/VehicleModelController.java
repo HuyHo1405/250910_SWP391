@@ -1,8 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.dto.EnumSchemaResponse;
 import com.example.demo.model.dto.VehicleModelRequest;
 import com.example.demo.model.dto.VehicleModelResponse;
-import com.example.demo.model.entity.EntityStatus;
+import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.service.interfaces.IVehicleModelService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,42 +22,41 @@ public class VehicleModelController {
 
     private final IVehicleModelService vehicleModelService;
 
+    @GetMapping("/enum")
+    public ResponseEntity<EnumSchemaResponse> getVehicleModelEnum() {
+        return ResponseEntity.ok(vehicleModelService.getModelEnumSchema());
+    }
+
+    @GetMapping
+    public ResponseEntity<List<VehicleModelResponse>> getAllVehicleModels() {
+        return ResponseEntity.ok(vehicleModelService.getAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<VehicleModelResponse> getVehicleModelById(@PathVariable Long id) {
+        return ResponseEntity.ok(vehicleModelService.getById(id));
+    }
+
+    @GetMapping("/brand/{brandName}")
+    public ResponseEntity<List<VehicleModelResponse>> getVehicleModelsByBrand(@PathVariable String brandName) {
+        return ResponseEntity.ok(vehicleModelService.getByBrandName(brandName));
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<VehicleModelResponse>> getVehicleModelsByStatus(@PathVariable EntityStatus status) {
+        return ResponseEntity.ok(vehicleModelService.getByStatus(status));
+    }
+
     @PostMapping
     public ResponseEntity<VehicleModelResponse> createVehicleModel(@Valid @RequestBody VehicleModelRequest.CreateModel request) {
-        VehicleModelResponse response = vehicleModelService.create(request);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return new ResponseEntity<>(vehicleModelService.create(request), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<VehicleModelResponse> updateVehicleModel(
             @PathVariable Long id,
             @Valid @RequestBody VehicleModelRequest.UpdateModel request) {
-        VehicleModelResponse response = vehicleModelService.update(id, request);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<VehicleModelResponse> getVehicleModelById(@PathVariable Long id) {
-        VehicleModelResponse response = vehicleModelService.getById(id);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<VehicleModelResponse>> getAllVehicleModels() {
-        List<VehicleModelResponse> responses = vehicleModelService.getAll();
-        return ResponseEntity.ok(responses);
-    }
-
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<VehicleModelResponse>> getVehicleModelsByStatus(@PathVariable EntityStatus status) {
-        List<VehicleModelResponse> responses = vehicleModelService.getByStatus(status);
-        return ResponseEntity.ok(responses);
-    }
-
-    @GetMapping("/brand/{brandName}")
-    public ResponseEntity<List<VehicleModelResponse>> getVehicleModelsByBrand(@PathVariable String brandName) {
-        List<VehicleModelResponse> responses = vehicleModelService.getByBrandName(brandName);
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(vehicleModelService.update(id, request));
     }
 
     @DeleteMapping("/{id}")

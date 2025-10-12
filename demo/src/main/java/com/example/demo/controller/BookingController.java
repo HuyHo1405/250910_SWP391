@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import com.example.demo.model.dto.BookingRequest;
 import com.example.demo.model.dto.BookingResponse;
-import com.example.demo.model.entity.BookingStatus;
 import com.example.demo.service.interfaces.IBookingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -53,23 +52,4 @@ public class BookingController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}/status/{bookingStatus}")
-    public ResponseEntity<BookingResponse> updateBookingStatus(
-            @PathVariable Long id,
-            @PathVariable BookingStatus bookingStatus) {
-        BookingResponse response = bookingService.updateBookingStatus(id, bookingStatus);
-        return ResponseEntity.ok(response);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancelBooking(@PathVariable Long id) {
-        bookingService.cancelBooking(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{id}/total-price")
-    public ResponseEntity<Double> calculateTotalPrice(@PathVariable Long id) {
-        Double totalPrice = bookingService.calculateTotalPrice(id);
-        return ResponseEntity.ok(totalPrice);
-    }
 }

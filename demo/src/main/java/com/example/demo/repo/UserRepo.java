@@ -1,14 +1,11 @@
 package com.example.demo.repo;
 
-import com.example.demo.model.entity.EntityStatus;
+import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.entity.User;
 import org.springframework.data.domain.Page;  // ✔ đúng
 import org.springframework.data.domain.Pageable;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface UserRepo extends JpaRepository<User, Long> {
