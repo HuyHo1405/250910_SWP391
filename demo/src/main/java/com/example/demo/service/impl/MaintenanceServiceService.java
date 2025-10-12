@@ -1,6 +1,6 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.model.entity.EntityStatus;
+import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.entity.MaintenanceService;
 import com.example.demo.exception.MaintenanceServiceException;
 import com.example.demo.model.dto.MaintenanceServiceRequest;
@@ -28,8 +28,9 @@ public class MaintenanceServiceService implements IMaintenanceServiceService {
 
         MaintenanceService s = MaintenanceService.builder()
                 .name(request.getName())
+                .maintenanceServiceType(request.getMaintenanceServiceType())
                 .description(request.getDescription())
-                .estTimeHours(request.getEstTimeHours())
+                .estTimeMinutes(request.getEstTimeMinutes())
                 .currentPrice(request.getCurrentPrice())
                 .status(EntityStatus.ACTIVE)
                 .build();
@@ -63,10 +64,10 @@ public class MaintenanceServiceService implements IMaintenanceServiceService {
         var existed = serviceRepo.findByName(request.getName());
         if (existed.isPresent() && !existed.get().getId().equals(id))
             throw new MaintenanceServiceException.DuplicateServiceName(request.getName());
-
         s.setName(request.getName());
         s.setDescription(request.getDescription());
-        s.setEstTimeHours(request.getEstTimeHours());
+        s.setMaintenanceServiceType(request.getMaintenanceServiceType());
+        s.setEstTimeMinutes(request.getEstTimeMinutes());
         s.setCurrentPrice(request.getCurrentPrice());
         MaintenanceService updated = serviceRepo.save(s);
         return toDTO(updated);
@@ -87,7 +88,8 @@ public class MaintenanceServiceService implements IMaintenanceServiceService {
         dto.setId(s.getId());
         dto.setName(s.getName());
         dto.setDescription(s.getDescription());
-        dto.setEstTimeHours(s.getEstTimeHours());
+        dto.setMaintenanceServiceType(s.getMaintenanceServiceType());
+        dto.setEstTimeMinutes(s.getEstTimeMinutes());
         dto.setCurrentPrice(s.getCurrentPrice());
         dto.setStatus(s.getStatus().name());
         dto.setCreatedAt(s.getCreatedAt());

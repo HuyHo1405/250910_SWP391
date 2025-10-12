@@ -3,7 +3,7 @@ package com.example.demo.service.impl;
 import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.VehicleRequest;
 import com.example.demo.model.dto.VehicleResponse;
-import com.example.demo.model.entity.EntityStatus;
+import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.entity.User;
 import com.example.demo.model.entity.Vehicle;
 import com.example.demo.model.entity.VehicleModel;

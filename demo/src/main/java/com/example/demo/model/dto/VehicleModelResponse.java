@@ -1,6 +1,6 @@
 package com.example.demo.model.dto;
 
-import com.example.demo.model.entity.EntityStatus;
+import com.example.demo.model.modelEnum.EntityStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

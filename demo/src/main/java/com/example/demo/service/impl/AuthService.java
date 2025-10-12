@@ -8,7 +8,7 @@ import com.example.demo.repo.RefreshTokenRepo;
 import com.example.demo.security.JwtUtil;
 import com.example.demo.model.entity.Role;
 import com.example.demo.model.entity.User;
-import com.example.demo.model.entity.EntityStatus;
+import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.repo.RoleRepo;
 import com.example.demo.repo.UserRepo;
 import com.example.demo.service.interfaces.IAuthService;

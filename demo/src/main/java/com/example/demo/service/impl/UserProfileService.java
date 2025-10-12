@@ -1,7 +1,7 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.model.dto.UserDTO;
-import com.example.demo.model.entity.EntityStatus;
+import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.entity.User;
 import com.example.demo.repo.UserRepo;
 import com.example.demo.service.interfaces.IUserProfileService;

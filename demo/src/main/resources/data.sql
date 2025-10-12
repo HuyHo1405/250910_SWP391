@@ -44,25 +44,22 @@ VALUES
 -- ================================
 -- Insert Maintenance Services
 -- ================================
-INSERT INTO maintenance_services (name, description, est_time_hours, current_price, status, created_at)
+INSERT INTO maintenance_services (name, maintenance_service_type, description, est_time_minutes, current_price, status, created_at)
 VALUES
-    ('Battery Inspection', 'Complete battery health check and diagnostics', 1.0, 150000, 'ACTIVE', GETDATE()),
-    ('Tire Rotation', 'Rotate all four tires for even wear', 0.5, 80000, 'ACTIVE', GETDATE()),
-    ('Brake System Check', 'Inspect brake pads, rotors, and fluid levels', 1.5, 200000, 'ACTIVE', GETDATE()),
-    ('Software Update', 'Update vehicle firmware and system software', 2.0, 300000, 'ACTIVE', GETDATE()),
-    ('Air Filter Replacement', 'Replace cabin air filter for better air quality', 0.5, 100000, 'ACTIVE', GETDATE()),
-    ('Coolant System Service', 'Check and refill coolant for battery temperature management', 1.0, 180000, 'ACTIVE', GETDATE()),
-    ('Suspension Inspection', 'Inspect shocks, struts, and suspension components', 1.5, 250000, 'ACTIVE', GETDATE()),
-    ('Wheel Alignment', 'Adjust wheel alignment for optimal handling', 1.0, 220000, 'ACTIVE', GETDATE()),
-    ('Full Vehicle Diagnostic', 'Comprehensive system diagnostic scan', 2.5, 400000, 'ACTIVE', GETDATE()),
-    ('Emergency Charging Service', 'On-site battery charging service', 0.5, 120000, 'INACTIVE', GETDATE());
-
+    ('Battery Inspection', 'BATTERY_INSPECTION', 'Complete battery health check and diagnostics', 60.0, 150000, 'ACTIVE', GETDATE()),
+    ('Tire Rotation', 'TIRE_ROTATION', 'Rotate all four tires for even wear', 30.0, 80000, 'ACTIVE', GETDATE()),
+    ('Brake System Check', 'BRAKE_SYSTEM_CHECK', 'Inspect brake pads, rotors, and fluid levels', 90.0, 200000, 'ACTIVE', GETDATE()),
+    ('Software Update', 'SOFTWARE_UPDATE', 'Update vehicle firmware and system software', 120.0, 300000, 'ACTIVE', GETDATE()),
+    ('Air Filter Replacement', 'AIR_FILTER_REPLACEMENT', 'Replace cabin air filter for better air quality', 30.0, 100000, 'ACTIVE', GETDATE()),
+    ('Coolant System Service', 'COOLANT_SYSTEM_SERVICE', 'Check and refill coolant for battery temperature management', 60.0, 180000, 'ACTIVE', GETDATE()),
+    ('Suspension Inspection', 'SUSPENSION_INSPECTION', 'Inspect shocks, struts, and suspension components', 90.0, 250000, 'ACTIVE', GETDATE()),
+    ('Wheel Alignment', 'WHEEL_ALIGNMENT', 'Adjust wheel alignment for optimal handling', 60.0, 220000, 'ACTIVE', GETDATE()),
+    ('Full Vehicle Diagnostic', 'FULL_VEHICLE_DIAGNOSTIC', 'Comprehensive system diagnostic scan', 150.0, 400000, 'ACTIVE', GETDATE()),
+    ('Emergency Charging Service', 'EMERGENCY_CHARGING_SERVICE', 'On-site battery charging service', 30.0, 120000, 'INACTIVE', GETDATE());
 -- ================================
 -- Insert Vehicle Permissions
 -- ================================
--- ================================
--- Insert Permissions
--- ================================
+
 INSERT INTO permissions (resource, action, is_active, description) VALUES
    ('SYSTEM', 'bypass_ownership', 1, 'Bypass ownership checks for all resources'),
    ('VEHICLE', 'read', 1, 'Read vehicles'),
@@ -70,6 +67,7 @@ INSERT INTO permissions (resource, action, is_active, description) VALUES
    ('VEHICLE', 'update', 1, 'Update vehicles'),
    ('VEHICLE', 'delete', 1, 'Delete vehicles'),
    ('VEHICLE_MODEL', 'read', 1, 'Read vehicle models'),
+   ('VEHICLE_MODEL', 'read-by-status', 1, 'Read vehicle models'),
    ('VEHICLE_MODEL', 'create', 1, 'Create vehicle models'),
    ('VEHICLE_MODEL', 'update', 1, 'Update vehicle models'),
    ('VEHICLE_MODEL', 'delete', 1, 'Delete vehicle models'),
@@ -158,56 +156,97 @@ WHERE p.resource = 'VEHICLE_MODEL'
 -- ================================
 -- Insert Bookings
 -- ================================
-INSERT INTO bookings (customer_id, vin, schedule_date, status, total_price, created_at, updated_at)
+-- Bookings for Customer 4
+INSERT INTO bookings (customer_id, vin, schedule_date, status, total_price, payment_status, created_at, updated_at)
 VALUES
-    -- Customer 4 (Pham Thi D) bookings
-    (4, '1HGCM82633A123456', DATEADD(DAY, 3, GETDATE()), 'PENDING', 350000, GETDATE(), GETDATE()),
-    (4, '1HGCM82633A123456', DATEADD(DAY, -7, GETDATE()), 'COMPLETED', 500000, DATEADD(DAY, -10, GETDATE()), DATEADD(DAY, -7, GETDATE())),
-    (4, '1HGCM82633A654321', DATEADD(DAY, 5, GETDATE()), 'CONFIRMED', 280000, GETDATE(), GETDATE()),
-    (4, '1HGCM82633A654321', DATEADD(DAY, -14, GETDATE()), 'CANCELLED', 200000, DATEADD(DAY, -20, GETDATE()), DATEADD(DAY, -14, GETDATE())),
+    (4, '1HGCM82633A123456', DATEADD(DAY, 3, GETDATE()), 'PENDING', 350000, 'UNPAID', GETDATE(), GETDATE()),
+    (4, '1HGCM82633A123456', DATEADD(DAY, 2, GETDATE()), 'CONFIRMED', 360000, 'UNPAID', GETDATE(), GETDATE()),
+    (4, '1HGCM82633A123456', DATEADD(DAY, 1, GETDATE()), 'CHECKIN', 365000, 'UNPAID', GETDATE(), GETDATE()),
+    (4, '1HGCM82633A123456', GETDATE(), 'INSPECTING', 370000, 'UNPAID', GETDATE(), GETDATE()),
+    (4, '1HGCM82633A123456', DATEADD(DAY, -1, GETDATE()), 'WAITING_APPROVAL', 375000, 'UNPAID', GETDATE(), GETDATE()),
+    (4, '1HGCM82633A123456', DATEADD(DAY, -2, GETDATE()), 'IN_PROGRESS', 380000, 'UNPAID', GETDATE(), GETDATE()),
+    (4, '1HGCM82633A123456', DATEADD(DAY, -3, GETDATE()), 'COMPLETED', 385000, 'UNPAID', GETDATE(), GETDATE()),
+    (4, '1HGCM82633A123456', DATEADD(DAY, -7, GETDATE()), 'DELIVERED', 385000, 'UNPAID', GETDATE(), GETDATE()),
+    (4, '1HGCM82633A123456', DATEADD(DAY, -8, GETDATE()), 'CANCELLED', 200000, 'UNPAID', GETDATE(), GETDATE());
 
-    -- Customer 5 (Nguyen Van E) bookings
-    (5, '5YJSA1E26HF123001', DATEADD(DAY, 1, GETDATE()), 'CONFIRMED', 600000, GETDATE(), GETDATE()),
-    (5, '5YJSA1E26HF123001', DATEADD(DAY, -3, GETDATE()), 'IN_PROGRESS', 450000, DATEADD(DAY, -5, GETDATE()), DATEADD(DAY, -3, GETDATE())),
-    (5, '5YJSA1E26HF123002', DATEADD(DAY, 7, GETDATE()), 'PENDING', 180000, GETDATE(), GETDATE()),
-    (5, '5YJSA1E26HF123002', DATEADD(DAY, -21, GETDATE()), 'COMPLETED', 380000, DATEADD(DAY, -25, GETDATE()), DATEADD(DAY, -21, GETDATE()));
+-- Bookings for Customer 5
+INSERT INTO bookings (customer_id, vin, schedule_date, status, total_price, payment_status, created_at, updated_at)
+VALUES
+    (5, '5YJSA1E26HF123001', DATEADD(DAY, 3, GETDATE()), 'PENDING', 550000, 'UNPAID', GETDATE(), GETDATE()),
+    (5, '5YJSA1E26HF123001', DATEADD(DAY, 2, GETDATE()), 'CONFIRMED', 560000, 'UNPAID', GETDATE(), GETDATE()),
+    (5, '5YJSA1E26HF123001', DATEADD(DAY, 1, GETDATE()), 'CHECKIN', 565000, 'UNPAID', GETDATE(), GETDATE()),
+    (5, '5YJSA1E26HF123001', GETDATE(), 'INSPECTING', 570000, 'UNPAID', GETDATE(), GETDATE()),
+    (5, '5YJSA1E26HF123001', DATEADD(DAY, -1, GETDATE()), 'WAITING_APPROVAL', 575000, 'UNPAID', GETDATE(), GETDATE()),
+    (5, '5YJSA1E26HF123001', DATEADD(DAY, -2, GETDATE()), 'IN_PROGRESS', 580000, 'UNPAID', GETDATE(), GETDATE()),
+    (5, '5YJSA1E26HF123001', DATEADD(DAY, -3, GETDATE()), 'COMPLETED', 585000, 'UNPAID', GETDATE(), GETDATE()),
+    (5, '5YJSA1E26HF123001', DATEADD(DAY, -7, GETDATE()), 'DELIVERED', 585000, 'UNPAID', GETDATE(), GETDATE()),
+    (5, '5YJSA1E26HF123001', DATEADD(DAY, -8, GETDATE()), 'CANCELLED', 220000, 'UNPAID', GETDATE(), GETDATE());
+
+-- Thêm cho Staff/Technician nếu staff/technician có quyền đặt booking thì bổ sung thêm user_id cho loại user đó ở customer_id.
+-- Có thể thêm dòng tương tự cho Staff, Technician nếu muốn kiểm tra các trạng thái cho các vai trò khác.
+
+-- Nếu muốn seed cho nhiều xe khác, lặp lại block phía trên với VIN, giá và thời gian khác nhau.
+
+-- Nếu muốn booking nào test action từ trạng thái nào đến trạng thái nào, chỉ cần cập nhật field status, schedule_date và giá cho phù hợp.
 
 -- ================================
--- Insert Booking Details
+-- Insert Booking Details (chuẩn cho SQL Server, không truyền id)
 -- ================================
-INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price)
-VALUES
-    -- Booking 1 details (customer 4, booking 1)
-    (1, 1, 'Battery showing signs of degradation', 150000),
-    (1, 3, 'Front brake pads need replacement', 200000),
 
-    -- Booking 2 details (customer 4, booking 2 - completed)
-    (2, 4, 'Major software update applied', 300000),
-    (2, 3, 'Brake system fully serviced', 200000),
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (1, 1, 'Battery inspection needed', 150000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (1, 2, 'Tire rotation check', 80000);
 
-    -- Booking 3 details (customer 4, booking 3)
-    (3, 2, 'Standard tire rotation', 80000),
-    (3, 5, 'Replaced old cabin filter', 100000),
-    (3, 6, 'Coolant topped up', 100000),
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (2, 3, 'Brake pads replacement', 200000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (2, 4, 'Software system update', 300000);
 
-    -- Booking 4 details (customer 4, booking 4 - cancelled)
-    (4, 3, 'Cancelled before service', 200000),
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (3, 5, 'Air filter replacement', 100000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (3, 6, 'Coolant system refill', 180000);
 
-    -- Booking 5 details (customer 5, booking 1)
-    (5, 9, 'Full diagnostic before long trip', 400000),
-    (5, 3, 'Brake inspection included', 200000),
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (4, 7, 'Suspension inspection', 250000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (4, 8, 'Wheel alignment', 220000);
 
-    -- Booking 6 details (customer 5, booking 2 - in progress)
-    (6, 1, 'Battery health check ongoing', 150000),
-    (6, 4, 'Software update in progress', 300000),
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (5, 9, 'Full vehicle diagnostic', 400000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (5, 1, 'Battery health check', 150000);
 
-    -- Booking 7 details (customer 5, booking 3)
-    (7, 6, 'Scheduled coolant service', 180000),
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (6, 2, 'Tire rotation performed', 80000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (6, 3, 'Brake system checked', 200000);
 
-    -- Booking 8 details (customer 5, booking 4 - completed)
-    (8, 7, 'Suspension repaired', 250000),
-    (8, 2, 'Tire rotation completed', 80000),
-    (8, 5, 'Air filter replaced', 50000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (7, 4, 'Software issue fixed', 300000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (7, 5, 'Cabin filter replaced', 100000);
+
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (8, 6, 'Coolant refill done', 180000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (8, 7, 'Suspension repaired', 250000);
+
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (9, 8, 'Wheel alignment corrected', 220000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (9, 9, 'Diagnostic scan performed', 400000);
+
+-- Customer 5: Bookings 10-18
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (10, 1, 'Battery check done', 150000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (10, 2, 'Tire rotation scheduled', 80000);
+
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (11, 3, 'Brake fluid changed', 200000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (11, 4, 'Software feature upgraded', 300000);
+
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (12, 5, 'Air filter cleaned', 100000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (12, 6, 'Coolant leak fixed', 180000);
+
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (13, 7, 'Suspension tuning', 250000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (13, 8, 'Wheel balance check', 220000);
+
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (14, 9, 'Diagnostic before trip', 400000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (14, 1, 'Battery terminal cleaning', 150000);
+
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (15, 2, 'Summer tire change', 80000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (15, 3, 'Brake system updated', 200000);
+
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (16, 4, 'Software reinstallation', 300000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (16, 5, 'Cabin filter refreshed', 100000);
+
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (17, 6, 'Coolant replaced', 180000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (17, 7, 'Suspension component changed', 250000);
+
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (18, 8, 'Wheel tracking checked', 220000);
+INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES (18, 9, 'Vehicle system scanned', 400000);
 
 -- ================================
 -- Insert Booking Permissions

@@ -1,5 +1,6 @@
 package com.example.demo.model.entity;
 
+import com.example.demo.model.modelEnum.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
 
