@@ -26,17 +26,22 @@ public class BookingResponseMapper {
                 .vehicleVin(booking.getVehicle().getVin())
                 .vehicleModel(booking.getVehicle().getModel().getModelName())
                 .scheduleDateTime(scheduleDateTime)
-                .status(booking.getStatus().name())
-                .paymentStatus(booking.getPaymentStatus().name()) // nhớ bổ sung!
+                .scheduleStatus(booking.getScheduleStatus() != null ? booking.getScheduleStatus().name() : null)
+                .maintenanceStatus(booking.getMaintenanceStatus() != null ? booking.getMaintenanceStatus().name() : null)
+                .paymentStatus(booking.getPaymentStatus() != null ? booking.getPaymentStatus().name() : null)
+                .lifecycleStatus(booking.getLifecycleStatus() != null ? booking.getLifecycleStatus().name() : null)
                 .totalPrice(booking.getTotalPrice())
                 .createdAt(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())
                 .serviceDetails(serviceDetails)
                 .build();
     }
-    // overload nếu muốn truyền booking → dto luôn không cần scheduleDateTime
+
+    // Overload dùng khi muốn tự format scheduleDateTime theo timezone default
     public static BookingResponse toDto(Booking booking) {
-        return toDto(booking,
-                ScheduleDateTimeParser.format(booking.getScheduleDate(), "yyyy-MM-dd HH:mm:ss", "Asia/Ho_Chi_Minh"));
+        return toDto(
+                booking,
+                ScheduleDateTimeParser.format(booking.getScheduleDate(), "yyyy-MM-dd HH:mm:ss", "Asia/Ho_Chi_Minh")
+        );
     }
 }

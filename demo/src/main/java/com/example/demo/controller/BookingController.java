@@ -2,11 +2,14 @@ package com.example.demo.controller;
 
 import com.example.demo.model.dto.BookingRequest;
 import com.example.demo.model.dto.BookingResponse;
+import com.example.demo.model.modelEnum.BookingLifecycle;
+import com.example.demo.model.modelEnum.MaintenanceStatus;
+import com.example.demo.model.modelEnum.PaymentStatus;
+import com.example.demo.model.modelEnum.ScheduleStatus;
 import com.example.demo.service.interfaces.IBookingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,19 +20,18 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Booking")
 public class BookingController {
-
     private final IBookingService bookingService;
 
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingRequest request) {
-        BookingResponse response = bookingService.createBooking(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        BookingResponse resp = bookingService.createBooking(request);
+        return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookingResponse> getBookingById(@PathVariable Long id) {
-        BookingResponse response = bookingService.getBookingById(id);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<BookingResponse> getBooking(@PathVariable Long id) {
+        BookingResponse resp = bookingService.getBookingById(id);
+        return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/customer/{customerId}")
@@ -44,12 +46,35 @@ public class BookingController {
         return ResponseEntity.ok(responses);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<BookingResponse> updateBooking(
-            @PathVariable Long id,
-            @Valid @RequestBody BookingRequest request) {
-        BookingResponse response = bookingService.updateBooking(id, request);
-        return ResponseEntity.ok(response);
+    @GetMapping
+    public ResponseEntity<List<BookingResponse>> getAllBookings(
+            @RequestParam(required = false) BookingLifecycle lifecycleStatus,
+            @RequestParam(required = false) ScheduleStatus scheduleStatus,
+            @RequestParam(required = false) MaintenanceStatus maintenanceStatus,
+            @RequestParam(required = false) PaymentStatus paymentStatus
+    ) {
+        // Truyền tất cả các bộ lọc vào service
+        List<BookingResponse> responses = bookingService.getAllBookingsFiltered(
+                lifecycleStatus, scheduleStatus, maintenanceStatus, paymentStatus
+        );
+        return ResponseEntity.ok(responses);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<BookingResponse> updateBooking(@PathVariable Long id, @RequestBody @Valid BookingRequest request) {
+        BookingResponse resp = bookingService.updateBooking(id, request);
+        return ResponseEntity.ok(resp);
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<BookingResponse> cancelBooking(@PathVariable Long id, @RequestParam(required = false) String reason) {
+        BookingResponse resp = bookingService.cancelBooking(id, reason);
+        return ResponseEntity.ok(resp);
+    }
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<BookingResponse> completeBooking(@PathVariable Long id) {
+        BookingResponse resp = bookingService.completeBooking(id);
+        return ResponseEntity.ok(resp);
+    }
 }

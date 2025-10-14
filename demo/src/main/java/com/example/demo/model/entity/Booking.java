@@ -1,7 +1,6 @@
 package com.example.demo.model.entity;
 
-import com.example.demo.model.modelEnum.BookingStatus;
-import com.example.demo.model.modelEnum.PaymentStatus;
+import com.example.demo.model.modelEnum.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,12 +33,20 @@ public class Booking {
     private LocalDateTime scheduleDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
-    private BookingStatus status;
+    @Column(name = "schedule_status", nullable = false, length = 20)
+    private ScheduleStatus scheduleStatus;  // TRẠNG THÁI LỊCH HẸN
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "maintenance_status", nullable = false, length = 30)
+    private MaintenanceStatus maintenanceStatus;  // TRẠNG THÁI BẢO DƯỠNG
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false, length = 20)
-    private PaymentStatus paymentStatus;
+    private PaymentStatus paymentStatus;    // TRẠNG THÁI THANH TOÁN
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "lifecycle_status", nullable = false, length = 20)
+    private BookingLifecycle lifecycleStatus;  // TRẠNG THÁI ĐƠN TỔNG THỂ
 
     @Column(name = "total_price")
     private Double totalPrice;
@@ -58,11 +65,18 @@ public class Booking {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (status == null) {
-            status = BookingStatus.PENDING;
+        // Khởi tạo mặc định các status
+        if (scheduleStatus == null) {
+            scheduleStatus = ScheduleStatus.PENDING;
+        }
+        if (maintenanceStatus == null) {
+            maintenanceStatus = MaintenanceStatus.IDLE;
         }
         if (paymentStatus == null) {
             paymentStatus = PaymentStatus.UNPAID;
+        }
+        if (lifecycleStatus == null) {
+            lifecycleStatus = BookingLifecycle.ACTIVE;
         }
     }
 
