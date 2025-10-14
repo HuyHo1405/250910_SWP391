@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+// DTO cho response chi tiết booking - trả về cho client
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,18 +19,17 @@ public class BookingResponse {
     private Long id;
 
     private Long customerId;
-
     private String customerName;
 
     private String vehicleVin;
-
     private String vehicleModel;
 
     private ScheduleDateTime scheduleDateTime;
 
-    private String status;
-
-    private String paymentStatus;
+    private String scheduleStatus;     // ENUM: PENDING, CONFIRMED, CHECKED_IN, ...
+    private String maintenanceStatus;  // ENUM: IDLE, INSPECTING, IN_PROGRESS, COMPLETE, ...
+    private String paymentStatus;      // ENUM: UNPAID, AUTHORIZED, PAID, REFUNDED, ...
+    private String lifecycleStatus;    // ENUM: ACTIVE, CANCELLED, COMPLETED, DELIVERED
 
     private Double totalPrice;
 
@@ -46,15 +46,11 @@ public class BookingResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ServiceDetail {
-
         private Long id;
-
         private Long serviceId;
-
         private String serviceName;
-
         private String description;
-
         private Double servicePrice;
     }
 }
+

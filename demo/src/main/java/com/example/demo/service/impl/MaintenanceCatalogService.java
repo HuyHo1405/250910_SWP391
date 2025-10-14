@@ -1,12 +1,12 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.model.modelEnum.EntityStatus;
-import com.example.demo.model.entity.MaintenanceService;
-import com.example.demo.exception.MaintenanceServiceException;
-import com.example.demo.model.dto.MaintenanceServiceRequest;
-import com.example.demo.model.dto.MaintenanceServiceResponse;
-import com.example.demo.repo.MaintenanceServiceRepo;
-import com.example.demo.service.interfaces.IMaintenanceServiceService;
+import com.example.demo.model.entity.MaintenanceCatalog;
+import com.example.demo.exception.MaintenanceCatalogException;
+import com.example.demo.model.dto.MaintenanceCatalogRequest;
+import com.example.demo.model.dto.MaintenanceCatalogResponse;
+import com.example.demo.repo.MaintenanceCatalogRepo;
+import com.example.demo.service.interfaces.IMaintenanceCatalogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,18 +15,18 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class MaintenanceServiceService implements IMaintenanceServiceService {
-    private final MaintenanceServiceRepo serviceRepo;
+public class MaintenanceCatalogService implements IMaintenanceCatalogService {
+    private final MaintenanceCatalogRepo serviceRepo;
     private final AccessControlService accessControlService;
 
     @Transactional
     @Override
-    public MaintenanceServiceResponse createService(MaintenanceServiceRequest request) {
+    public MaintenanceCatalogResponse createService(MaintenanceCatalogRequest request) {
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "create");
         boolean exists = serviceRepo.findByName(request.getName()).isPresent();
-        if (exists) throw new MaintenanceServiceException.DuplicateServiceName(request.getName());
+        if (exists) throw new MaintenanceCatalogException.DuplicateServiceName(request.getName());
 
-        MaintenanceService s = MaintenanceService.builder()
+        MaintenanceCatalog s = MaintenanceCatalog.builder()
                 .name(request.getName())
                 .maintenanceServiceType(request.getMaintenanceServiceType())
                 .description(request.getDescription())
@@ -34,12 +34,12 @@ public class MaintenanceServiceService implements IMaintenanceServiceService {
                 .currentPrice(request.getCurrentPrice())
                 .status(EntityStatus.ACTIVE)
                 .build();
-        MaintenanceService saved = serviceRepo.save(s);
+        MaintenanceCatalog saved = serviceRepo.save(s);
         return toDTO(saved);
     }
 
     @Override
-    public List<MaintenanceServiceResponse> listServices() {
+    public List<MaintenanceCatalogResponse> listServices() {
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
         return serviceRepo.findByStatus(EntityStatus.ACTIVE)
                 .stream().map(this::toDTO)
@@ -47,29 +47,29 @@ public class MaintenanceServiceService implements IMaintenanceServiceService {
     }
 
     @Override
-    public MaintenanceServiceResponse getService(Long id) {
+    public MaintenanceCatalogResponse getService(Long id) {
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
-        MaintenanceService s = serviceRepo.findByIdAndStatus(id, EntityStatus.ACTIVE)
-                .orElseThrow(() -> new MaintenanceServiceException.ServiceInactive(id + ""));
+        MaintenanceCatalog s = serviceRepo.findByIdAndStatus(id, EntityStatus.ACTIVE)
+                .orElseThrow(() -> new MaintenanceCatalogException.ServiceInactive(id + ""));
         return toDTO(s);
     }
 
     @Transactional
     @Override
-    public MaintenanceServiceResponse updateService(Long id, MaintenanceServiceRequest request) {
+    public MaintenanceCatalogResponse updateService(Long id, MaintenanceCatalogRequest request) {
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "update");
-        MaintenanceService s = serviceRepo.findByIdAndStatus(id, EntityStatus.ACTIVE)
-                .orElseThrow(() -> new MaintenanceServiceException.ServiceInactive(id + ""));
+        MaintenanceCatalog s = serviceRepo.findByIdAndStatus(id, EntityStatus.ACTIVE)
+                .orElseThrow(() -> new MaintenanceCatalogException.ServiceInactive(id + ""));
 
         var existed = serviceRepo.findByName(request.getName());
         if (existed.isPresent() && !existed.get().getId().equals(id))
-            throw new MaintenanceServiceException.DuplicateServiceName(request.getName());
+            throw new MaintenanceCatalogException.DuplicateServiceName(request.getName());
         s.setName(request.getName());
         s.setDescription(request.getDescription());
         s.setMaintenanceServiceType(request.getMaintenanceServiceType());
         s.setEstTimeMinutes(request.getEstTimeMinutes());
         s.setCurrentPrice(request.getCurrentPrice());
-        MaintenanceService updated = serviceRepo.save(s);
+        MaintenanceCatalog updated = serviceRepo.save(s);
         return toDTO(updated);
     }
 
@@ -77,14 +77,14 @@ public class MaintenanceServiceService implements IMaintenanceServiceService {
     @Override
     public void deleteService(Long id) {
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "delete");
-        MaintenanceService s = serviceRepo.findByIdAndStatus(id, EntityStatus.ACTIVE)
-                .orElseThrow(() -> new MaintenanceServiceException.ServiceInactive(id + ""));
+        MaintenanceCatalog s = serviceRepo.findByIdAndStatus(id, EntityStatus.ACTIVE)
+                .orElseThrow(() -> new MaintenanceCatalogException.ServiceInactive(id + ""));
         s.setStatus(EntityStatus.INACTIVE);
         serviceRepo.save(s);
     }
 
-    private MaintenanceServiceResponse toDTO(MaintenanceService s) {
-        MaintenanceServiceResponse dto = new MaintenanceServiceResponse();
+    private MaintenanceCatalogResponse toDTO(MaintenanceCatalog s) {
+        MaintenanceCatalogResponse dto = new MaintenanceCatalogResponse();
         dto.setId(s.getId());
         dto.setName(s.getName());
         dto.setDescription(s.getDescription());

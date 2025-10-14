@@ -2,31 +2,42 @@ package com.example.demo.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class BookingException extends BaseServiceException{
+public class BookingException extends BaseServiceException {
+
     public BookingException(String code, String message, HttpStatus httpStatus) {
         super(code, message, httpStatus);
     }
 
     // ================================
-    // STATUS MANAGEMENT
+    // STATUS MANAGEMENT (all domains)
     // ================================
 
     public static class InvalidStatusTransition extends BookingException {
-        public InvalidStatusTransition(String from, String to) {
+        public InvalidStatusTransition(String domain, String from, String to) {
             super(
                     "INVALID_STATUS_TRANSITION",
-                    String.format("Cannot transition from %s to %s", from, to),
+                    String.format("[%s] Cannot transition from %s to %s", domain, from, to),
                     HttpStatus.BAD_REQUEST
             );
         }
     }
 
     public static class CannotDelete extends BookingException {
-        public CannotDelete(String status) {
+        public CannotDelete(String lifecycleStatus) {
             super(
                     "CANNOT_DELETE_BOOKING",
-                    String.format("Cannot delete booking with status: %s", status),
+                    String.format("Cannot delete booking with lifecycle status: %s", lifecycleStatus),
                     HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+    public static class CannotCancel extends BookingException {
+        public CannotCancel(String status, String reason) {
+            super(
+                    "CANNOT_CANCEL_BOOKING",
+                    String.format("Cannot cancel: status=%s, reason=%s", status, reason),
+                    HttpStatus.CONFLICT
             );
         }
     }
@@ -61,6 +72,84 @@ public class BookingException extends BaseServiceException{
                     "INVALID_DATE_RANGE",
                     "Start date must be before end date",
                     HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+    public static class AlreadyCheckedIn extends BookingException {
+        public AlreadyCheckedIn() {
+            super(
+                    "ALREADY_CHECKED_IN",
+                    "The booking has already been checked in",
+                    HttpStatus.CONFLICT
+            );
+        }
+    }
+
+    // ================================
+    // MAINTENANCE
+    // ================================
+
+    public static class CannotStartInspection extends BookingException {
+        public CannotStartInspection(String scheduleStatus) {
+            super(
+                    "CANNOT_START_INSPECTION",
+                    String.format("Cannot start inspection when schedule status is: %s", scheduleStatus),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+    public static class MaintenanceNotApproved extends BookingException {
+        public MaintenanceNotApproved() {
+            super(
+                    "MAINTENANCE_NOT_APPROVED",
+                    "Repair/maintenance must be approved before starting",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+    public static class MaintenanceAlreadyCompleted extends BookingException {
+        public MaintenanceAlreadyCompleted() {
+            super(
+                    "MAINTENANCE_ALREADY_COMPLETED",
+                    "Maintenance is already completed",
+                    HttpStatus.CONFLICT
+            );
+        }
+    }
+
+    // ================================
+    // PAYMENT
+    // ================================
+
+    public static class PaymentAlreadyMade extends BookingException {
+        public PaymentAlreadyMade() {
+            super(
+                    "PAYMENT_ALREADY_MADE",
+                    "Payment has already been processed",
+                    HttpStatus.CONFLICT
+            );
+        }
+    }
+
+    public static class PaymentNotAuthorized extends BookingException {
+        public PaymentNotAuthorized() {
+            super(
+                    "PAYMENT_NOT_AUTHORIZED",
+                    "Payment is not authorized/pre-authorized",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+    public static class RefundNotAllowed extends BookingException {
+        public RefundNotAllowed(String reason) {
+            super(
+                    "REFUND_NOT_ALLOWED",
+                    String.format("Refund not allowed. Reason: %s", reason),
+                    HttpStatus.CONFLICT
             );
         }
     }

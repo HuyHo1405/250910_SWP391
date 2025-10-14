@@ -2,7 +2,7 @@
 package com.example.demo.model.entity;
 
 import com.example.demo.model.modelEnum.EntityStatus;
-import com.example.demo.model.modelEnum.MaintenanceServiceType;
+import com.example.demo.model.modelEnum.MaintenanceCatalogType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MaintenanceService {
+public class MaintenanceCatalog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +25,7 @@ public class MaintenanceService {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private MaintenanceServiceType maintenanceServiceType;
+    private MaintenanceCatalogType maintenanceServiceType;
 
     @Column(columnDefinition = "text")
     private String description;

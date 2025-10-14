@@ -1,8 +1,8 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.dto.MaintenanceServiceRequest;
-import com.example.demo.model.dto.MaintenanceServiceResponse;
-import com.example.demo.service.interfaces.IMaintenanceServiceService;
+import com.example.demo.model.dto.MaintenanceCatalogRequest;
+import com.example.demo.model.dto.MaintenanceCatalogResponse;
+import com.example.demo.service.interfaces.IMaintenanceCatalogService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,28 +12,28 @@ import java.util.List;
 @RestController
 @RequestMapping("/maintenance-services")
 @RequiredArgsConstructor
-@Tag(name = "Maintenance Service")
-public class MaintenanceServiceController {
+@Tag(name = "Service")
+public class MaintenanceCatalogController {
 
-    private final IMaintenanceServiceService serviceService;
+    private final IMaintenanceCatalogService serviceService;
 
     @PostMapping
-    public MaintenanceServiceResponse create(@Valid @RequestBody MaintenanceServiceRequest request) {
+    public MaintenanceCatalogResponse create(@Valid @RequestBody MaintenanceCatalogRequest request) {
         return serviceService.createService(request);
     }
 
     @GetMapping
-    public List<MaintenanceServiceResponse> list() {
+    public List<MaintenanceCatalogResponse> list() {
         return serviceService.listServices();
     }
 
     @GetMapping("/{id}")
-    public MaintenanceServiceResponse get(@PathVariable Long id) {
+    public MaintenanceCatalogResponse get(@PathVariable Long id) {
         return serviceService.getService(id);
     }
 
     @PutMapping("/{id}")
-    public MaintenanceServiceResponse update(@PathVariable Long id, @Valid @RequestBody MaintenanceServiceRequest request) {
+    public MaintenanceCatalogResponse update(@PathVariable Long id, @Valid @RequestBody MaintenanceCatalogRequest request) {
         return serviceService.updateService(id, request);
     }
 
