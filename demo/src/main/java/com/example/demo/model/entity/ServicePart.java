@@ -24,7 +24,7 @@ public class ServicePart {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", nullable = false)
-    private MaintenanceService service;
+    private ServiceModel service;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "part_id", nullable = false)
@@ -55,7 +55,7 @@ public class ServicePart {
     // HELPER FUNCTIONS - Business Logic
     // ================================
 
-    public ServicePart(MaintenanceService service, Part part) {
+    public ServicePart(ServiceModel service, Part part) {
         this.service = service;
         this.part = part;
     }

@@ -7,6 +7,7 @@
 -- ===================================================================
 -- BẢNG 1: ROLES - Định nghĩa các vai trò trong hệ thống
 -- ===================================================================
+IF NOT EXISTS (SELECT 1 FROM roles WHERE name = 'ADMIN')
 INSERT INTO roles (name) VALUES
 ('ADMIN'),
 ('STAFF'),
@@ -16,6 +17,7 @@ INSERT INTO roles (name) VALUES
 -- ===================================================================
 -- BẢNG 2: VEHICLE_MODELS - Danh sách các mẫu xe
 -- ===================================================================
+IF NOT EXISTS (SELECT 1 FROM vehicle_models WHERE brand_name = 'Tesla' AND model_name = 'Model S')
 INSERT INTO vehicle_models
 (brand_name, model_name, dimensions, year_introduce, seats, battery_capacity_kwh, range_km, charging_time_hours, motor_power_kw, weight_kg, status, created_at)
 VALUES
@@ -26,6 +28,7 @@ VALUES
 -- ===================================================================
 -- BẢNG 3: USERS - Danh sách người dùng (mật khẩu cho tất cả là: "string")
 -- ===================================================================
+IF NOT EXISTS (SELECT 1 FROM users WHERE email_address = 'admin@example.com')
 INSERT INTO users (full_name, email_address, phone_number, hashed_password, role_id, status, created_at, update_at)
 VALUES
 ('Nguyen Van A', 'admin@example.com', '0901234567', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 1, 'ACTIVE', GETDATE(), GETDATE()),
@@ -37,6 +40,7 @@ VALUES
 -- ===================================================================
 -- BẢNG 4: VEHICLES - Xe của từng khách hàng
 -- ===================================================================
+IF NOT EXISTS (SELECT 1 FROM vehicles WHERE plate_number = '51H-12345')
 INSERT INTO vehicles
 (plate_number, color, vin, customer_id, vehicle_model_id, entity_status, created_at, purchased_at)
 VALUES
