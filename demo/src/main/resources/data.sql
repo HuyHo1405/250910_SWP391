@@ -50,7 +50,7 @@ VALUES
 -- ===================================================================
 -- BẢNG 5: MAINTENANCE_SERVICES - Các dịch vụ bảo dưỡng có sẵn
 -- ===================================================================
-INSERT INTO maintenance_services (name, maintenance_service_type, description, est_time_minutes, current_price, status, created_at)
+INSERT INTO maintenance_catalogs (name, maintenance_service_type, description, est_time_minutes, current_price, status, created_at)
 VALUES
 ('Battery Inspection', 'BATTERY_INSPECTION', 'Complete battery health check and diagnostics', 60.0, 150000, 'ACTIVE', GETDATE()),
 ('Tire Rotation', 'TIRE_ROTATION', 'Rotate all four tires for even wear', 30.0, 80000, 'ACTIVE', GETDATE()),
@@ -156,36 +156,51 @@ WHERE
 -- BẢNG 8: BOOKINGS - Lịch sử đặt hẹn
 -- ===================================================================
 -- Bookings cho Customer 4 (ID=4)
-INSERT INTO bookings (customer_id, vin, schedule_date, schedule_status, maintenance_status, payment_status, lifecycle_status, total_price, created_at, updated_at)
+INSERT INTO bookings (customer_id, vin, schedule_date, booking_status, payment_status, total_price, created_at, updated_at)
 VALUES
-(4, '1HGCM82633A123456', DATEADD(DAY, 3, GETDATE()), 'PENDING', 'IDLE', 'UNPAID', 'ACTIVE', 350000, GETDATE(), GETDATE()),
-(4, '1HGCM82633A123456', DATEADD(DAY, 2, GETDATE()), 'CONFIRMED', 'IDLE', 'UNPAID', 'ACTIVE', 360000, GETDATE(), GETDATE()),
-(4, '1HGCM82633A123456', DATEADD(DAY, 1, GETDATE()), 'CHECKED_IN', 'INSPECTING', 'UNPAID', 'ACTIVE', 365000, GETDATE(), GETDATE()),
-(4, '1HGCM82633A123456', GETDATE(), 'CHECKED_IN', 'IN_PROGRESS', 'UNPAID', 'ACTIVE', 370000, GETDATE(), GETDATE()),
-(4, '1HGCM82633A123456', DATEADD(DAY, -1, GETDATE()), 'CHECKED_IN', 'WAITING_APPROVAL', 'UNPAID', 'ACTIVE', 375000, GETDATE(), GETDATE()),
-(4, '1HGCM82633A123456', DATEADD(DAY, -2, GETDATE()), 'CHECKED_IN', 'IN_PROGRESS', 'PAID', 'ACTIVE', 380000, GETDATE(), GETDATE()),
-(4, '1HGCM82633A123456', DATEADD(DAY, -3, GETDATE()), 'CHECKED_IN', 'COMPLETE', 'PAID', 'COMPLETED', 385000, GETDATE(), GETDATE()),
-(4, '1HGCM82633A123456', DATEADD(DAY, -7, GETDATE()), 'CHECKED_IN', 'COMPLETE', 'PAID', 'DELIVERED', 385000, GETDATE(), GETDATE()),
-(4, '1HGCM82633A123456', DATEADD(DAY, -8, GETDATE()), 'CHECKED_IN', 'ABORTED', 'UNPAID', 'CANCELLED', 200000, GETDATE(), GETDATE());
+-- Các booking ở trạng thái schedule phase
+(4, '1HGCM82633A123456', DATEADD(DAY, 3, GETDATE()), 'PENDING', 'UNPAID', 350000, GETDATE(), GETDATE()),
+(4, '1HGCM82633A123456', DATEADD(DAY, 2, GETDATE()), 'CONFIRMED', 'UNPAID', 360000, GETDATE(), GETDATE()),
+(4, '1HGCM82633A123456', DATEADD(DAY, 5, GETDATE()), 'RESCHEDULED', 'UNPAID', 365000, GETDATE(), GETDATE()),
+
+-- Các booking ở trạng thái maintenance phase
+(4, '1HGCM82633A123456', GETDATE(), 'IN_PROGRESS', 'UNPAID', 370000, GETDATE(), GETDATE()),
+(4, '1HGCM82633A123456', DATEADD(DAY, -1, GETDATE()), 'IN_PROGRESS', 'PAID', 375000, GETDATE(), GETDATE()),
+(4, '1HGCM82633A123456', DATEADD(DAY, -2, GETDATE()), 'MAINTENANCE_COMPLETE', 'PAID', 380000, GETDATE(), GETDATE()),
+
+-- Các booking đã hoàn thành
+(4, '1HGCM82633A123456', DATEADD(DAY, -3, GETDATE()), 'DELIVERED', 'PAID', 385000, GETDATE(), GETDATE()),
+(4, '1HGCM82633A123456', DATEADD(DAY, -7, GETDATE()), 'DELIVERED', 'PAID', 390000, GETDATE(), GETDATE()),
+
+-- Booking đã hủy
+(4, '1HGCM82633A123456', DATEADD(DAY, -8, GETDATE()), 'CANCELLED', 'UNPAID', 200000, GETDATE(), GETDATE());
 
 -- Bookings cho Customer 5 (ID=5)
-INSERT INTO bookings (customer_id, vin, schedule_date, schedule_status, maintenance_status, payment_status, lifecycle_status, total_price, created_at, updated_at)
+INSERT INTO bookings (customer_id, vin, schedule_date, booking_status, payment_status, total_price, created_at, updated_at)
 VALUES
-    (5, '5YJSA1E26HF123001', DATEADD(DAY, 3, GETDATE()), 'PENDING', 'IDLE', 'UNPAID', 'ACTIVE', 550000, GETDATE(), GETDATE()),
-    (5, '5YJSA1E26HF123001', DATEADD(DAY, 2, GETDATE()), 'CONFIRMED', 'IDLE', 'UNPAID', 'ACTIVE', 560000, GETDATE(), GETDATE()),
-    (5, '5YJSA1E26HF123001', DATEADD(DAY, 1, GETDATE()), 'CHECKED_IN', 'INSPECTING', 'UNPAID', 'ACTIVE', 565000, GETDATE(), GETDATE()),
-    (5, '5YJSA1E26HF123001', GETDATE(), 'CHECKED_IN', 'IN_PROGRESS', 'UNPAID', 'ACTIVE', 570000, GETDATE(), GETDATE()),
-    (5, '5YJSA1E26HF123001', DATEADD(DAY, -1, GETDATE()), 'CHECKED_IN', 'WAITING_APPROVAL', 'UNPAID', 'ACTIVE', 575000, GETDATE(), GETDATE()),
-    (5, '5YJSA1E26HF123001', DATEADD(DAY, -2, GETDATE()), 'CHECKED_IN', 'IN_PROGRESS', 'PAID', 'ACTIVE', 580000, GETDATE(), GETDATE()),
-    (5, '5YJSA1E26HF123001', DATEADD(DAY, -3, GETDATE()), 'CHECKED_IN', 'COMPLETE', 'PAID', 'COMPLETED', 585000, GETDATE(), GETDATE()),
-    (5, '5YJSA1E26HF123001', DATEADD(DAY, -7, GETDATE()), 'CHECKED_IN', 'COMPLETE', 'PAID', 'DELIVERED', 585000, GETDATE(), GETDATE()),
-    (5, '5YJSA1E26HF123001', DATEADD(DAY, -8, GETDATE()), 'CHECKED_IN', 'ABORTED', 'UNPAID', 'CANCELLED', 220000, GETDATE(), GETDATE());
+-- Schedule phase
+(5, '5YJSA1E26HF123001', DATEADD(DAY, 3, GETDATE()), 'PENDING', 'UNPAID', 550000, GETDATE(), GETDATE()),
+(5, '5YJSA1E26HF123001', DATEADD(DAY, 2, GETDATE()), 'CONFIRMED', 'UNPAID', 560000, GETDATE(), GETDATE()),
+(5, '5YJSA1E26HF123001', DATEADD(DAY, 4, GETDATE()), 'RESCHEDULED', 'UNPAID', 565000, GETDATE(), GETDATE()),
+
+-- Maintenance phase
+(5, '5YJSA1E26HF123001', GETDATE(), 'IN_PROGRESS', 'UNPAID', 570000, GETDATE(), GETDATE()),
+(5, '5YJSA1E26HF123001', DATEADD(DAY, -1, GETDATE()), 'IN_PROGRESS', 'PAID', 575000, GETDATE(), GETDATE()),
+(5, '5YJSA1E26HF123001', DATEADD(DAY, -2, GETDATE()), 'MAINTENANCE_COMPLETE', 'PAID', 580000, GETDATE(), GETDATE()),
+
+-- Completed
+(5, '5YJSA1E26HF123001', DATEADD(DAY, -3, GETDATE()), 'DELIVERED', 'PAID', 585000, GETDATE(), GETDATE()),
+(5, '5YJSA1E26HF123001', DATEADD(DAY, -7, GETDATE()), 'DELIVERED', 'PAID', 590000, GETDATE(), GETDATE()),
+
+-- Cancelled
+(5, '5YJSA1E26HF123001', DATEADD(DAY, -8, GETDATE()), 'CANCELLED', 'UNPAID', 220000, GETDATE(), GETDATE());
+
 
 -- ===================================================================
 -- BẢNG 9: BOOKING_DETAILS - Chi tiết các dịch vụ trong mỗi booking
 -- ===================================================================
 -- Details cho Bookings 1-9 (Customer 4)
-INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES
+INSERT INTO booking_details (booking_id, maintenance_catalog_id, description, service_price) VALUES
 (1, 1, 'Battery inspection needed', 150000),(1, 2, 'Tire rotation check', 80000),
 (2, 3, 'Brake pads replacement', 200000),(2, 4, 'Software system update', 300000),
 (3, 5, 'Air filter replacement', 100000),(3, 6, 'Coolant system refill', 180000),
@@ -197,7 +212,7 @@ INSERT INTO booking_details (booking_id, maintenance_service_id, description, se
 (9, 8, 'Wheel alignment corrected', 220000),(9, 9, 'Diagnostic scan performed', 400000);
 
 -- Details cho Bookings 10-18 (Customer 5)
-INSERT INTO booking_details (booking_id, maintenance_service_id, description, service_price) VALUES
+INSERT INTO booking_details (booking_id, maintenance_catalog_id, description, service_price) VALUES
                                                                                                  (10, 1, 'Battery check done', 150000),(10, 2, 'Tire rotation scheduled', 80000),
                                                                                                  (11, 3, 'Brake fluid changed', 200000),(11, 4, 'Software feature upgraded', 300000),
                                                                                                  (12, 5, 'Air filter cleaned', 100000),(12, 6, 'Coolant leak fixed', 180000),

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class BookingResponseMapper {
+
     public static BookingResponse toDto(Booking booking, ScheduleDateTime scheduleDateTime) {
         List<BookingResponse.ServiceDetail> serviceDetails = booking.getBookingDetails().stream()
                 .map(detail -> BookingResponse.ServiceDetail.builder()
@@ -26,10 +27,8 @@ public class BookingResponseMapper {
                 .vehicleVin(booking.getVehicle().getVin())
                 .vehicleModel(booking.getVehicle().getModel().getModelName())
                 .scheduleDateTime(scheduleDateTime)
-                .scheduleStatus(booking.getScheduleStatus() != null ? booking.getScheduleStatus().name() : null)
-                .maintenanceStatus(booking.getMaintenanceStatus() != null ? booking.getMaintenanceStatus().name() : null)
+                .bookingStatus(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
                 .paymentStatus(booking.getPaymentStatus() != null ? booking.getPaymentStatus().name() : null)
-                .lifecycleStatus(booking.getLifecycleStatus() != null ? booking.getLifecycleStatus().name() : null)
                 .totalPrice(booking.getTotalPrice())
                 .createdAt(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())

@@ -9,7 +9,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "maintenance_services")
+@Table(name = "maintenance_catalogs")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -47,6 +47,4 @@ public class MaintenanceCatalog {
         createdAt = LocalDateTime.now();
         if (status == null) status = EntityStatus.ACTIVE;
     }
-
-
 }
