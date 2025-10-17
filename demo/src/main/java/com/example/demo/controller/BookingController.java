@@ -2,10 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.model.dto.BookingRequest;
 import com.example.demo.model.dto.BookingResponse;
-import com.example.demo.model.modelEnum.BookingLifecycle;
-import com.example.demo.model.modelEnum.MaintenanceStatus;
+import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.model.modelEnum.PaymentStatus;
-import com.example.demo.model.modelEnum.ScheduleStatus;
 import com.example.demo.service.interfaces.IBookingService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -48,26 +46,33 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<List<BookingResponse>> getAllBookings(
-            @RequestParam(required = false) BookingLifecycle lifecycleStatus,
-            @RequestParam(required = false) ScheduleStatus scheduleStatus,
-            @RequestParam(required = false) MaintenanceStatus maintenanceStatus,
+            @RequestParam(required = false) BookingStatus bookingStatus,
             @RequestParam(required = false) PaymentStatus paymentStatus
     ) {
-        // Truyền tất cả các bộ lọc vào service
         List<BookingResponse> responses = bookingService.getAllBookingsFiltered(
-                lifecycleStatus, scheduleStatus, maintenanceStatus, paymentStatus
+                bookingStatus, paymentStatus
         );
         return ResponseEntity.ok(responses);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BookingResponse> updateBooking(@PathVariable Long id, @RequestBody @Valid BookingRequest request) {
+    public ResponseEntity<BookingResponse> updateBooking(
+            @PathVariable Long id,
+            @RequestBody @Valid BookingRequest request) {
         BookingResponse resp = bookingService.updateBooking(id, request);
         return ResponseEntity.ok(resp);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
+        bookingService.deleteBooking(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{id}/cancel")
-    public ResponseEntity<BookingResponse> cancelBooking(@PathVariable Long id, @RequestParam(required = false) String reason) {
+    public ResponseEntity<BookingResponse> cancelBooking(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason) {
         BookingResponse resp = bookingService.cancelBooking(id, reason);
         return ResponseEntity.ok(resp);
     }

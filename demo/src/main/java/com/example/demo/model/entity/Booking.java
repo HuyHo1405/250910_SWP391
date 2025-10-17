@@ -33,20 +33,13 @@ public class Booking {
     private LocalDateTime scheduleDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "schedule_status", nullable = false, length = 20)
-    private ScheduleStatus scheduleStatus;  // TRẠNG THÁI LỊCH HẸN
+    @Column(name = "booking_status", nullable = false, length = 20)
+    private BookingStatus bookingStatus;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "maintenance_status", nullable = false, length = 30)
-    private MaintenanceStatus maintenanceStatus;  // TRẠNG THÁI BẢO DƯỠNG
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", nullable = false, length = 20)
-    private PaymentStatus paymentStatus;    // TRẠNG THÁI THANH TOÁN
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "lifecycle_status", nullable = false, length = 20)
-    private BookingLifecycle lifecycleStatus;  // TRẠNG THÁI ĐƠN TỔNG THỂ
+    private PaymentStatus paymentStatus;
 
     @Column(name = "total_price")
     private Double totalPrice;
@@ -66,17 +59,11 @@ public class Booking {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         // Khởi tạo mặc định các status
-        if (scheduleStatus == null) {
-            scheduleStatus = ScheduleStatus.PENDING;
-        }
-        if (maintenanceStatus == null) {
-            maintenanceStatus = MaintenanceStatus.IDLE;
+        if (bookingStatus == null) {
+            bookingStatus = BookingStatus.PENDING;
         }
         if (paymentStatus == null) {
             paymentStatus = PaymentStatus.UNPAID;
-        }
-        if (lifecycleStatus == null) {
-            lifecycleStatus = BookingLifecycle.ACTIVE;
         }
     }
 
