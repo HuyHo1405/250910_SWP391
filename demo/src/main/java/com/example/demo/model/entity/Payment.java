@@ -32,7 +32,7 @@ public class Payment {
     @Column(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethod;
 
-    @Column(name = "amount", nullable = false, precision = 10, scale = 2)
+    @Column(name = "amount", nullable = false)
     private Double amount;
 
     @Enumerated(EnumType.STRING)

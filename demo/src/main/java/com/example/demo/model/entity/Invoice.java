@@ -38,16 +38,16 @@ public class Invoice {
     @Column(name = "due_date", nullable = false)
     private LocalDateTime dueDate;
 
-    @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
+    @Column(name = "total_amount", nullable = false)
     private Double totalAmount;
 
-    @Column(name = "tax_amount", nullable = false, precision = 10, scale = 2)
+    @Column(name = "tax_amount", nullable = false)
     private Double taxAmount;
 
-    @Column(name = "discount_amount", precision = 10, scale = 2)
+    @Column(name = "discount_amount")
     private Double discountAmount;
 
-    @Column(name = "final_amount", nullable = false, precision = 10, scale = 2)
+    @Column(name = "final_amount", nullable = false)
     private Double finalAmount;
 
     @Enumerated(EnumType.STRING)
