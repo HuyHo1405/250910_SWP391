@@ -23,4 +23,8 @@ public class MaintenanceCatalogRequest {
     @NotNull(message = "Service price is required")
     @Positive(message = "Service price must be greater than 0")
     private Double currentPrice;
+
+    //list của model xe
+
+    //list của linh kiện + model xe
 }
