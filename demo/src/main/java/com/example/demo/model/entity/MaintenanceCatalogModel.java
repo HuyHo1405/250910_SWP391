@@ -2,9 +2,10 @@ package com.example.demo.model.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "maintenance_catalogs_models")
@@ -26,8 +27,8 @@ public class MaintenanceCatalogModel {
     @JoinColumn(name = "model_id", nullable = false)
     private VehicleModel vehicleModel;
 
-    @Column(name = "est_time_hours")
-    private Double estTimeHours;
+    @Column(name = "est_time_minutes")
+    private Double estTimeMinutes;
 
     @Column(name = "maintenance_price")
     private Double maintenancePrice;
@@ -35,7 +36,11 @@ public class MaintenanceCatalogModel {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
 }

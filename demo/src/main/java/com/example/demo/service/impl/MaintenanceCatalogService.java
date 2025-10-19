@@ -1,98 +1,198 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.model.modelEnum.EntityStatus;
-import com.example.demo.model.entity.MaintenanceCatalog;
+import com.example.demo.exception.CommonException;
 import com.example.demo.exception.MaintenanceCatalogException;
 import com.example.demo.model.dto.MaintenanceCatalogRequest;
 import com.example.demo.model.dto.MaintenanceCatalogResponse;
+import com.example.demo.model.dto.MaintenanceCatalogModelResponse;
+import com.example.demo.model.entity.MaintenanceCatalog;
+import com.example.demo.model.modelEnum.EntityStatus;
+import com.example.demo.model.modelEnum.MaintenanceCatalogType;
 import com.example.demo.repo.MaintenanceCatalogRepo;
+import com.example.demo.repo.VehicleRepo;
 import com.example.demo.service.interfaces.IMaintenanceCatalogService;
+import com.example.demo.service.interfaces.IMaintenanceCatalogModelService;
+import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MaintenanceCatalogService implements IMaintenanceCatalogService {
-    private final MaintenanceCatalogRepo serviceRepo;
+
+    private final MaintenanceCatalogRepo catalogRepository;
+    private final VehicleRepo vehicleRepository;
+    private final IMaintenanceCatalogModelService catalogModelService;
     private final AccessControlService accessControlService;
 
-    @Transactional
     @Override
-    public MaintenanceCatalogResponse createService(MaintenanceCatalogRequest request) {
+    @Transactional
+    public MaintenanceCatalogResponse create(MaintenanceCatalogRequest request) {
+        // ✅ Phân quyền: Chỉ ADMIN/STAFF có quyền create catalog
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "create");
-        boolean exists = serviceRepo.findByName(request.getName()).isPresent();
-        if (exists) throw new MaintenanceCatalogException.DuplicateServiceName(request.getName());
 
-        MaintenanceCatalog s = MaintenanceCatalog.builder()
+        // ✅ Validation: Kiểm tra tên catalog bị trùng
+        if (catalogRepository.existsByName(request.getName())) {
+            throw new MaintenanceCatalogException.DuplicateCatalogName(request.getName());
+        }
+
+        // ✅ Validation: Kiểm tra giá hợp lệ
+        if (request.getCurrentPrice() == null || request.getCurrentPrice() <= 0) {
+            throw new MaintenanceCatalogException.InvalidPrice();
+        }
+
+        // ✅ Validation: Kiểm tra thời gian ước tính
+        if (request.getEstTimeMinutes() == null || request.getEstTimeMinutes() <= 0) {
+            throw new MaintenanceCatalogException.InvalidEstTime();
+        }
+
+        MaintenanceCatalog catalog = MaintenanceCatalog.builder()
                 .name(request.getName())
-                .maintenanceServiceType(request.getMaintenanceServiceType())
                 .description(request.getDescription())
+                .maintenanceServiceType(request.getMaintenanceServiceType())
                 .estTimeMinutes(request.getEstTimeMinutes())
                 .currentPrice(request.getCurrentPrice())
                 .status(EntityStatus.ACTIVE)
+                .createdAt(LocalDateTime.now())
                 .build();
-        MaintenanceCatalog saved = serviceRepo.save(s);
-        return toDTO(saved);
+
+        MaintenanceCatalog saved = catalogRepository.save(catalog);
+        log.info("Created new maintenance catalog: id={}, name={}", saved.getId(), saved.getName());
+
+        return mapToResponse(saved, false);
     }
 
     @Override
-    public List<MaintenanceCatalogResponse> listServices() {
+    @Transactional
+    public MaintenanceCatalogResponse update(Long id, MaintenanceCatalogRequest request) {
+        // ✅ Phân quyền: Chỉ ADMIN/STAFF có quyền update catalog
+        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "update");
+
+        // ✅ Exception: Sử dụng MaintenanceCatalogException.CatalogNotFound
+        MaintenanceCatalog catalog = catalogRepository.findById(id)
+                .orElseThrow(() -> new MaintenanceCatalogException.CatalogNotFound(id));
+
+        // ✅ Validation: Kiểm tra tên trùng (trừ catalog hiện tại)
+        if (!catalog.getName().equals(request.getName()) &&
+                catalogRepository.existsByName(request.getName())) {
+            throw new MaintenanceCatalogException.DuplicateCatalogName(request.getName());
+        }
+
+        // ✅ Validation: Kiểm tra giá và thời gian
+        if (request.getCurrentPrice() != null && request.getCurrentPrice() <= 0) {
+            throw new MaintenanceCatalogException.InvalidPrice();
+        }
+        if (request.getEstTimeMinutes() != null && request.getEstTimeMinutes() <= 0) {
+            throw new MaintenanceCatalogException.InvalidEstTime();
+        }
+
+        catalog.setName(request.getName());
+        catalog.setDescription(request.getDescription());
+        catalog.setMaintenanceServiceType(request.getMaintenanceServiceType());
+        catalog.setEstTimeMinutes(request.getEstTimeMinutes());
+        catalog.setCurrentPrice(request.getCurrentPrice());
+
+        MaintenanceCatalog updated = catalogRepository.save(catalog);
+        log.info("Updated maintenance catalog: id={}, name={}", updated.getId(), updated.getName());
+
+        return mapToResponse(updated, false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MaintenanceCatalogResponse findById(Long id, boolean includeModels) {
+        // ✅ Phân quyền: Tất cả user có quyền đọc catalog (theo data.sql)
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
-        return serviceRepo.findByStatus(EntityStatus.ACTIVE)
-                .stream().map(this::toDTO)
+
+        // ✅ Exception: Sử dụng MaintenanceCatalogException.CatalogNotFound
+        MaintenanceCatalog catalog = catalogRepository.findById(id)
+                .orElseThrow(() -> new MaintenanceCatalogException.CatalogNotFound(id));
+
+        // ✅ Kiểm tra catalog có active không
+        if (catalog.getStatus() != EntityStatus.ACTIVE) {
+            throw new MaintenanceCatalogException.CatalogInactive(catalog.getName());
+        }
+
+        return mapToResponse(catalog, includeModels);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MaintenanceCatalogResponse> findAll(
+            @Nullable MaintenanceCatalogType type,
+            @Nullable String vin,
+            boolean includeModels
+    ) {
+        // ✅ Phân quyền: Tất cả user có quyền đọc catalog
+        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
+
+        // ✅ Nếu truyền VIN, validate VIN có tồn tại không
+        if (vin != null && !vin.isEmpty()) {
+            if (!vehicleRepository.existsByVinAndEntityStatus(vin, EntityStatus.ACTIVE)) {
+                throw new MaintenanceCatalogException.VehicleNotFoundByVin(vin);
+            }
+        }
+
+        List<MaintenanceCatalog> catalogs = catalogRepository.findByTypeAndVin(type, vin);
+
+        // ✅ Nếu không có catalog nào, throw NoServicesAvailable
+        if (catalogs.isEmpty() && vin != null) {
+            throw new MaintenanceCatalogException.NoServicesAvailable("VIN: " + vin);
+        }
+
+        return catalogs.stream()
+                .filter(c -> c.getStatus() == EntityStatus.ACTIVE) // Chỉ lấy catalog ACTIVE
+                .map(catalog -> mapToResponse(catalog, includeModels))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public MaintenanceCatalogResponse getService(Long id) {
-        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
-        MaintenanceCatalog s = serviceRepo.findByIdAndStatus(id, EntityStatus.ACTIVE)
-                .orElseThrow(() -> new MaintenanceCatalogException.ServiceInactive(id + ""));
-        return toDTO(s);
-    }
-
     @Transactional
-    @Override
-    public MaintenanceCatalogResponse updateService(Long id, MaintenanceCatalogRequest request) {
-        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "update");
-        MaintenanceCatalog s = serviceRepo.findByIdAndStatus(id, EntityStatus.ACTIVE)
-                .orElseThrow(() -> new MaintenanceCatalogException.ServiceInactive(id + ""));
-
-        var existed = serviceRepo.findByName(request.getName());
-        if (existed.isPresent() && !existed.get().getId().equals(id))
-            throw new MaintenanceCatalogException.DuplicateServiceName(request.getName());
-        s.setName(request.getName());
-        s.setDescription(request.getDescription());
-        s.setMaintenanceServiceType(request.getMaintenanceServiceType());
-        s.setEstTimeMinutes(request.getEstTimeMinutes());
-        s.setCurrentPrice(request.getCurrentPrice());
-        MaintenanceCatalog updated = serviceRepo.save(s);
-        return toDTO(updated);
-    }
-
-    @Transactional
-    @Override
-    public void deleteService(Long id) {
+    public void delete(Long id) {
+        // ✅ Phân quyền: Chỉ ADMIN/STAFF có quyền delete
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "delete");
-        MaintenanceCatalog s = serviceRepo.findByIdAndStatus(id, EntityStatus.ACTIVE)
-                .orElseThrow(() -> new MaintenanceCatalogException.ServiceInactive(id + ""));
-        s.setStatus(EntityStatus.INACTIVE);
-        serviceRepo.save(s);
+
+        // ✅ Exception: Sử dụng MaintenanceCatalogException.CatalogNotFound
+        if (!catalogRepository.existsById(id)) {
+            throw new MaintenanceCatalogException.CatalogNotFound(id);
+        }
+
+        try {
+            // Delete all associated catalog-model relationships first
+            catalogModelService.deleteBatch(id);
+            catalogRepository.deleteById(id);
+            log.info("Deleted maintenance catalog: id={}", id);
+        } catch (Exception e) {
+            log.error("Failed to delete catalog id={}: {}", id, e.getMessage());
+            throw new MaintenanceCatalogException.BatchOperationFailed(
+                    "Cannot delete catalog: " + e.getMessage()
+            );
+        }
     }
 
-    private MaintenanceCatalogResponse toDTO(MaintenanceCatalog s) {
-        MaintenanceCatalogResponse dto = new MaintenanceCatalogResponse();
-        dto.setId(s.getId());
-        dto.setName(s.getName());
-        dto.setDescription(s.getDescription());
-        dto.setMaintenanceServiceType(s.getMaintenanceServiceType());
-        dto.setEstTimeMinutes(s.getEstTimeMinutes());
-        dto.setCurrentPrice(s.getCurrentPrice());
-        dto.setStatus(s.getStatus().name());
-        dto.setCreatedAt(s.getCreatedAt());
-        return dto;
+    private MaintenanceCatalogResponse mapToResponse(MaintenanceCatalog catalog, boolean includeModels) {
+        List<MaintenanceCatalogModelResponse> models = null;
+        if (includeModels) {
+            models = catalogModelService.findByCatalogId(catalog.getId(), null, true);
+        }
+
+        return MaintenanceCatalogResponse.builder()
+                .id(catalog.getId())
+                .name(catalog.getName())
+                .description(catalog.getDescription())
+                .maintenanceServiceType(catalog.getMaintenanceServiceType())
+                .estTimeMinutes(catalog.getEstTimeMinutes())
+                .currentPrice(catalog.getCurrentPrice())
+                .status(catalog.getStatus())
+                .createdAt(catalog.getCreatedAt())
+                .models(models)
+                .build();
     }
 }

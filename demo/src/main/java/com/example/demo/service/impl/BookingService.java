@@ -124,6 +124,82 @@ public class BookingService implements IBookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<BookingResponse.ServiceDetail> getRecentlyUsedServicesByVehicle(String vin, int limit) {
+        log.info("Fetching recently used services for vehicle: {}", vin);
+
+        // Verify vehicle exists
+        Vehicle vehicle = vehicleRepository.findByVin(vin)
+                .orElseThrow(() -> new CommonException.NotFound("Vehicle", vin));
+
+        // Access control
+        accessControlService.verifyResourceAccess(vehicle.getUser().getId(), "BOOKING", "read");
+
+        // Lấy các booking đã hoàn thành (DELIVERED hoặc MAINTENANCE_COMPLETE)
+        List<Booking> completedBookings = bookingRepository.findByVehicleVin(vin).stream()
+                .filter(b -> b.getBookingStatus() == BookingStatus.DELIVERED
+                        || b.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE)
+                .sorted((b1, b2) -> b2.getUpdatedAt().compareTo(b1.getUpdatedAt())) // Sort by newest first
+                .collect(Collectors.toList());
+
+        // Extract service details và loại bỏ trùng lặp theo serviceId
+        List<BookingResponse.ServiceDetail> recentServices = completedBookings.stream()
+                .flatMap(booking -> booking.getBookingDetails().stream())
+                .map(detail -> BookingResponse.ServiceDetail.builder()
+                        .id(detail.getId())
+                        .serviceId(detail.getService().getId())
+                        .serviceName(detail.getService().getName())
+                        .description(detail.getDescription())
+                        .servicePrice(detail.getServicePrice())
+                        .build())
+                .distinct() // Remove duplicates based on serviceId
+                .limit(limit > 0 ? limit : 10) // Default limit 10
+                .collect(Collectors.toList());
+
+        log.info("Found {} recently used services for vehicle {}", recentServices.size(), vin);
+        return recentServices;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BookingResponse.ServiceDetail> getRecentlyUsedServicesByCustomer(Long customerId, int limit) {
+        log.info("Fetching recently used services for customer: {}", customerId);
+
+        // Verify customer exists
+        if (!userRepository.existsById(customerId)) {
+            throw new CommonException.NotFound("User", customerId);
+        }
+
+        // Access control
+        accessControlService.verifyResourceAccess(customerId, "BOOKING", "read");
+
+        // Lấy các booking đã hoàn thành
+        List<Booking> completedBookings = bookingRepository.findByCustomerId(customerId).stream()
+                .filter(b -> b.getBookingStatus() == BookingStatus.DELIVERED
+                        || b.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE)
+                .sorted((b1, b2) -> b2.getUpdatedAt().compareTo(b1.getUpdatedAt()))
+                .collect(Collectors.toList());
+
+        // Extract service details
+        List<BookingResponse.ServiceDetail> recentServices = completedBookings.stream()
+                .flatMap(booking -> booking.getBookingDetails().stream())
+                .map(detail -> BookingResponse.ServiceDetail.builder()
+                        .id(detail.getId())
+                        .serviceId(detail.getService().getId())
+                        .serviceName(detail.getService().getName())
+                        .description(detail.getDescription())
+                        .servicePrice(detail.getServicePrice())
+                        .build())
+                .distinct()
+                .limit(limit > 0 ? limit : 10)
+                .collect(Collectors.toList());
+
+        log.info("Found {} recently used services for customer {}", recentServices.size(), customerId);
+        return recentServices;
+    }
+
+
+    @Override
     @Transactional
     public BookingResponse updateBooking(Long id, BookingRequest request) {
         Booking booking = bookingRepository.findById(id)
