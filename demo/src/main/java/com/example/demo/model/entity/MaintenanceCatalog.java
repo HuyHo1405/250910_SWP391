@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "maintenance_catalogs")
@@ -27,7 +29,7 @@ public class MaintenanceCatalog {
     @Enumerated(EnumType.STRING)
     private MaintenanceCatalogType maintenanceServiceType;
 
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "VARCHAR(255)")
     private String description;
 
     @Column(name = "current_price")
@@ -42,9 +44,23 @@ public class MaintenanceCatalog {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "maintenanceCatalog", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<MaintenanceCatalogModel> models = new ArrayList<>();
+
     @PrePersist
     void prePersist() {
         createdAt = LocalDateTime.now();
         if (status == null) status = EntityStatus.ACTIVE;
+    }
+
+    public void addModel(MaintenanceCatalogModel model) {
+        models.add(model);
+        model.setMaintenanceCatalog(this);
+    }
+
+    public void removeModel(MaintenanceCatalogModel model) {
+        models.remove(model);
+        model.setMaintenanceCatalog(null);
     }
 }

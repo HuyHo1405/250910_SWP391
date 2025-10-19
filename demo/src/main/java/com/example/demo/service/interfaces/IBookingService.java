@@ -16,6 +16,8 @@ public interface IBookingService {
             BookingStatus bookingStatus,
             PaymentStatus paymentStatus
     );
+    List<BookingResponse.ServiceDetail> getRecentlyUsedServicesByVehicle(String vin, int limit);
+    List<BookingResponse.ServiceDetail> getRecentlyUsedServicesByCustomer(Long customerId, int limit);
     BookingResponse updateBooking(Long id, BookingRequest request);
     void deleteBooking(Long id);
     BookingResponse cancelBooking(Long id, String reason);
