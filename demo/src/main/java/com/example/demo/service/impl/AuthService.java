@@ -15,6 +15,7 @@ import com.example.demo.service.interfaces.IAuthService;
 import com.example.demo.service.interfaces.IMailService;
 import com.example.demo.service.interfaces.IPasswordService;
 import com.example.demo.service.interfaces.IVerificationCodeService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,12 +38,13 @@ public class AuthService implements IAuthService {
     private final RoleRepo roleRepo;
     private final RefreshTokenRepo refreshTokenRepo;
 
+    private final HttpServletRequest httpServletRequest;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
-    public AuthResponse register(AuthRequest.Register registerRequest) {
+    public MessageResponse register(AuthRequest.Register registerRequest) {
         log.info("Starting registration process for email: {}", registerRequest.getEmailAddress());
 
         userValidationService.checkEmailAndPhoneAvailability(
@@ -52,8 +54,10 @@ public class AuthService implements IAuthService {
         User savedUser = createAndSaveUser(registerRequest);
 
         // Return simple success message
-        return AuthResponse.builder()
-                .message("Registration successful. Please check your email for verification code.")
+        return MessageResponse.builder()
+                .message("Registration successful.")
+                .timestamp(LocalDateTime.now())
+                .path("uri=" + httpServletRequest.getRequestURI())
                 .build();
     }
 
@@ -78,7 +82,7 @@ public class AuthService implements IAuthService {
 
             return AuthResponse.builder()
                     .requiresVerification(true)
-                    .message("Verification code sent to your email")
+                    .message("Your account has not verified yet. Verification code sent to your email")
                     .build();
         }
 
@@ -119,7 +123,7 @@ public class AuthService implements IAuthService {
 
     @Override
     @Transactional
-    public AuthResponse logout(AuthRequest.Logout logoutRequest) {
+    public MessageResponse logout(AuthRequest.Logout logoutRequest) {
         String refreshTokenStr = logoutRequest.getRefreshToken();
 
         // Find the refresh token
@@ -131,19 +135,29 @@ public class AuthService implements IAuthService {
         refreshTokenRepo.save(refreshToken);
 
         // Return success response
-        return AuthResponse.builder()
+        return MessageResponse.builder()
                 .message("Logout successful")
+                .timestamp(LocalDateTime.now())
+                .path("uri=" + httpServletRequest.getRequestURI())
                 .build();
     }
 
     @Override
-    public AuthResponse forgotPassword(AuthRequest.ForgotPassword forgotPasswordRequest) {
-        return passwordService.forgotPassword(forgotPasswordRequest);
+    public MessageResponse forgotPassword(AuthRequest.ForgotPassword forgotPasswordRequest) {
+        return MessageResponse.builder()
+                .message(passwordService.forgotPassword(forgotPasswordRequest))
+                .timestamp(LocalDateTime.now())
+                .path("uri=" + httpServletRequest.getRequestURI())
+                .build();
     }
 
     @Override
-    public AuthResponse resetPassword(AuthRequest.ResetPassword resetPasswordRequest) {
-        return passwordService.resetPassword(resetPasswordRequest);
+    public MessageResponse resetPassword(AuthRequest.ResetPassword resetPasswordRequest) {
+        return MessageResponse.builder()
+                .message(passwordService.resetPassword(resetPasswordRequest))
+                .timestamp(LocalDateTime.now())
+                .path("uri=" + httpServletRequest.getRequestURI())
+                .build();
     }
 
     // Helper methods

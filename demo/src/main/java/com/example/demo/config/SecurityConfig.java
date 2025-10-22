@@ -118,20 +118,6 @@ public class SecurityConfig {
                                 "/webjars/**"          // Static web resources (CSS, JS)
                         ).permitAll()
 
-                        // Role-based access control for protected endpoints
-                        
-                        // Customer endpoints - accessible only to users with CUSTOMER role
-                        .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
-
-                        // Technician endpoints - accessible only to users with TECHNICIAN role
-                        .requestMatchers("/api/technician/**").hasRole("TECHNICIAN")
-
-                        // Staff endpoints - accessible only to users with STAFF role
-                        .requestMatchers("/api/staff/**").hasRole("STAFF")
-
-                        // Admin endpoints - accessible only to users with ADMIN role
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        
                         // All other requests require authentication (but no specific role)
                         .anyRequest().authenticated()
                 )

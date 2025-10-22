@@ -54,6 +54,7 @@ public class AuthRequest {
 
     @Data
     public static class ForgotPassword {
+        @NotBlank(message = "Email address cannot be blank")
         @Email(message = "Email address must be valid")
         private String emailAddress;
     }
@@ -64,7 +65,7 @@ public class AuthRequest {
         private String token;
 
         @NotBlank(message = "New password cannot be blank")
-        @Size(min = 6, message = "New password must be at least 6 characters long")
+        @Size(min = 8, message = "New password must be at least 8 characters long")
         private String newPassword;
     }
 

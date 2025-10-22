@@ -29,8 +29,18 @@ public class MailService implements IMailService {
     public void sendVerificationMail(String toEmail, String verificationCode) {
         String subject = "Verify Your Email Address";
         Context context = new Context();
-        context.setVariable("verificationCode", verificationCode);
-        String htmlContent = templateEngine.process("verification-email", context);
+        String htmlContent = String.format(
+                "<div style='max-width: 600px; margin: 0 auto; padding: 20px;'>" +
+                        "Hello,<br><br>" +
+                        "You have requested to verify your account. Here is the verification code:<br><br>" +
+                        "<div style='background-color: #f4f4f4; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;'>" +
+                        "<span style='font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #2c3e50;'>%s</span>" +
+                        "</div>" +
+                        "This code will expire in 24 hours.<br><br>" +
+                        "If you didn't request this, please ignore this email." +
+                        "</div>",
+                verificationCode
+        );
 
         sendMail(toEmail, subject, htmlContent);
     }
