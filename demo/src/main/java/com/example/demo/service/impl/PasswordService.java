@@ -35,7 +35,7 @@ public class PasswordService implements IPasswordService {
 
     @Override
     @Transactional
-    public AuthResponse forgotPassword(AuthRequest.ForgotPassword request) {
+    public String forgotPassword(AuthRequest.ForgotPassword request) {
         // Find user by email
         User user = userRepo.findByEmailAddress(request.getEmailAddress())
                 .orElseThrow(() -> new CommonException.NotFound("User", request.getEmailAddress()));
@@ -57,17 +57,15 @@ public class PasswordService implements IPasswordService {
         tokenRepo.save(resetToken);
 
         // Send email with reset link
-        String resetLink = appConfig.getActiveUrl() + "/auth/reset-password?token=" + token;
+        String resetLink = appConfig.getActiveUrl() + "/api/auth/reset-password?token=" + token;
         mailService.sendPasswordResetMail(user.getEmailAddress(), resetLink);
 
-        return AuthResponse.builder()
-                .message("Password reset link has been sent to your email")
-                .build();
+        return "Password reset link has been sent to your email";
     }
 
     @Override
     @Transactional
-    public AuthResponse resetPassword(AuthRequest.ResetPassword request) {
+    public String resetPassword(AuthRequest.ResetPassword request) {
         // Find the token
         ResetPasswordToken token = tokenRepo.findByToken(request.getToken())
                 .orElseThrow(AuthException.InvalidToken::new);
@@ -89,8 +87,6 @@ public class PasswordService implements IPasswordService {
         token.setRevoked(true);
         tokenRepo.save(token);
 
-        return AuthResponse.builder()
-                .message("Password has been reset successfully")
-                .build();
+        return "Password reset successful. Please login with your new password";
     }
 }

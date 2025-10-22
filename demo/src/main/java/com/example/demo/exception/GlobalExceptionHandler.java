@@ -1,5 +1,6 @@
 package com.example.demo.exception;
 
+import com.example.demo.model.dto.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -113,11 +114,4 @@ public class GlobalExceptionHandler {
     }
 }
 
-@Getter
-@AllArgsConstructor
-class ErrorResponse {
-    private final String code;
-    private final String message;
-    private final LocalDateTime timestamp;
-    private final String path;
-}
+
