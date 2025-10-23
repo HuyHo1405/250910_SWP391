@@ -286,7 +286,7 @@ VALUES
     ('Emergency Brake Cable', 8001, 'Generic', 'Backup mechanical brake cable', 380000, 5, 'ACTIVE', GETDATE()),
     ('Wiper Blade Set', 8002, 'Bosch', 'Front windshield wiper blade pair', 420000, 3, 'ACTIVE', GETDATE()),
     ('Door Handle Assembly', 8003, 'Tesla', 'Electronic pop-out door handle mechanism', 6500000, 2, 'ACTIVE', GETDATE()),
-    ('Charge Port Cover', 8004, 'Tesla', 'Motorized charging port door assembly', 3800000, 1, 'ACTIVE', GETDATE());
+    ('Charge Port Cover', 8004, 'Tesla', 'Motorized charging port door assembly', 3800000, 1, 'INACTIVE', GETDATE());
 
 -- ===================================================================
 -- BỔ SUNG SEED DATA CHO MAINTENANCE CATALOG DOMAIN
