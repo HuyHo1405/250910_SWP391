@@ -52,7 +52,7 @@ public class VehicleModelService implements IVehicleModelService{
                 .chargingTimeHours(request.getChargingTimeHours())
                 .motorPowerKw(request.getMotorPowerKw())
                 .weightKg(request.getWeightKg())
-                .status(request.getStatus() != null ? request.getStatus() : EntityStatus.ACTIVE)
+                .status(request.getStatus())
                 .createdAt(LocalDateTime.now())
                 .build();
 

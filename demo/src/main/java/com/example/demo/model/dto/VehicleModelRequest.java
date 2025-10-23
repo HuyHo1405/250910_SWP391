@@ -1,6 +1,7 @@
 package com.example.demo.model.dto;
 
 import com.example.demo.model.modelEnum.EntityStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -46,8 +47,8 @@ public class VehicleModelRequest {
         @DecimalMax(value = "10000.0", message = "Weight must not exceed 10000 kg")
         private Double weightKg;
 
-        @NotNull(message = "Status is required")
-        private EntityStatus status;
+        @JsonIgnore
+        private EntityStatus status = EntityStatus.ACTIVE;
     }
 
     @Data

@@ -13,9 +13,9 @@ import java.util.List;
 public interface MaintenanceCatalogRepo extends JpaRepository<MaintenanceCatalog, Long> {
 
     @Query("SELECT DISTINCT mc FROM MaintenanceCatalog mc " +
-            "JOIN mc.models mcm " +
-            "JOIN mcm.vehicleModel vm " +
-            "JOIN Vehicle v ON v.model.id = vm.id " +
+            "LEFT JOIN mc.models mcm " +
+            "LEFT JOIN mcm.vehicleModel vm " +
+            "LEFT JOIN Vehicle v ON v.model.id = vm.id " +
             "WHERE (:type IS NULL OR mc.maintenanceServiceType = :type) " +
             "AND (:vin IS NULL OR v.vin = :vin)")
     List<MaintenanceCatalog> findByTypeAndVin(
