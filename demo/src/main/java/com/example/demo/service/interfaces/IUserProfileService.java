@@ -1,19 +1,32 @@
 package com.example.demo.service.interfaces;
 
-import com.example.demo.model.dto.UserDTO;
+import com.example.demo.model.dto.MessageResponse;
+import com.example.demo.model.dto.UserProfileRequest;
+import com.example.demo.model.dto.UserProfileResponse;
+import com.example.demo.model.modelEnum.EntityStatus;
+
+import java.util.List;
 
 public interface IUserProfileService {
+    UserProfileResponse create(UserProfileRequest.Profile request);
 
-    // ========== READ ==========
+    UserProfileResponse getById(Long id);
 
-    UserDTO getProfileById(Long userId);
+    List<UserProfileResponse> getAll(
+            String email,
+            String fullName,
+            String phoneNumber,
+            String roleDisplayName,
+            EntityStatus status
+    );
 
-    // ========== UPDATE ==========
-    void updateProfile(Long userId, String fullName, String email, String phoneNumber);
+    UserProfileResponse updateProfile(Long id, UserProfileRequest.Profile request);
 
-    // ========== DELETE ==========
-    void deleteProfile(Long userId, String fullName, String email, String phoneNumber);
+    MessageResponse updatePassword(Long id, UserProfileRequest.Password request);
 
-    // ========== MANAGE STATUS ==========
-    void manageProfileStatus(Long userId, String action);
+    void disable(Long id);
+
+    void reactive(Long id);
+
+    void delete(Long id);
 }

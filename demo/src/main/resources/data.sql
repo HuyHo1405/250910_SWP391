@@ -7,12 +7,25 @@
 -- ===================================================================
 -- BẢNG 1: ROLES - Định nghĩa các vai trò trong hệ thống
 -- ===================================================================
-IF NOT EXISTS (SELECT 1 FROM roles WHERE name = 'ADMIN')
-INSERT INTO roles (name) VALUES
-('ADMIN'),
-('STAFF'),
-('TECHNICIAN'),
-('CUSTOMER');
+
+INSERT INTO roles (name, display_name) VALUES
+('ADMIN', 'Admin'),
+('STAFF', 'Staff Employee'),
+('TECHNICIAN', 'Technician Employee'),
+('CUSTOMER', 'Customer');
+
+-- ADMIN có tất cả các quyền chỉnh sửa/tạo (all)
+INSERT INTO role_editable (role_id, editable_id) VALUES
+(1, 1), -- admin chỉnh admin
+(1, 2), -- admin chỉnh staff
+(1, 3), -- admin chỉnh technician
+(1, 4); -- admin chỉnh customer
+
+-- STAFF chỉ chỉnh/tạo được TECHNICIAN và CUSTOMER
+INSERT INTO role_editable (role_id, editable_id) VALUES
+(2, 3), -- staff chỉnh technician
+(2, 4); -- staff chỉnh customer
+
 
 -- ===================================================================
 -- BẢNG 2: VEHICLE_MODELS - Danh sách các mẫu xe
@@ -94,12 +107,6 @@ INSERT INTO permissions (resource, action, is_active, description) VALUES
 ('BOOKING', 'read', 1, 'Read booking'),
 ('BOOKING', 'update', 1, 'Update booking'),
 ('BOOKING', 'cancel', 1, 'Cancel booking'),
--- SCHEDULE (✅ BỔ SUNG)
-('SCHEDULE', 'confirm', 1, 'Confirm schedule'),
-('SCHEDULE', 'cancel', 1, 'Cancel schedule'),
-('SCHEDULE', 'reschedule', 1, 'Reschedule booking'),
-('SCHEDULE', 'checkin', 1, 'Check-in schedule'),
-('SCHEDULE', 'no-show', 1, 'Mark no-show'),
 -- MAINTENANCE (✅ BỔ SUNG)
 ('MAINTENANCE', 'start-inspection', 1, 'Start inspection'),
 ('MAINTENANCE', 'request-approval', 1, 'Request approval'),
@@ -120,7 +127,14 @@ INSERT INTO permissions (resource, action, is_active, description) VALUES
 ('PART', 'update', 1, 'Update part information'),
 ('PART', 'delete', 1, 'Delete parts from inventory'),
 ('PART', 'manage_stock', 1, 'Manage part stock levels (increase/decrease)'),
-('PART', 'view_low_stock', 1, 'View low stock alerts');
+('PART', 'view_low_stock', 1, 'View low stock alerts'),
+-- USER PROFILE MANAGEMENT
+('USER', 'read', 1, 'Read user info'),
+('USER', 'create', 1, 'Create user'),
+('USER', 'update', 1, 'Update user'),
+('USER', 'disable', 1, 'Disable user (set INACTIVE)'),
+('USER', 'reactive', 1, 'Reactive user (set ACTIVE)'),
+('USER', 'delete', 1, 'Delete user');
 
 -- ===================================================================
 -- BẢNG 7: ROLE_PERMISSIONS - Phân quyền cho từng vai trò
@@ -128,18 +142,26 @@ INSERT INTO permissions (resource, action, is_active, description) VALUES
 
 -- 1) ADMIN: Có tất cả các quyền
 INSERT INTO role_permissions (role_id, permission_id)
-SELECT 1, p.id FROM permissions p;
+SELECT 1, p.id FROM permissions p
 
 -- 2) STAFF: Có hầu hết các quyền vận hành
 INSERT INTO role_permissions (role_id, permission_id)
+
 SELECT 2, p.id FROM permissions p
 WHERE
-   -- Quyền hệ thống đặc biệt
-    (p.resource = 'SYSTEM' AND p.action = 'bypass_ownership') OR
-   -- Toàn quyền trên các miền nghiệp vụ chính
-    p.resource IN ('VEHICLE', 'BOOKING', 'SCHEDULE', 'MAINTENANCE', 'PAYMENT', 'MAINTENANCE_SERVICE', 'PART') OR
-   -- Quyền trên Vehicle Model (không được xóa)
-    (p.resource = 'VEHICLE_MODEL' AND p.action IN ('read', 'create', 'update'));
+    -- Quyền bỏ qua check ownership
+     (p.resource = 'SYSTEM' AND p.action = 'bypass_ownership') OR
+    -- Toàn quyền trên các miền nghiệp vụ chính
+     (p.resource IN (
+         'USER',
+         'VEHICLE',
+         'VEHICLE_MODEL',
+         'BOOKING',
+         'PAYMENT',
+         'MAINTENANCE',
+         'MAINTENANCE_SERVICE',
+         'PART'
+     ));
 
 -- 3) TECHNICIAN: Quyền liên quan đến kỹ thuật
 INSERT INTO role_permissions (role_id, permission_id)
@@ -150,7 +172,8 @@ WHERE
    -- Các hành động kỹ thuật trên booking
     (p.resource = 'MAINTENANCE' AND p.action IN ('start-inspection', 'request-approval', 'start-repair', 'complete')) OR
    -- Chỉ đọc và xem cảnh báo hết phụ tùng
-    (p.resource = 'PART' AND p.action IN ('read', 'view_low_stock'));
+    (p.resource = 'PART' AND p.action IN ('read', 'view_low_stock')) OR
+    (p.resource = 'USER' AND p.action IN ('read', 'update'));
 
 -- 4) CUSTOMER: Quyền của khách hàng
 INSERT INTO role_permissions (role_id, permission_id)
@@ -163,7 +186,8 @@ WHERE
    -- Các hành động trên booking
     (p.resource = 'BOOKING' AND p.action IN ('create', 'read', 'cancel')) OR
     (p.resource = 'MAINTENANCE' AND p.action = 'approve') OR -- Phê duyệt báo giá
-    (p.resource = 'PAYMENT' AND p.action = 'pay'); -- Thanh toán
+    (p.resource = 'PAYMENT' AND p.action = 'pay') OR
+    (p.resource = 'USER' AND p.action IN ('read', 'update', 'disable'));
 
 -- ===================================================================
 -- BẢNG 8: BOOKINGS - Lịch sử đặt hẹn

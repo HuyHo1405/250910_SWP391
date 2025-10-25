@@ -35,6 +35,11 @@ public class CurrentUserService {
         return getCurrentUser().getEmailAddress();
     }
 
+    public Long getCurrentUserRoleId() {
+        User user = getCurrentUser();
+        return user.getRole() != null ? user.getRole().getId() : null;
+    }
+
     public String getCurrentUserRole() {
         User user = getCurrentUser();
         return user.getRole() != null ? user.getRole().getName() : null;

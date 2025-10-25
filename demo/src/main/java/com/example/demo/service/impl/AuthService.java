@@ -222,13 +222,13 @@ public class AuthService implements IAuthService {
     }
 
     private AuthResponse buildAuthResponse(User user, String accessToken, String refreshToken) {
-        AuthResponse.UserInfo userInfo = AuthResponse.UserInfo.builder()
+        UserProfileResponse userInfo = UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmailAddress())
                 .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
-                .role(user.getRole().getName())
-                .status(user.getStatus().name())
+                .roleDisplayName(user.getRole().getDisplayName())
+                .status(user.getStatus())
                 .createdAt(user.getCreatedAt())
                 .lastLogin(user.getLoginAt())
                 .build();

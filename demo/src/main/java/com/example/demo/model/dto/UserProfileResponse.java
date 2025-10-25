@@ -1,5 +1,6 @@
 package com.example.demo.model.dto;
 
+import com.example.demo.model.modelEnum.EntityStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO {
+public class UserProfileResponse {
     // Nested DTO cho user
 
     @NotNull(message = "User ID cannot be null")
@@ -29,10 +30,10 @@ public class UserDTO {
     private String phoneNumber;
 
     @NotBlank(message = "Role cannot be blank")
-    private String role;
+    private String roleDisplayName;
 
     @NotBlank(message = "Status cannot be blank")
-    private String status;
+    private EntityStatus status;
 
     @NotNull(message = "Created at cannot be null")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

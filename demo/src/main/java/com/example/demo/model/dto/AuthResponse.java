@@ -32,7 +32,7 @@ public class AuthResponse {
     private String tokenType;
 
     @NotNull(message = "User info cannot be null")
-    private UserInfo user;
+    private UserProfileResponse user;
 
     @Builder.Default
     private boolean requiresVerification = false;
@@ -40,34 +40,4 @@ public class AuthResponse {
     private String message;
 
     // Nested DTO cho user
-    @Data
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class UserInfo {
-        @NotNull(message = "User ID cannot be null")
-        private Long id;
-
-        @Email(message = "Email must be valid")
-        private String email;
-
-        @NotBlank(message = "Full name cannot be blank")
-        private String fullName;
-
-        @NotBlank(message = "Phone number cannot be blank")
-        private String phoneNumber;
-
-        @NotBlank(message = "Role cannot be blank")
-        private String role;
-        
-        @NotBlank(message = "Status cannot be blank")
-        private String status;
-        
-        @NotNull(message = "Created at cannot be null")
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        private java.time.LocalDateTime createdAt;
-
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        private java.time.LocalDateTime lastLogin;
-    }
 }
