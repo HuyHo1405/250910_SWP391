@@ -3,16 +3,10 @@ package com.example.demo.service.impl;
 import com.example.demo.exception.CommonException;
 import com.example.demo.exception.UserException;
 import com.example.demo.model.entity.User;
-import com.example.demo.model.entity.Vehicle;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- * Centralized DYNAMIC access control service
- * All authorization logic driven by database permissions
- * NO HARD-CODED ROLES!
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -21,31 +15,6 @@ public class AccessControlService {
     private final CurrentUserService currentUserService;
     private final PermissionService permissionService;
 
-    /**
-     * Verify vehicle access with ownership check
-     */
-    public void verifyVehicleAccess(Vehicle vehicle, String action) {
-        verifyResourceAccess(vehicle.getUser().getId(), "VEHICLE", action);
-    }
-
-    /**
-     * Verify vehicle access by owner ID
-     */
-    public void verifyVehicleAccess(Long ownerId, String action) {
-        verifyResourceAccess(ownerId, "VEHICLE", action);
-    }
-
-    /**
-     * Verify vehicle model access (no ownership)
-     */
-    public void verifyVehicleModelAccess(String action) {
-        verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", action);
-    }
-
-    /**
-     * CORE METHOD: Dynamic resource access with ownership check
-     * All logic driven by database permissions
-     */
     public void verifyResourceAccess(Long resourceOwnerId, String resourceType, String action) {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -76,10 +45,6 @@ public class AccessControlService {
                 currentUser.getId(), action, resourceType, resourceOwnerId);
     }
 
-    /**
-     * CORE METHOD: Dynamic resource access WITHOUT ownership check
-     * For resources like models, lookups, etc. that don't have owners
-     */
     public void verifyResourceAccessWithoutOwnership(String resourceType, String action) {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -98,10 +63,6 @@ public class AccessControlService {
                 currentUser.getId(), action, resourceType);
     }
 
-    /**
-     * Verify user can access ALL resources (requires bypass_ownership)
-     * Used for operations like getAllVehicles, getAllBookings, etc.
-     */
     public void verifyCanAccessAllResources(String resourceType, String action) {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -128,17 +89,10 @@ public class AccessControlService {
                 currentUser.getId(), resourceType, action);
     }
 
-    /**
-     * Check if current user is resource owner
-     */
     public boolean isResourceOwner(Long resourceOwnerId) {
         return currentUserService.getCurrentUserId().equals(resourceOwnerId);
     }
 
-    /**
-     * Helper: Determine if ownership check is required
-     * Based on role privileges in database
-     */
     private boolean requiresOwnershipCheck(User user) {
         // Check if user has "bypass_ownership" privilege
         // This can be a special permission in database

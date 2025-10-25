@@ -22,6 +22,9 @@ public class Role {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Column(nullable = false, unique = true, name = "display_name")
+    private String displayName;
+
     @Column(length = 500)
     private String description;
 
@@ -38,6 +41,14 @@ public class Role {
     @Builder.Default
     @ToString.Exclude
     private Set<User> users = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "role_editable",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "editable_id")
+    )
+    private Set<Role> editableRoles = new HashSet<>();
 
     //helper methods
     public void addPermission(Permission permission) {

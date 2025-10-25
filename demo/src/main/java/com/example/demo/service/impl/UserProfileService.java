@@ -1,220 +1,190 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.model.dto.UserDTO;
+import com.example.demo.exception.UserException;
+import com.example.demo.model.dto.MessageResponse;
+import com.example.demo.model.dto.UserProfileRequest;
+import com.example.demo.model.dto.UserProfileResponse;
+import com.example.demo.model.entity.Role;
 import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.entity.User;
+import com.example.demo.repo.RoleRepo;
 import com.example.demo.repo.UserRepo;
+import com.example.demo.service.interfaces.IPasswordService;
 import com.example.demo.service.interfaces.IUserProfileService;
 import com.example.demo.exception.CommonException;
+import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class UserProfileService implements IUserProfileService {
 
+    private final UserContextService userContextService;
+    private final UserValidationService userValidationService;
+    private final AccessControlService accessControlService;
+    private final IPasswordService passwordService;
+
     private final UserRepo userRepo;
+    private final RoleRepo roleRepo;
 
-    // ========== READ ==========
-
-    @Override
-    public UserDTO getProfileById(Long userId) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new CommonException.NotFound("User", userId));
-
-        return convertToDTO(user);
-    }
-
-    public List<UserDTO> getAllProfiles() {
-        List<User> users = userRepo.findAll();
-        return users.stream()
-                .map(this::convertToDTO)
-                .toList();
-    }
-
-    public List<UserDTO> getActiveProfiles() {
-        return userRepo.findByStatus(EntityStatus.ACTIVE, null)
-                .getContent()
-                .stream()
-                .map(this::convertToDTO)
-                .toList();
-    }
-
-    // ========== UPDATE ==========
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public void updateProfile(Long userId, String fullName, String email, String phoneNumber) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new CommonException.NotFound("User", userId));
+    public UserProfileResponse create(UserProfileRequest.Profile request) {
 
-        // Update fields if provided
-        if (fullName != null && !fullName.trim().isEmpty()) {
-            user.setFullName(fullName.trim());
+        accessControlService.verifyResourceAccessWithoutOwnership("USER", "CREATE");
+
+        userValidationService.checkEmailAndPhoneAvailability(request.getEmail(), request.getPhoneNumber());
+
+        User user = new User();
+        user.setEmailAddress(request.getEmail());
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setStatus(EntityStatus.ACTIVE);
+
+        // Gen password and send mail
+        String genPassword = passwordService.generatePassword();
+        user.setHashedPassword(passwordEncoder.encode(genPassword));
+        //TODO mail service
+
+        // Xử lý role: nullable, mặc định CUSTOMER
+        String roleDisplayName = (request.getRoleDisplayName() != null) ? request.getRoleDisplayName() : "Customer";
+
+        Role role = roleRepo.findByDisplayName(roleDisplayName)
+                .orElseThrow(() -> new CommonException.NotFound("Role Display Name", roleDisplayName));
+
+        userContextService.checkRoleEditable(role.getId());
+
+        user.setRole(role);
+
+        user = userRepo.save(user);
+        return toDto(user);
+    }
+
+    @Override
+    public UserProfileResponse getById(Long id) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new CommonException.NotFound("User", id));
+
+        accessControlService.verifyResourceAccess(user.getId(), "USER", "read");
+
+        boolean checkStaffAccess =
+                userContextService.isStaff() &&
+                !accessControlService.isResourceOwner(user.getId());
+
+        if(checkStaffAccess) {
+            userContextService.checkRoleEditable(user.getRole());
         }
-        if (email != null && !email.trim().isEmpty()) {
-            // Check if email already exists for another user
-            Optional<User> existingUser = userRepo.findByEmailAddress(email);
-            if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
-                throw new CommonException.AlreadyExists("User", "email", email);
+        return toDto(user);
+    }
+
+    @Override
+    public List<UserProfileResponse> getAll(
+            @Nullable String email,
+            @Nullable String fullName,
+            @Nullable String phoneNumber,
+            @Nullable String roleDisplayName,
+            @Nullable EntityStatus status) {
+        accessControlService.verifyCanAccessAllResources("USER", "read");
+
+        List<User> users;
+
+        if(userContextService.isStaff()){
+            if(roleDisplayName != null){
+                userContextService.checkRoleEditable(roleDisplayName);
             }
-            user.setEmailAddress(email.trim());
-        }
-        if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
-            // Check if phone number already exists for another user
-            Optional<User> existingUser = userRepo.findByPhoneNumber(phoneNumber);
-            if (existingUser.isPresent() && !existingUser.get().getId().equals(userId)) {
-                throw new CommonException.AlreadyExists("User", "phone number", phoneNumber);
-            }
-            user.setPhoneNumber(phoneNumber.trim());
+            users = userRepo.findWithStaffFilters(email, fullName, phoneNumber, roleDisplayName, status != null? status.name(): null);
+        } else {
+            users = userRepo.findWithFilters(email, fullName, phoneNumber, roleDisplayName, status != null? status.name(): null);
         }
 
-        user.setUpdateAt(LocalDateTime.now());
-        userRepo.save(user);
+        return users.stream().map(this::toDto).collect(Collectors.toList());
     }
-
-    public UserDTO updateCompleteProfile(Long userId, UserDTO userDTO) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new CommonException.NotFound("User", userId));
-
-        // Update all fields
-        user.setFullName(userDTO.getFullName());
-        user.setEmailAddress(userDTO.getEmail());
-        user.setPhoneNumber(userDTO.getPhoneNumber());
-        user.setUpdateAt(LocalDateTime.now());
-
-        User savedUser = userRepo.save(user);
-        return convertToDTO(savedUser);
-    }
-
-    // ========== DELETE ==========
 
     @Override
-    public void deleteProfile(Long userId, String fullName, String email, String phoneNumber) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new CommonException.NotFound("User", userId));
+    public UserProfileResponse updateProfile(Long id, UserProfileRequest.Profile request) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new CommonException.NotFound("User", id));
 
-        // Selective deletion - clear specific fields if provided
-        if (fullName != null) {
-            user.setFullName("");
-        }
-        if (email != null) {
-            user.setEmailAddress("");
-        }
-        if (phoneNumber != null) {
-            user.setPhoneNumber("");
+        accessControlService.verifyResourceAccess(user.getId(), "USER", "update");
+
+        user.setEmailAddress(request.getEmail());
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+
+        // Xử lý role nếu truyền lên, nếu không thì giữ nguyên
+        if(request.getRoleDisplayName() != null) {
+            String roleDisplayName = request.getRoleDisplayName();
+
+            Role role = roleRepo.findByDisplayName(roleDisplayName)
+                    .orElseThrow(() -> new UserException.InvalidRoleTransition("CURRENT", roleDisplayName));
+
+            userContextService.checkRoleEditable(role.getId());
+            user.setRole(role);
         }
 
-        // If all main fields are to be cleared, set status to INACTIVE
-        if (fullName != null && email != null && phoneNumber != null) {
-            user.setStatus(EntityStatus.INACTIVE);
-        }
-
-        user.setUpdateAt(LocalDateTime.now());
-        userRepo.save(user);
+        user = userRepo.save(user);
+        return toDto(user);
     }
 
-    // Delete user by ID (hard delete)
-    public void deleteProfileById(Long userId) {
-        if (!userRepo.existsById(userId)) {
-            throw new CommonException.NotFound("User", userId);
-        }
-        userRepo.deleteById(userId);
+    @Override
+    public MessageResponse updatePassword(Long id, UserProfileRequest.Password request){
+        return toDto(passwordService.updatePassword(id, request));
     }
 
-    // Soft delete - set status to INACTIVE
-    public void softDeleteProfile(Long userId) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new CommonException.NotFound("User", userId));
-
+    @Override
+    public void disable(Long id) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new CommonException.NotFound("User", id));
+        accessControlService.verifyResourceAccess(user.getId(), "USER", "disable");
+        userContextService.checkRoleEditable(user.getRole());
         user.setStatus(EntityStatus.INACTIVE);
-        user.setUpdateAt(LocalDateTime.now());
         userRepo.save(user);
     }
-
-    // Delete all profiles (hard delete)
-    public void deleteAllProfiles() {
-        userRepo.deleteAll();
-    }
-
-    // Soft delete all profiles
-    public void softDeleteAllProfiles() {
-        List<User> users = userRepo.findAll();
-        users.forEach(user -> {
-            user.setStatus(EntityStatus.INACTIVE);
-            user.setUpdateAt(LocalDateTime.now());
-        });
-        userRepo.saveAll(users);
-    }
-
-    // Delete profiles by status
-    public void deleteProfilesByStatus(EntityStatus status) {
-        List<User> users = userRepo.findByStatus(status, null).getContent();
-        userRepo.deleteAll(users);
-    }
-
-    // ========== MANAGE STATUS ==========
 
     @Override
-    public void manageProfileStatus(Long userId, String action) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new CommonException.NotFound("User", userId));
-
-        switch (action.toUpperCase()) {
-            case "ACTIVATE":
-                user.setStatus(EntityStatus.ACTIVE);
-                break;
-            case "DEACTIVATE":
-                user.setStatus(EntityStatus.INACTIVE);
-                break;
-            case "DELETE":
-                userRepo.deleteById(userId);
-                return;
-            default:
-                throw new CommonException.InvalidOperation("Invalid action: " + action);
-        }
-
-        user.setUpdateAt(LocalDateTime.now());
+    public void reactive(Long id) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new CommonException.NotFound("User", id));
+        accessControlService.verifyResourceAccess(user.getId(), "USER", "reactive");
+        userContextService.checkRoleEditable(user.getRole());
+        user.setStatus(EntityStatus.ACTIVE);
         userRepo.save(user);
     }
 
-    // ========== HELPER METHODS ==========
+    @Override
+    public void delete(Long id) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new CommonException.NotFound("User", id));
+        accessControlService.verifyResourceAccess(user.getId(), "USER", "delete");
+        userContextService.checkRoleEditable(user.getRole());
+        userRepo.delete(user);
+    }
 
-    private UserDTO convertToDTO(User user) {
-        return UserDTO.builder()
+    private UserProfileResponse toDto(User user) {
+        return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmailAddress())
                 .fullName(user.getFullName())
                 .phoneNumber(user.getPhoneNumber())
-                .role(user.getRole().getName())
-                .status(user.getStatus().name())
+                .roleDisplayName(user.getRole().getDisplayName())
+                .status(user.getStatus())
                 .createdAt(user.getCreatedAt())
                 .lastLogin(user.getLoginAt())
                 .build();
     }
 
-    // Restore deleted fields
-    public void restoreProfile(Long userId, String fullName, String email, String phoneNumber) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new CommonException.NotFound("User", userId));
-
-        if (fullName != null && !fullName.trim().isEmpty()) {
-            user.setFullName(fullName.trim());
-        }
-        if (email != null && !email.trim().isEmpty()) {
-            user.setEmailAddress(email.trim());
-        }
-        if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
-            user.setPhoneNumber(phoneNumber.trim());
-        }
-
-        user.setStatus(EntityStatus.ACTIVE);
-        user.setUpdateAt(LocalDateTime.now());
-        userRepo.save(user);
+    private MessageResponse toDto(String message){
+        return MessageResponse.builder()
+                .message(message)
+                .build();
     }
+
 }

@@ -5,6 +5,7 @@ import com.example.demo.exception.AuthException;
 import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.AuthRequest;
 import com.example.demo.model.dto.AuthResponse;
+import com.example.demo.model.dto.UserProfileRequest;
 import com.example.demo.model.entity.ResetPasswordToken;
 import com.example.demo.model.entity.User;
 import com.example.demo.repo.ResetPasswordTokenRepo;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -26,6 +28,7 @@ public class PasswordService implements IPasswordService {
     private static final int TOKEN_EXPIRATION_HOURS = 24;
 
     private final IMailService mailService;
+    private final AccessControlService accessControlService;
 
     private final UserRepo userRepo;
     private final ResetPasswordTokenRepo tokenRepo;
@@ -89,4 +92,37 @@ public class PasswordService implements IPasswordService {
 
         return "Password reset successful. Please login with your new password";
     }
+
+    @Override
+    public String updatePassword(Long userId, UserProfileRequest.Password request) {
+
+        accessControlService.verifyResourceAccess(userId, "USER", "update");
+
+        boolean isOldPassword = request.getOldPassword().equals(request.getNewPassword());
+        if(isOldPassword) {
+           throw new CommonException.InvalidOperation("New password can not match with old password");
+        }
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new CommonException.NotFound("User", userId));
+        user.setHashedPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepo.save(user);
+
+        return "Password reset successful. Please login with your new password";
+    }
+
+    @Override
+    public String generatePassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#!$";
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+
+        for (int i = 0; i < 8; i++) {
+            int index = random.nextInt(chars.length());
+            password.append(chars.charAt(index));
+        }
+
+        return password.toString();
+    }
+
 }
