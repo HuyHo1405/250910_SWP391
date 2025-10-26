@@ -38,7 +38,7 @@ public class BookingDetailService implements IBookingDetailService {
                 .booking(booking)
                 .service(service)
                 .description(serviceDetail.getDescription())
-                .servicePrice(service.getCurrentPrice())
+                .servicePrice(0.1)//TODO fix this
                 .build();
 
         booking.addBookingDetail(bookingDetail);

@@ -15,12 +15,4 @@ public class MaintenanceCatalogRequest {
     @NotNull(message = "Service type is required")
     private MaintenanceCatalogType maintenanceServiceType;
 
-    @NotNull(message = "Estimated time is required")
-    @Positive(message = "Estimated time must be greater than 0")
-    private Double estTimeMinutes;
-
-    @NotNull(message = "Service price is required")
-    @Positive(message = "Service price must be greater than 0")
-    private Double currentPrice;
-
 }

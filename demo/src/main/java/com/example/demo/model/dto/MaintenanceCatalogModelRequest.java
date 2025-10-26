@@ -11,9 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 public class MaintenanceCatalogModelRequest {
 
-    @NotNull(message = "Catalog ID is required")
-    private Long maintenanceCatalogId;
-
     @NotNull(message = "Model ID is required")
     private Long modelId;
 
@@ -26,6 +23,4 @@ public class MaintenanceCatalogModelRequest {
     @Size(max = 1000, message = "Notes cannot exceed 1000 characters")
     private String notes;
 
-    @Valid
-    private List<MaintenanceCatalogModelPartRequest> parts;
 }

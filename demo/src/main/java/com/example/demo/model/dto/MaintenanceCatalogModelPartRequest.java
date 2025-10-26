@@ -9,12 +9,6 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 public class MaintenanceCatalogModelPartRequest {
 
-    @NotNull(message = "Catalog ID is required")
-    private Long maintenanceCatalogId;
-
-    @NotNull(message = "Model ID is required")
-    private Long modelId;
-
     @NotNull(message = "Part ID is required")
     private Long partId;
 

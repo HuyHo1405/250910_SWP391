@@ -19,8 +19,6 @@ public class MaintenanceCatalogResponse {
     private String name;
     private String description;
     private MaintenanceCatalogType maintenanceServiceType;
-    private Double estTimeMinutes;
-    private Double currentPrice;
     private EntityStatus status;
     private LocalDateTime createdAt;
 

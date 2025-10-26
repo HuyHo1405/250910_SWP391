@@ -10,6 +10,7 @@ import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.modelEnum.MaintenanceCatalogType;
 import com.example.demo.repo.MaintenanceCatalogRepo;
 import com.example.demo.repo.VehicleRepo;
+import com.example.demo.service.interfaces.IMaintenanceCatalogModelPartService;
 import com.example.demo.service.interfaces.IMaintenanceCatalogService;
 import com.example.demo.service.interfaces.IMaintenanceCatalogModelService;
 import io.micrometer.common.lang.Nullable;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,10 +29,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
-    private final MaintenanceCatalogRepo catalogRepository;
-    private final VehicleRepo vehicleRepository;
     private final IMaintenanceCatalogModelService catalogModelService;
     private final AccessControlService accessControlService;
+    private final IMaintenanceCatalogModelPartService maintenanceCatalogModelPartService;
+
+    private final MaintenanceCatalogRepo catalogRepository;
+    private final VehicleRepo vehicleRepository;
 
     @Override
     @Transactional
@@ -40,25 +44,13 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
         // ✅ Validation: Kiểm tra tên catalog bị trùng
         if (catalogRepository.existsByName(request.getName())) {
-            throw new MaintenanceCatalogException.DuplicateCatalogName(request.getName());
-        }
-
-        // ✅ Validation: Kiểm tra giá hợp lệ
-        if (request.getCurrentPrice() == null || request.getCurrentPrice() <= 0) {
-            throw new MaintenanceCatalogException.InvalidPrice();
-        }
-
-        // ✅ Validation: Kiểm tra thời gian ước tính
-        if (request.getEstTimeMinutes() == null || request.getEstTimeMinutes() <= 0) {
-            throw new MaintenanceCatalogException.InvalidEstTime();
+            throw new CommonException.AlreadyExists("Maintenance Catalog", "Name",  request.getName());
         }
 
         MaintenanceCatalog catalog = MaintenanceCatalog.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .maintenanceServiceType(request.getMaintenanceServiceType())
-                .estTimeMinutes(request.getEstTimeMinutes())
-                .currentPrice(request.getCurrentPrice())
                 .status(EntityStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -77,27 +69,17 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
         // ✅ Exception: Sử dụng MaintenanceCatalogException.CatalogNotFound
         MaintenanceCatalog catalog = catalogRepository.findById(id)
-                .orElseThrow(() -> new MaintenanceCatalogException.CatalogNotFound(id));
+                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", id));
 
         // ✅ Validation: Kiểm tra tên trùng (trừ catalog hiện tại)
         if (!catalog.getName().equals(request.getName()) &&
                 catalogRepository.existsByName(request.getName())) {
-            throw new MaintenanceCatalogException.DuplicateCatalogName(request.getName());
-        }
-
-        // ✅ Validation: Kiểm tra giá và thời gian
-        if (request.getCurrentPrice() != null && request.getCurrentPrice() <= 0) {
-            throw new MaintenanceCatalogException.InvalidPrice();
-        }
-        if (request.getEstTimeMinutes() != null && request.getEstTimeMinutes() <= 0) {
-            throw new MaintenanceCatalogException.InvalidEstTime();
+            throw new CommonException.AlreadyExists("Maintenance Catalog", "Name",  request.getName());
         }
 
         catalog.setName(request.getName());
         catalog.setDescription(request.getDescription());
         catalog.setMaintenanceServiceType(request.getMaintenanceServiceType());
-        catalog.setEstTimeMinutes(request.getEstTimeMinutes());
-        catalog.setCurrentPrice(request.getCurrentPrice());
 
         MaintenanceCatalog updated = catalogRepository.save(catalog);
         log.info("Updated maintenance catalog: id={}, name={}", updated.getId(), updated.getName());
@@ -113,7 +95,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
         // ✅ Exception: Sử dụng MaintenanceCatalogException.CatalogNotFound
         MaintenanceCatalog catalog = catalogRepository.findById(id)
-                .orElseThrow(() -> new MaintenanceCatalogException.CatalogNotFound(id));
+                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", id));
 
         // ✅ Kiểm tra catalog có active không
         if (catalog.getStatus() != EntityStatus.ACTIVE) {
@@ -136,7 +118,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
         // ✅ Nếu truyền VIN, validate VIN có tồn tại không
         if (vin != null && !vin.isEmpty()) {
             if (!vehicleRepository.existsByVinAndEntityStatus(vin, EntityStatus.ACTIVE)) {
-                throw new MaintenanceCatalogException.VehicleNotFoundByVin(vin);
+                throw new CommonException.NotFound("Vehicle with Vin", vin);
             }
         }
 
@@ -159,16 +141,18 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
         // ✅ Phân quyền: Chỉ ADMIN/STAFF có quyền delete
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "delete");
 
-        // ✅ Exception: Sử dụng MaintenanceCatalogException.CatalogNotFound
-        if (!catalogRepository.existsById(id)) {
-            throw new MaintenanceCatalogException.CatalogNotFound(id);
-        }
+        MaintenanceCatalog entity = catalogRepository.findById(id)
+                .orElseThrow(() ->  new CommonException.NotFound("Maintenance Catalog with Id", id));
 
         try {
             // Delete all associated catalog-model relationships first
-            catalogModelService.deleteBatch(id);
-            catalogRepository.deleteById(id);
-            log.info("Deleted maintenance catalog: id={}", id);
+            log.info("Deleted parts mapping with maintenance catalog: id={}", id);
+            maintenanceCatalogModelPartService.deleteBatch(id);
+            log.info("Deleted vehicle models mapping with maintenance catalog: id={}", id);
+            catalogModelService.syncBatch(id, new ArrayList<>());
+            log.info("Disable maintenance catalog: id={}", id);
+            entity.setStatus(EntityStatus.INACTIVE);
+            catalogRepository.save(entity);
         } catch (Exception e) {
             log.error("Failed to delete catalog id={}: {}", id, e.getMessage());
             throw new MaintenanceCatalogException.BatchOperationFailed(
@@ -180,7 +164,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
     private MaintenanceCatalogResponse mapToResponse(MaintenanceCatalog catalog, boolean includeModels) {
         List<MaintenanceCatalogModelResponse> models = null;
         if (includeModels) {
-            models = catalogModelService.findByCatalogId(catalog.getId(), null, true);
+            models = catalogModelService.getModels(catalog.getId());
         }
 
         return MaintenanceCatalogResponse.builder()
@@ -188,8 +172,6 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
                 .name(catalog.getName())
                 .description(catalog.getDescription())
                 .maintenanceServiceType(catalog.getMaintenanceServiceType())
-                .estTimeMinutes(catalog.getEstTimeMinutes())
-                .currentPrice(catalog.getCurrentPrice())
                 .status(catalog.getStatus())
                 .createdAt(catalog.getCreatedAt())
                 .models(models)

@@ -3,6 +3,7 @@ package com.example.demo.repo;
 import com.example.demo.model.entity.MaintenanceCatalog;
 import com.example.demo.model.entity.MaintenanceCatalogModel;
 import com.example.demo.model.entity.VehicleModel;
+import org.hibernate.annotations.Parameter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,8 +19,7 @@ public interface MaintenanceCatalogModelRepo extends JpaRepository<MaintenanceCa
 
     List<MaintenanceCatalogModel> findByMaintenanceCatalogId(Long catalogId);
 
-    List<MaintenanceCatalogModel> findByMaintenanceCatalogIdAndVehicleModelId(Long catalogId, Long modelId);
+    Optional<MaintenanceCatalogModel> findByMaintenanceCatalogIdAndVehicleModelId(Long catalogId, Long modelId);
 
     Optional<MaintenanceCatalogModel> findFirstByMaintenanceCatalogIdAndVehicleModelId(Long catalogId, Long modelId);
-
 }

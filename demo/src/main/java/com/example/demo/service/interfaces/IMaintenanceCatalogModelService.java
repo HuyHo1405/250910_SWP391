@@ -2,25 +2,17 @@ package com.example.demo.service.interfaces;
 
 import com.example.demo.model.dto.MaintenanceCatalogModelRequest;
 import com.example.demo.model.dto.MaintenanceCatalogModelResponse;
-import io.micrometer.common.lang.Nullable;
 
 import java.util.List;
 
 public interface IMaintenanceCatalogModelService {
 
-    MaintenanceCatalogModelResponse create(MaintenanceCatalogModelRequest request);
+    List<MaintenanceCatalogModelResponse> syncBatch(Long catalogId, List<MaintenanceCatalogModelRequest> requests);
 
-    List<MaintenanceCatalogModelResponse> createBatch(List<MaintenanceCatalogModelRequest> requests);
+    MaintenanceCatalogModelResponse updateByIds(Long catalogId, Long modelId, MaintenanceCatalogModelRequest request);
 
-    List<MaintenanceCatalogModelResponse> findByCatalogId(
-            Long catalogId,
-            @Nullable Long modelId,         // Nếu muốn filter thêm 1 model cụ thể
-            boolean includeParts            // Có include các part liên quan không
-    );
+    MaintenanceCatalogModelResponse findByIds(Long catalogId, Long modelId, boolean includeParts);
 
-    MaintenanceCatalogModelResponse updateByCatalogAndModel(Long catalogId, Long modelId, MaintenanceCatalogModelRequest request);
+    List<MaintenanceCatalogModelResponse> getModels(Long catalogId);
 
-    void delete(Long catalogId, Long modelId);
-
-    void deleteBatch(long catalogId);
 }
