@@ -18,4 +18,6 @@ public interface MaintenanceCatalogModelPartRepo extends JpaRepository<Maintenan
 
     List<MaintenanceCatalogModelPart> findByMaintenanceCatalogIdAndVehicleModelId(
             Long catalogId, Long modelId);
+
+    void deleteAllByMaintenanceCatalogId(Long catalogId);
 }

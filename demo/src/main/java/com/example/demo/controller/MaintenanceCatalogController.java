@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/maintenance-catalogs")
 @RequiredArgsConstructor
-@Tag(name = "Maintenance Catalog", description = "APIs quản lý catalog dịch vụ bảo dưỡng")
+@Tag(name = "Maintenance Catalog")
 public class MaintenanceCatalogController {
 
     private final IMaintenanceCatalogService catalogService;
@@ -67,130 +67,59 @@ public class MaintenanceCatalogController {
 
     // Catalog Model CRUD -----------------------------------
 
-    @PostMapping("/{catalogId}/models")
-    public ResponseEntity<MaintenanceCatalogModelResponse> addModelToCatalog(
+    @PutMapping("/{catalogId}/models/sync")
+    public ResponseEntity<List<MaintenanceCatalogModelResponse>> syncBatch(
             @PathVariable Long catalogId,
-            @RequestBody @Valid MaintenanceCatalogModelRequest request
+            @RequestBody List<MaintenanceCatalogModelRequest> requests
     ) {
-        request.setMaintenanceCatalogId(catalogId);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(catalogModelService.create(request));
-    }
-
-    @PostMapping("/{catalogId}/models/batch")
-    public ResponseEntity<List<MaintenanceCatalogModelResponse>> addModelsBatch(
-            @PathVariable Long catalogId,
-            @RequestBody @Valid List<MaintenanceCatalogModelRequest> requests
-    ) {
-        requests.forEach(r -> r.setMaintenanceCatalogId(catalogId));
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(catalogModelService.createBatch(requests));
-    }
-
-    @GetMapping("/{catalogId}/models")
-    public ResponseEntity<List<MaintenanceCatalogModelResponse>> getModelsByCatalog(
-            @PathVariable Long catalogId,
-            @RequestParam(required = false) Long modelId,
-            @RequestParam(defaultValue = "false") boolean includeParts
-    ) {
-        return ResponseEntity.ok(catalogModelService.findByCatalogId(catalogId, modelId, includeParts));
+        return ResponseEntity.ok(catalogModelService.syncBatch(catalogId, requests));
     }
 
     @PutMapping("/{catalogId}/models/{modelId}")
-    public ResponseEntity<MaintenanceCatalogModelResponse> updateModelInCatalog(
+    public ResponseEntity<MaintenanceCatalogModelResponse> updateByIds(
             @PathVariable Long catalogId,
             @PathVariable Long modelId,
             @RequestBody MaintenanceCatalogModelRequest request
     ) {
-        return ResponseEntity.ok(
-                catalogModelService.updateByCatalogAndModel(catalogId, modelId, request)
-        );
+        return ResponseEntity.ok(catalogModelService.updateByIds(catalogId, modelId, request));
     }
 
-    @DeleteMapping("/{catalogId}/models/{modelId}")
-    public ResponseEntity<Void> deleteModelInCatalog(
+    @GetMapping("/{catalogId}/models/{modelId}")
+    public ResponseEntity<MaintenanceCatalogModelResponse> findByIds(
             @PathVariable Long catalogId,
-            @PathVariable Long modelId
+            @PathVariable Long modelId,
+            @RequestParam(defaultValue = "false") boolean includeParts
     ) {
-        catalogModelService.delete(catalogId, modelId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/{catalogId}/models")
-    public ResponseEntity<Void> deleteAllModelsInCatalog(
-            @PathVariable Long catalogId
-    ) {
-        catalogModelService.deleteBatch(catalogId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(catalogModelService.findByIds(catalogId, modelId, includeParts));
     }
 
     // Catalog Model Part CRUD -----------------------------------
 
-    @PostMapping("/{catalogId}/models/{modelId}/parts")
-    public ResponseEntity<MaintenanceCatalogModelPartResponse> addPartToCatalogModel(
+    @PutMapping("/{catalogId}/models/{modelId}/parts/sync")
+    public ResponseEntity<List<MaintenanceCatalogModelPartResponse>> syncBatch(
             @PathVariable Long catalogId,
             @PathVariable Long modelId,
-            @RequestBody @Valid MaintenanceCatalogModelPartRequest request
+            @RequestBody List<MaintenanceCatalogModelPartRequest> requests
     ) {
-        request.setMaintenanceCatalogId(catalogId);
-        request.setModelId(modelId);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(catalogModelPartService.create(request));
-    }
-
-    @PostMapping("/{catalogId}/models/{modelId}/parts/batch")
-    public ResponseEntity<List<MaintenanceCatalogModelPartResponse>> addPartsBatch(
-            @PathVariable Long catalogId,
-            @PathVariable Long modelId,
-            @RequestBody @Valid List<MaintenanceCatalogModelPartRequest> requests
-    ) {
-        requests.forEach(r -> {
-            r.setMaintenanceCatalogId(catalogId);
-            r.setModelId(modelId);
-        });
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(catalogModelPartService.createBatch(requests));
-    }
-
-    @GetMapping("/{catalogId}/models/{modelId}/parts")
-    public ResponseEntity<List<MaintenanceCatalogModelPartResponse>> getPartsByCatalogModel(
-            @PathVariable Long catalogId,
-            @PathVariable Long modelId,
-            @RequestParam(required = false) Long partId
-    ) {
-        return ResponseEntity.ok(
-                catalogModelPartService.findByCatalogAndModel(catalogId, modelId, partId)
-        );
+        return ResponseEntity.ok(catalogModelPartService.syncBatch(catalogId, modelId, requests));
     }
 
     @PutMapping("/{catalogId}/models/{modelId}/parts/{partId}")
-    public ResponseEntity<MaintenanceCatalogModelPartResponse> updatePartInCatalogModel(
+    public ResponseEntity<MaintenanceCatalogModelPartResponse> updateByIds(
             @PathVariable Long catalogId,
             @PathVariable Long modelId,
             @PathVariable Long partId,
             @RequestBody MaintenanceCatalogModelPartRequest request
     ) {
-        return ResponseEntity.ok(
-                catalogModelPartService.update(catalogId, modelId, partId, request)
-        );
+        return ResponseEntity.ok(catalogModelPartService.updateByIds(catalogId, modelId, partId, request));
     }
 
-    @DeleteMapping("/{catalogId}/models/{modelId}/parts/{partId}")
-    public ResponseEntity<Void> deletePartInCatalogModel(
+    @GetMapping("/{catalogId}/models/{modelId}/parts/{partId}")
+    public ResponseEntity<MaintenanceCatalogModelPartResponse> findByIds(
             @PathVariable Long catalogId,
             @PathVariable Long modelId,
             @PathVariable Long partId
     ) {
-        catalogModelPartService.delete(catalogId, modelId, partId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/{catalogId}/models/{modelId}/parts")
-    public ResponseEntity<Void> deleteAllPartsInCatalogModel(
-            @PathVariable Long catalogId,
-            @PathVariable Long modelId
-    ) {
-        catalogModelPartService.deleteBatch(catalogId, modelId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(catalogModelPartService.findByIds(catalogId, modelId, partId));
     }
 }

@@ -63,18 +63,19 @@ VALUES
 -- ===================================================================
 -- BẢNG 5: MAINTENANCE_CATALOGS - Các dịch vụ bảo dưỡng có sẵn
 -- ===================================================================
-INSERT INTO maintenance_catalogs (name, maintenance_service_type, description, est_time_minutes, current_price, status, created_at)
+INSERT INTO maintenance_catalogs (name, maintenance_service_type, description, status, created_at)
 VALUES
-('Battery Inspection', 'BATTERY_INSPECTION', 'Complete battery health check and diagnostics', 60.0, 150000, 'ACTIVE', GETDATE()),
-('Tire Rotation', 'TIRE_ROTATION', 'Rotate all four tires for even wear', 30.0, 80000, 'ACTIVE', GETDATE()),
-('Brake System Check', 'BRAKE_SYSTEM_CHECK', 'Inspect brake pads, rotors, and fluid levels', 90.0, 200000, 'ACTIVE', GETDATE()),
-('Software Update', 'SOFTWARE_UPDATE', 'Update vehicle firmware and system software', 120.0, 300000, 'ACTIVE', GETDATE()),
-('Air Filter Replacement', 'AIR_FILTER_REPLACEMENT', 'Replace cabin air filter for better air quality', 30.0, 100000, 'ACTIVE', GETDATE()),
-('Coolant System Service', 'COOLANT_SYSTEM_SERVICE', 'Check and refill coolant for battery temperature management', 60.0, 180000, 'ACTIVE', GETDATE()),
-('Suspension Inspection', 'SUSPENSION_INSPECTION', 'Inspect shocks, struts, and suspension components', 90.0, 250000, 'ACTIVE', GETDATE()),
-('Wheel Alignment', 'WHEEL_ALIGNMENT', 'Adjust wheel alignment for optimal handling', 60.0, 220000, 'ACTIVE', GETDATE()),
-('Full Vehicle Diagnostic', 'FULL_VEHICLE_DIAGNOSTIC', 'Comprehensive system diagnostic scan', 150.0, 400000, 'ACTIVE', GETDATE()),
-('Emergency Charging Service', 'EMERGENCY_CHARGING_SERVICE', 'On-site battery charging service', 30.0, 120000, 'INACTIVE', GETDATE());
+    ('Battery Inspection', 'BATTERY_INSPECTION', 'Complete battery health check and diagnostics', 'ACTIVE', GETDATE()),
+    ('Tire Rotation', 'TIRE_ROTATION', 'Rotate all four tires for even wear', 'ACTIVE', GETDATE()),
+    ('Brake System Check', 'BRAKE_SYSTEM_CHECK', 'Inspect brake pads, rotors, and fluid levels', 'ACTIVE', GETDATE()),
+    ('Software Update', 'SOFTWARE_UPDATE', 'Update vehicle firmware and system software', 'ACTIVE', GETDATE()),
+    ('Air Filter Replacement', 'AIR_FILTER_REPLACEMENT', 'Replace cabin air filter for better air quality', 'ACTIVE', GETDATE()),
+    ('Coolant System Service', 'COOLANT_SYSTEM_SERVICE', 'Check and refill coolant for battery temperature management', 'ACTIVE', GETDATE()),
+    ('Suspension Inspection', 'SUSPENSION_INSPECTION', 'Inspect shocks, struts, and suspension components', 'ACTIVE', GETDATE()),
+    ('Wheel Alignment', 'WHEEL_ALIGNMENT', 'Adjust wheel alignment for optimal handling', 'ACTIVE', GETDATE()),
+    ('Full Vehicle Diagnostic', 'FULL_VEHICLE_DIAGNOSTIC', 'Comprehensive system diagnostic scan', 'ACTIVE', GETDATE()),
+    ('Emergency Charging Service', 'EMERGENCY_CHARGING_SERVICE', 'On-site battery charging service', 'INACTIVE', GETDATE());
+
 
 -- ===================================================================
 -- BẢNG 6: PERMISSIONS - Định nghĩa tất cả các quyền trong hệ thống

@@ -1,24 +1,25 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.exception.MaintenanceCatalogException;
+import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.MaintenanceCatalogModelRequest;
 import com.example.demo.model.dto.MaintenanceCatalogModelResponse;
-import com.example.demo.model.dto.MaintenanceCatalogModelPartResponse;
 import com.example.demo.model.entity.MaintenanceCatalog;
 import com.example.demo.model.entity.MaintenanceCatalogModel;
-import com.example.demo.model.entity.MaintenanceCatalogModelPart;
 import com.example.demo.model.entity.VehicleModel;
 import com.example.demo.repo.MaintenanceCatalogModelRepo;
 import com.example.demo.repo.MaintenanceCatalogRepo;
 import com.example.demo.repo.VehicleModelRepo;
-import com.example.demo.repo.MaintenanceCatalogModelPartRepo;
 import com.example.demo.service.interfaces.IMaintenanceCatalogModelService;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,192 +28,234 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelService {
 
-    private final MaintenanceCatalogModelRepo catalogModelRepository;
-    private final MaintenanceCatalogRepo catalogRepository;
-    private final VehicleModelRepo vehicleModelRepository;
-    private final MaintenanceCatalogModelPartRepo catalogModelPartRepository;
     private final AccessControlService accessControlService;
+    private final MaintenanceCatalogModelPartService maintenanceCatalogModelPartService;
+
+    private final MaintenanceCatalogModelRepo maintenanceCatalogModelRepo;
+    private final VehicleModelRepo vehicleModelRepository;
+    private final MaintenanceCatalogRepo catalogRepository;
 
     @Override
-    public MaintenanceCatalogModelResponse create(MaintenanceCatalogModelRequest request) {
-        log.info("Create catalog model: catalogId={}, modelId={}",
-                request.getMaintenanceCatalogId(), request.getModelId());
-        // Phân quyền: MAINTENANCE_SERVICE + create
-        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "create");
+    @Transactional
+    public List<MaintenanceCatalogModelResponse> syncBatch(
+            Long catalogId,
+            List<MaintenanceCatalogModelRequest> requests) {
 
-        // Validate catalog
-        MaintenanceCatalog catalog = catalogRepository.findById(request.getMaintenanceCatalogId())
-                .orElseThrow(() -> new MaintenanceCatalogException.CatalogNotFound(request.getMaintenanceCatalogId()));
+        accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "update");
 
-        // Validate vehicle model
-        VehicleModel vehicleModel = vehicleModelRepository.findById(request.getModelId())
-                .orElseThrow(() -> new MaintenanceCatalogException.VehicleModelNotFound(request.getModelId()));
+        // Validation catalog
+        MaintenanceCatalog catalog = catalogRepository.findById(catalogId)
+                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
 
-        // Không cho trùng catalog-model
-        boolean exists = catalogModelRepository.existsByMaintenanceCatalogIdAndVehicleModelId(
-                request.getMaintenanceCatalogId(), request.getModelId());
-        if (exists) {
-            throw new MaintenanceCatalogException.DuplicateCatalogModel(request.getMaintenanceCatalogId(), request.getModelId());
-        }
+        // 1. Lấy dữ liệu cũ
+        List<MaintenanceCatalogModel> oldList = maintenanceCatalogModelRepo.findByMaintenanceCatalogId(catalogId);
 
-        // Validate business: estTimeMinutes > 0, maintenancePrice >= 0
-        if (request.getEstTimeMinutes() != null && request.getEstTimeMinutes() <= 0) {
-            throw new MaintenanceCatalogException.InvalidEstTime();
-        }
-        if (request.getMaintenancePrice() != null && request.getMaintenancePrice() < 0) {
-            throw new MaintenanceCatalogException.InvalidPrice();
-        }
+        // 2. Tính toán Delta (chia ra 3 danh sách: ADD, UPDATE, DELETE)
+        SyncDelta delta = calculateDelta(catalog, oldList, requests);
 
-        // Create
-        MaintenanceCatalogModel catalogModel = MaintenanceCatalogModel.builder()
-                .maintenanceCatalog(catalog)
-                .vehicleModel(vehicleModel)
-                .estTimeMinutes(request.getEstTimeMinutes())
-                .maintenancePrice(request.getMaintenancePrice())
-                .notes(request.getNotes())
-                .build();
+        // 3. Thực thi batch operations
+        executeBatchOperations(delta);
 
-        MaintenanceCatalogModel saved = catalogModelRepository.save(catalogModel);
-
-        // Nếu có parts thì thêm batch, access vẫn đang ở quyền create (phải check trong service batch nếu có logic)
-        // Xử lý thêm nếu muốn
-
-        return toResponse(saved, false);
-    }
-
-    @Override
-    public List<MaintenanceCatalogModelResponse> createBatch(List<MaintenanceCatalogModelRequest> requests) {
-        log.info("Create batch catalog models: count={}", requests.size());
-        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "create");
-
-        try {
-            return requests.stream()
-                    .map(this::createNoPermissionCheck)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("Batch creation failed", e);
-            throw new MaintenanceCatalogException.BatchOperationFailed(e.getMessage());
-        }
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<MaintenanceCatalogModelResponse> findByCatalogId(Long catalogId, Long modelId, boolean includeParts) {
-        log.info("Find catalog models: catalogId={}, modelId={}, includeParts={}", catalogId, modelId, includeParts);
-        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
-
-        catalogRepository.findById(catalogId)
-                .orElseThrow(() -> new MaintenanceCatalogException.CatalogNotFound(catalogId));
-
-        List<MaintenanceCatalogModel> catalogModels;
-        if (modelId != null) {
-            catalogModels = catalogModelRepository.findByMaintenanceCatalogIdAndVehicleModelId(catalogId, modelId);
-        } else {
-            catalogModels = catalogModelRepository.findByMaintenanceCatalogId(catalogId);
-        }
-
-        return catalogModels.stream()
-                .map(model -> toResponse(model, includeParts))
+        // 4. Trả về kết quả
+        return maintenanceCatalogModelRepo.findByMaintenanceCatalogId(catalogId).stream()
+                .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public MaintenanceCatalogModelResponse updateByCatalogAndModel(Long catalogId, Long modelId,
-                                                                   MaintenanceCatalogModelRequest request) {
-        log.info("Update catalog model: catalogId={}, modelId={}", catalogId, modelId);
-        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "update");
+    public MaintenanceCatalogModelResponse updateByIds(Long catalogId, Long modelId, MaintenanceCatalogModelRequest request) {
 
-        MaintenanceCatalogModel catalogModel = catalogModelRepository
-                .findFirstByMaintenanceCatalogIdAndVehicleModelId(catalogId, modelId)
-                .orElseThrow(() -> new MaintenanceCatalogException.CatalogModelNotFound(catalogId));
-
-        if (request.getEstTimeMinutes() != null) {
-            if (request.getEstTimeMinutes() <= 0) throw new MaintenanceCatalogException.InvalidEstTime();
-            catalogModel.setEstTimeMinutes(request.getEstTimeMinutes());
-        }
-        if (request.getMaintenancePrice() != null) {
-            if (request.getMaintenancePrice() < 0) throw new MaintenanceCatalogException.InvalidPrice();
-            catalogModel.setMaintenancePrice(request.getMaintenancePrice());
-        }
-        if (request.getNotes() != null) catalogModel.setNotes(request.getNotes());
-
-        MaintenanceCatalogModel updated = catalogModelRepository.save(catalogModel);
-        return toResponse(updated, false);
-    }
-
-    @Override
-    public void delete(Long catalogId, Long modelId) {
-        log.info("Delete catalog model: catalogId={}, modelId={}", catalogId, modelId);
-        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "delete");
-
-        MaintenanceCatalogModel catalogModel = catalogModelRepository
-                .findFirstByMaintenanceCatalogIdAndVehicleModelId(catalogId, modelId)
-                .orElseThrow(() -> new MaintenanceCatalogException.CatalogModelNotFound(catalogId));
-        catalogModelRepository.delete(catalogModel);
-    }
-
-    @Override
-    public void deleteBatch(long catalogId) {
-        log.info("Delete batch catalog models: catalogId={}", catalogId);
-        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "delete");
+        accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "update");
 
         catalogRepository.findById(catalogId)
-                .orElseThrow(() -> new MaintenanceCatalogException.CatalogNotFound(catalogId));
-        List<MaintenanceCatalogModel> catalogModels = catalogModelRepository.findByMaintenanceCatalogId(catalogId);
-        catalogModelRepository.deleteAll(catalogModels);
+                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+
+        vehicleModelRepository.findById(modelId)
+                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model with Id", modelId));
+
+        MaintenanceCatalogModel entity = maintenanceCatalogModelRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalogId, modelId)
+                .orElseThrow(() -> new CommonException.NotFound(
+                        "Maintenance Catalog with Id " + catalogId +
+                                ", for Vehicle Model with Id " + modelId));
+
+        updateFields(entity, request);
+        return toResponse(maintenanceCatalogModelRepo.save(entity), false);
     }
 
-    // Internal method for batch logic, permission already checked
-    private MaintenanceCatalogModelResponse createNoPermissionCheck(MaintenanceCatalogModelRequest request) {
-        MaintenanceCatalog catalog = catalogRepository.findById(request.getMaintenanceCatalogId())
-                .orElseThrow(() -> new MaintenanceCatalogException.CatalogNotFound(request.getMaintenanceCatalogId()));
-        VehicleModel vehicleModel = vehicleModelRepository.findById(request.getModelId())
-                .orElseThrow(() -> new MaintenanceCatalogException.VehicleModelNotFound(request.getModelId()));
-        boolean exists = catalogModelRepository.existsByMaintenanceCatalogIdAndVehicleModelId(request.getMaintenanceCatalogId(), request.getModelId());
-        if (exists) throw new MaintenanceCatalogException.DuplicateCatalogModel(request.getMaintenanceCatalogId(), request.getModelId());
-        if (request.getEstTimeMinutes() != null && request.getEstTimeMinutes() <= 0) throw new MaintenanceCatalogException.InvalidEstTime();
-        if (request.getMaintenancePrice() != null && request.getMaintenancePrice() < 0) throw new MaintenanceCatalogException.InvalidPrice();
-        MaintenanceCatalogModel catalogModel = MaintenanceCatalogModel.builder()
+    @Override
+    public MaintenanceCatalogModelResponse findByIds(Long catalogId, Long modelId, boolean includeParts) {
+
+        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
+
+        catalogRepository.findById(catalogId)
+                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+
+        vehicleModelRepository.findById(modelId)
+                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model with Id", modelId));
+
+        MaintenanceCatalogModel entity = maintenanceCatalogModelRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalogId, modelId)
+                .orElseThrow(() -> new CommonException.NotFound(
+                        "Maintenance Catalog with Id " + catalogId +
+                                ", for Vehicle Model with Id " + modelId));
+
+        return toResponse(entity, includeParts);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MaintenanceCatalogModelResponse> getModels(Long catalogId) {
+
+        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
+
+        catalogRepository.findById(catalogId)
+                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+
+        return maintenanceCatalogModelRepo.findByMaintenanceCatalogId(catalogId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * UNIT 1: Tính toán Delta
+     * Input: list cũ + list mới
+     * Output: SyncDelta chứa 3 danh sách (toAdd, toUpdate, toDelete)
+     */
+    private SyncDelta calculateDelta(
+            MaintenanceCatalog catalog,
+            List<MaintenanceCatalogModel> oldList,
+            List<MaintenanceCatalogModelRequest> requests) {
+
+        // Chuyển sang Map để tra cứu O(1)
+        Map<Long, MaintenanceCatalogModel> oldMap = oldList.stream()
+                .collect(Collectors.toMap(
+                        item -> item.getVehicleModel().getId(),
+                        item -> item
+                ));
+
+        Map<Long, MaintenanceCatalogModelRequest> newMap = requests.stream()
+                .collect(Collectors.toMap(
+                        MaintenanceCatalogModelRequest::getModelId,
+                        item -> item
+                ));
+
+        List<MaintenanceCatalogModel> toAdd = new ArrayList<>();
+        List<MaintenanceCatalogModel> toUpdate = new ArrayList<>();
+        List<Long> toDeleteIds = new ArrayList<>(); // Xóa theo id (PK)
+
+        // Vòng 1: Duyệt list CŨ → xử lý UPDATE và DELETE
+        for (MaintenanceCatalogModel oldItem : oldList) {
+            Long modelId = oldItem.getVehicleModel().getId();
+            MaintenanceCatalogModelRequest newItem = newMap.get(modelId);
+
+            if (newItem == null) {
+                // Không có trong list mới → DELETE
+                toDeleteIds.add(oldItem.getId()); // Xóa theo PK
+            } else {
+                // Có trong cả 2 → kiểm tra UPDATE
+                if (hasChanges(oldItem, newItem)) {
+                    updateFields(oldItem, newItem);
+                    toUpdate.add(oldItem);
+                }
+                newMap.remove(modelId); // Đã xử lý xong
+            }
+        }
+
+        // Vòng 2: Những gì còn lại trong newMap → ADD
+        for (MaintenanceCatalogModelRequest dto : newMap.values()) {
+            MaintenanceCatalogModel newEntity = createNewEntity(catalog, dto);
+            toAdd.add(newEntity);
+        }
+
+        return new SyncDelta(toAdd, toUpdate, toDeleteIds);
+    }
+
+    /**
+     * UNIT 2: Kiểm tra có thay đổi không
+     * So sánh từng field để quyết định UPDATE
+     */
+    private boolean hasChanges(MaintenanceCatalogModel oldItem, MaintenanceCatalogModelRequest newItem) {
+        return !Objects.equals(oldItem.getEstTimeMinutes(), newItem.getEstTimeMinutes())
+                || !Objects.equals(oldItem.getMaintenancePrice(), newItem.getMaintenancePrice())
+                || !Objects.equals(oldItem.getNotes(), newItem.getNotes());
+    }
+
+    /**
+     * UNIT 2.1: Cập nhật fields
+     */
+    private void updateFields(MaintenanceCatalogModel entity, MaintenanceCatalogModelRequest dto) {
+        entity.setEstTimeMinutes(dto.getEstTimeMinutes());
+        entity.setMaintenancePrice(dto.getMaintenancePrice());
+        entity.setNotes(dto.getNotes());
+    }
+
+    /**
+     * UNIT 2.2: Tạo entity mới từ DTO
+     */
+    private MaintenanceCatalogModel createNewEntity(MaintenanceCatalog catalog, MaintenanceCatalogModelRequest dto) {
+        VehicleModel vehicleModel = vehicleModelRepository.findById(dto.getModelId())
+                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model with Id", dto.getModelId()));
+
+        return MaintenanceCatalogModel.builder()
                 .maintenanceCatalog(catalog)
                 .vehicleModel(vehicleModel)
-                .estTimeMinutes(request.getEstTimeMinutes())
-                .maintenancePrice(request.getMaintenancePrice())
-                .notes(request.getNotes())
+                .estTimeMinutes(dto.getEstTimeMinutes())
+                .maintenancePrice(dto.getMaintenancePrice())
+                .notes(dto.getNotes())
                 .build();
-        MaintenanceCatalogModel saved = catalogModelRepository.save(catalogModel);
-        return toResponse(saved, false);
     }
 
-    private MaintenanceCatalogModelResponse toResponse(MaintenanceCatalogModel model, boolean includeParts) {
-        VehicleModel vehicleModel = model.getVehicleModel();
-        MaintenanceCatalogModelResponse.MaintenanceCatalogModelResponseBuilder builder = MaintenanceCatalogModelResponse.builder()
-                .modelId(vehicleModel.getId())
-                .modelName(vehicleModel.getModelName())
-                .modelBrand(vehicleModel.getBrandName())
-                .modelYear(vehicleModel.getYearIntroduce())
-                .estTimeMinutes(model.getEstTimeMinutes())
-                .maintenancePrice(model.getMaintenancePrice())
-                .notes(model.getNotes())
-                .createdAt(model.getCreatedAt());
-
-        if (includeParts) {
-            List<MaintenanceCatalogModelPart> parts = catalogModelPartRepository
-                    .findByMaintenanceCatalogIdAndVehicleModelId(model.getMaintenanceCatalog().getId(), vehicleModel.getId());
-            List<MaintenanceCatalogModelPartResponse> partResponses = parts.stream()
-                    .map(this::toPartResponse)
-                    .collect(Collectors.toList());
-            builder.parts(partResponses);
+    /**
+     * UNIT 3: Thực thi batch operations
+     * Xử lý 3 danh sách: INSERT, UPDATE, DELETE
+     */
+    private void executeBatchOperations(SyncDelta delta) {
+        if (!delta.toAdd.isEmpty()) {
+            maintenanceCatalogModelRepo.saveAll(delta.toAdd);
         }
-        return builder.build();
+
+        if (!delta.toUpdate.isEmpty()) {
+            maintenanceCatalogModelRepo.saveAll(delta.toUpdate);
+        }
+
+        if (!delta.toDeleteIds.isEmpty()) {
+            maintenanceCatalogModelRepo.deleteAllByIdInBatch(delta.toDeleteIds);
+        }
     }
 
-    private MaintenanceCatalogModelPartResponse toPartResponse(MaintenanceCatalogModelPart part) {
-        return MaintenanceCatalogModelPartResponse.builder()
-                .partId(part.getPart().getId())
-                .partName(part.getPart().getName())
-                .quantityRequired(part.getQuantityRequired())
-                .isOptional(part.getIsOptional())
-                .notes(part.getNotes())
+    /**
+     * Helper class chứa kết quả tính Delta
+     */
+    @Value
+    private static class SyncDelta {
+        List<MaintenanceCatalogModel> toAdd;
+        List<MaintenanceCatalogModel> toUpdate;
+        List<Long> toDeleteIds; // DELETE theo PK
+    }
+
+    /**
+     * Chuyển Entity → Response DTO
+     */
+    private MaintenanceCatalogModelResponse toResponse(MaintenanceCatalogModel entity, boolean includeParts) {
+        return MaintenanceCatalogModelResponse.builder()
+                .modelId(entity.getVehicleModel().getId())
+                .modelName(entity.getVehicleModel().getModelName())
+                .modelBrand(entity.getVehicleModel().getBrandName())
+                .modelYear(entity.getVehicleModel().getYearIntroduce())
+                .estTimeMinutes(entity.getEstTimeMinutes())
+                .maintenancePrice(entity.getMaintenancePrice())
+                .notes(entity.getNotes())
+                .createdAt(entity.getCreatedAt())
+                .parts(
+                        includeParts ?
+                                maintenanceCatalogModelPartService.getParts(
+                                entity.getMaintenanceCatalog().getId(),
+                                entity.getVehicleModel().getId()):
+                                null
+                )
                 .build();
+    }
+
+    private MaintenanceCatalogModelResponse toResponse(MaintenanceCatalogModel entity) {
+        return toResponse(entity, false);
     }
 }

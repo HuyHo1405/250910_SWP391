@@ -32,12 +32,6 @@ public class MaintenanceCatalog {
     @Column(columnDefinition = "VARCHAR(255)")
     private String description;
 
-    @Column(name = "current_price")
-    private Double currentPrice;
-
-    @Column(name = "est_time_minutes")
-    private Double estTimeMinutes;
-
     @Enumerated(EnumType.STRING)
     private EntityStatus status;
 

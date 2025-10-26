@@ -15,17 +15,6 @@ public class MaintenanceCatalogException extends BaseServiceException {
     // ==================== CATALOG EXCEPTIONS ====================
 
     /**
-     * Catalog không active/available
-     */
-    public static class CatalogNotFound extends MaintenanceCatalogException {
-        public CatalogNotFound(Long catalogId) {
-            super("CATALOG_NOT_FOUND",
-                    String.format("Maintenance catalog not found with id: %d", catalogId),
-                    HttpStatus.NOT_FOUND);
-        }
-    }
-
-    /**
      * Catalog không hoạt động
      */
     public static class CatalogInactive extends MaintenanceCatalogException {
@@ -33,17 +22,6 @@ public class MaintenanceCatalogException extends BaseServiceException {
             super("CATALOG_INACTIVE",
                     String.format("Maintenance catalog '%s' is not available", catalogName),
                     HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    /**
-     * Tên catalog bị trùng
-     */
-    public static class DuplicateCatalogName extends MaintenanceCatalogException {
-        public DuplicateCatalogName(String name) {
-            super("DUPLICATE_CATALOG_NAME",
-                    String.format("Maintenance catalog with name '%s' already exists", name),
-                    HttpStatus.CONFLICT);
         }
     }
 
@@ -58,66 +36,7 @@ public class MaintenanceCatalogException extends BaseServiceException {
         }
     }
 
-    /**
-     * Giá dịch vụ không hợp lệ
-     */
-    public static class InvalidPrice extends MaintenanceCatalogException {
-        public InvalidPrice() {
-            super("INVALID_PRICE",
-                    "Service price must be greater than zero",
-                    HttpStatus.BAD_REQUEST);
-        }
-
-        public InvalidPrice(String message) {
-            super("INVALID_PRICE", message, HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    /**
-     * Thời gian ước tính không hợp lệ
-     */
-    public static class InvalidEstTime extends MaintenanceCatalogException {
-        public InvalidEstTime() {
-            super("INVALID_EST_TIME",
-                    "Estimated time must be greater than zero",
-                    HttpStatus.BAD_REQUEST);
-        }
-    }
-
     // ==================== CATALOG MODEL EXCEPTIONS ====================
-
-    /**
-     * Catalog Model không tìm thấy
-     */
-    public static class CatalogModelNotFound extends MaintenanceCatalogException {
-        public CatalogModelNotFound(Long catalogModelId) {
-            super("CATALOG_MODEL_NOT_FOUND",
-                    String.format("Catalog model not found with id: %d", catalogModelId),
-                    HttpStatus.NOT_FOUND);
-        }
-    }
-
-    /**
-     * Catalog Model đã tồn tại (duplicate)
-     */
-    public static class DuplicateCatalogModel extends MaintenanceCatalogException {
-        public DuplicateCatalogModel(Long catalogId, Long modelId) {
-            super("DUPLICATE_CATALOG_MODEL",
-                    String.format("Catalog model already exists for catalog %d and model %d", catalogId, modelId),
-                    HttpStatus.CONFLICT);
-        }
-    }
-
-    /**
-     * Vehicle model không tìm thấy
-     */
-    public static class VehicleModelNotFound extends MaintenanceCatalogException {
-        public VehicleModelNotFound(Long modelId) {
-            super("VEHICLE_MODEL_NOT_FOUND",
-                    String.format("Vehicle model not found with id: %d", modelId),
-                    HttpStatus.NOT_FOUND);
-        }
-    }
 
     /**
      * Xe không support catalog này
@@ -139,54 +58,6 @@ public class MaintenanceCatalogException extends BaseServiceException {
     // ==================== CATALOG MODEL PART EXCEPTIONS ====================
 
     /**
-     * Catalog Model Part không tìm thấy
-     */
-    public static class CatalogModelPartNotFound extends MaintenanceCatalogException {
-        public CatalogModelPartNotFound(Long partId) {
-            super("CATALOG_MODEL_PART_NOT_FOUND",
-                    String.format("Catalog model part not found with id: %d", partId),
-                    HttpStatus.NOT_FOUND);
-        }
-    }
-
-    /**
-     * Part đã tồn tại cho combo catalog + model
-     */
-    public static class DuplicatePart extends MaintenanceCatalogException {
-        public DuplicatePart(Long catalogId, Long modelId, Long partId) {
-            super("DUPLICATE_PART",
-                    String.format("Part %d already exists for catalog %d and model %d", partId, catalogId, modelId),
-                    HttpStatus.CONFLICT);
-        }
-    }
-
-    /**
-     * Part không tìm thấy trong hệ thống
-     */
-    public static class PartNotFound extends MaintenanceCatalogException {
-        public PartNotFound(Long partId) {
-            super("PART_NOT_FOUND",
-                    String.format("Part not found with id: %d", partId),
-                    HttpStatus.NOT_FOUND);
-        }
-    }
-
-    /**
-     * Số lượng part không hợp lệ
-     */
-    public static class InvalidQuantity extends MaintenanceCatalogException {
-        public InvalidQuantity() {
-            super("INVALID_QUANTITY",
-                    "Part quantity must be greater than zero",
-                    HttpStatus.BAD_REQUEST);
-        }
-
-        public InvalidQuantity(String message) {
-            super("INVALID_QUANTITY", message, HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    /**
      * Part không available
      */
     public static class PartNotAvailable extends MaintenanceCatalogException {
@@ -198,18 +69,6 @@ public class MaintenanceCatalogException extends BaseServiceException {
     }
 
     // ==================== GENERAL DOMAIN EXCEPTIONS ====================
-
-    /**
-     * Vehicle không tìm thấy theo VIN
-     */
-    public static class VehicleNotFoundByVin extends MaintenanceCatalogException {
-        public VehicleNotFoundByVin(String vin) {
-            super("VEHICLE_NOT_FOUND",
-                    String.format("Vehicle not found with VIN: %s", vin),
-                    HttpStatus.NOT_FOUND);
-        }
-    }
-
     /**
      * Không có dịch vụ nào available cho xe này
      */
