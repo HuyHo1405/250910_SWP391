@@ -49,8 +49,21 @@ VALUES
 ('Le Van C', 'technician@example.com', '0903456789', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'ACTIVE', GETDATE(), GETDATE()),
 ('Pham Thi D', 'customer@example.com', '0904567890', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 4, 'ACTIVE', GETDATE(), GETDATE()),
 ('Nguyen Van E', 'user@example.com', '0905678901','$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 4, 'ACTIVE', GETDATE(), GETDATE()),
-('Dao Thi F', 'ban@example.com', '0905678902','$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 4, 'ARCHIVED', GETDATE(), GETDATE());
-
+('Dao Thi F', 'ban@example.com', '0905678902','$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 4, 'ARCHIVED', GETDATE(), GETDATE()),
+-- ==================================================================
+-- Bổ sung account
+-- Staff với các trạng thái khác nhau
+('Tran Thi Ac', 'staffactive@example.com', '0902222221', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 2, 'ACTIVE', GETDATE(), GETDATE()),
+('Tran Thi In', 'staffinactive@example.com', '0902222222', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 2, 'INACTIVE', GETDATE(), GETDATE()),
+('Tran Thi Ar', 'staffarchived@example.com', '0902222223', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 2, 'ARCHIVED', GETDATE(), GETDATE()),
+-- Technician với các trạng thái khác nhau
+('Le Van Ac', 'techactive@example.com', '0903333331', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'ACTIVE', GETDATE(), GETDATE()),
+('Le Van In', 'techinactive@example.com', '0903333332', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'INACTIVE', GETDATE(), GETDATE()),
+('Le Van Ar', 'techarchived@example.com', '0903333333', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'ARCHIVED', GETDATE(), GETDATE()),
+-- CUSTOMER với các trạng thái khác nhau
+('Pham Thi Ac', 'customer_active@example.com', '0904444441', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 4, 'ACTIVE', GETDATE(), GETDATE()),
+('Pham Thi In', 'customer_inactive@example.com', '0904444442', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 4, 'INACTIVE', GETDATE(), GETDATE()),
+('Pham Thi Ar', 'customer_archived@example.com', '0904444443', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 4, 'ARCHIVED', GETDATE(), GETDATE());
 -- ===================================================================
 -- BẢNG 4: VEHICLES - Xe của từng khách hàng
 -- ===================================================================
