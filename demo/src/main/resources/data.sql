@@ -34,9 +34,14 @@ IF NOT EXISTS (SELECT 1 FROM vehicle_models WHERE brand_name = 'Tesla' AND model
 INSERT INTO vehicle_models
 (brand_name, model_name, dimensions, year_introduce, seats, battery_capacity_kwh, range_km, charging_time_hours, motor_power_kw, weight_kg, status, created_at)
 VALUES
-('Tesla', 'Model S', '4970x1964x1445', '2022', 5, 100.0, 650.0, 1.5, 500.0, 2100.0, 'ACTIVE', GETDATE()),
-('VinFast', 'VF8', '4750x1900x1660', '2023', 5, 90.0, 550.0, 2.0, 400.0, 2200.0, 'ACTIVE', GETDATE()),
-('Toyota', 'Corolla Cross EV', '4460x1825x1620', '2023', 5, 60.0, 400.0, 1.8, 150.0, 1600.0, 'INACTIVE', GETDATE());
+--VF 3, VF 5 Plus, VF 6, VF 7, VF 8, VF 9, và VF Wild
+('VinFast', 'VF 3', '3190x1675x1600', '2024', 4, 18.6, 210.0, 0.5, 35.0, 1150.0, 'ACTIVE', GETDATE()),
+('VinFast', 'VF 5 Plus', '3965x1720x1575', '2023', 5, 37.2, 300.0, 1.0, 100.0, 1250.0, 'ACTIVE', GETDATE()),
+('VinFast', 'VF 6', '4240x1820x1620', '2023', 5, 59.6, 400.0, 1.2, 150.0, 1500.0, 'ACTIVE', GETDATE()),
+('VinFast', 'VF 7', '4545x1895x1640', '2024', 5, 75.3, 450.0, 1.5, 200.0, 1750.0, 'ACTIVE', GETDATE()),
+('VinFast', 'VF 8', '4750x1900x1660', '2023', 5, 90.0, 550.0, 2.0, 300.0, 2200.0, 'ACTIVE', GETDATE()),
+('VinFast', 'VF 9', '5118x2254x1696', '2023', 7, 123.0, 675.0, 2.5, 300.0, 2600.0, 'ACTIVE', GETDATE()),
+('VinFast', 'VF Wild', '5310x1995x1890', '2025', 5, 120.0, 600.0, 2.0, 300.0, 2400.0, 'INACTIVE', GETDATE());
 
 -- ===================================================================
 -- BẢNG 3: USERS - Danh sách người dùng (mật khẩu cho tất cả là: "string")
@@ -76,7 +81,14 @@ VALUES
 ('60A-22222', 'White', '1HGCM82633A888888', 4, 3, 'INACTIVE', GETDATE(), GETDATE()),
 ('51G-55555', 'Black', '5YJSA1E26HF123001', 5, 1, 'ACTIVE', GETDATE(), GETDATE()),
 ('59A-66666', 'Silver', '5YJSA1E26HF123002', 5, 2, 'ACTIVE', GETDATE(), GETDATE()),
-('51C-77777', 'White', '5YJSA1E26HF123003', 5, 3, 'INACTIVE', GETDATE(), GETDATE());
+('51C-77777', 'White', '5YJSA1E26HF123003', 5, 3, 'INACTIVE', GETDATE(), GETDATE()),
+-- bổ sung thêm xe cho các khách hàng khác
+('51H-22145', 'Red', '1HGCM82633A100001', 13, 1, 'ACTIVE', GETDATE(), GETDATE()),
+('51H-99810', 'Blue', '1HGCM82633A100002', 13, 2, 'INACTIVE', GETDATE(), GETDATE()),
+('60A-12222', 'White', '1HGCM82633A200001', 14, 3, 'ACTIVE', GETDATE(), GETDATE()),
+('51G-55435', 'Black', '1HGCM82633A200002', 14, 1, 'INACTIVE', GETDATE(), GETDATE()),
+('59A-62211', 'Silver', '1HGCM82633A300001', 15, 2, 'ACTIVE', GETDATE(), GETDATE()),
+('51C-12477', 'White', '1HGCM82633A300002', 15, 3, 'INACTIVE', GETDATE(), GETDATE());
 
 -- ===================================================================
 -- BẢNG 5: MAINTENANCE_CATALOGS - Các dịch vụ bảo dưỡng có sẵn
