@@ -757,3 +757,104 @@ INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id,
 VALUES
     (9, 3, 28, 1, 0, 'Standard EV diagnostic protocol'),
     (9, 3, 3, 1, 0, 'Battery system health check');
+-- ===================================================================
+-- bổ sung seed data cho bảng maintenance_records_parts
+-- VF3
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (6, 1, 14, 2, 0, 'VF3 - Basic coolant system, ~10L fluid required'),
+    (6, 1, 16, 1, 1, 'VF3 - Inspect hoses for small leaks');
+
+-- VF5 Plus
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (6, 2, 14, 2, 0, 'VF5 Plus - 10L coolant total'),
+    (6, 2, 15, 1, 1, 'VF5 Plus - Electric coolant pump check'),
+    (6, 2, 16, 1, 1, 'VF5 Plus - Hose inspection');
+
+-- VF6
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (6, 3, 14, 3, 0, 'VF6 - Dual cooling loop (battery + motor), 15L coolant'),
+    (6, 3, 15, 1, 1, 'VF6 - Coolant pump check'),
+    (6, 3, 16, 1, 1, 'VF6 - Replace hose if worn');
+
+-- VF7
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (6, 4, 14, 3, 0, 'VF7 - 15L coolant refill'),
+    (6, 4, 15, 1, 1, 'VF7 - Pump diagnostic'),
+    (6, 4, 16, 1, 1, 'VF7 - Hose kit inspection');
+
+-- VF8
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (6, 5, 14, 3, 0, 'VF8 - Dual cooling system requires 15L coolant'),
+    (6, 5, 15, 1, 1, 'VF8 - Electric coolant pump check'),
+    (6, 5, 16, 1, 1, 'VF8 - Coolant hose inspection');
+
+-- VF9
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (6, 6, 14, 4, 0, 'VF9 - Large battery pack, 20L coolant total'),
+    (6, 6, 15, 1, 1, 'VF9 - Dual pump configuration check'),
+    (6, 6, 16, 2, 1, 'VF9 - Hose and connector replacement if leaking');
+
+-- VF Wild
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (6, 7, 14, 4, 0, 'VF Wild - Prototype model, estimated 18L coolant'),
+    (6, 7, 15, 1, 1, 'VF Wild - Pump inspection pending spec confirmation'),
+    (6, 7, 16, 1, 1, 'VF Wild - Early design, hose system check');
+-- VF3
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (7, 1, 23, 2, 1, 'VF3 - Front shocks basic set'),
+    (7, 1, 24, 2, 1, 'VF3 - Rear shocks replacement optional'),
+    (7, 1, 26, 2, 0, 'VF3 - Stabilizer links standard check');
+
+-- VF5 Plus
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (7, 2, 23, 2, 1, 'VF5 Plus - Compact EV shocks'),
+    (7, 2, 24, 2, 1, 'VF5 Plus - Rear absorber inspection'),
+    (7, 2, 25, 1, 1, 'VF5 Plus - Control arm bushing kit check');
+
+-- VF6
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (7, 3, 23, 2, 1, 'VF6 - SUV front shocks'),
+    (7, 3, 24, 2, 1, 'VF6 - Rear shocks check'),
+    (7, 3, 26, 2, 0, 'VF6 - Stabilizer link standard');
+
+-- VF7
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (7, 4, 23, 2, 1, 'VF7 - Front shock absorber pair'),
+    (7, 4, 24, 2, 1, 'VF7 - Rear shocks optional replacement'),
+    (7, 4, 25, 1, 1, 'VF7 - Control arm bushing kit check');
+
+-- VF8
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (7, 5, 23, 2, 1, 'VF8 - Front shocks for SUV-spec suspension'),
+    (7, 5, 24, 2, 1, 'VF8 - Rear shocks for heavier EV weight'),
+    (7, 5, 25, 1, 1, 'VF8 - Bushing kit for control arms'),
+    (7, 5, 26, 2, 0, 'VF8 - Stabilizer links check');
+
+-- VF9
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (7, 6, 23, 2, 1, 'VF9 - Large SUV front shocks'),
+    (7, 6, 24, 2, 1, 'VF9 - Heavy rear shock absorbers'),
+    (7, 6, 25, 1, 1, 'VF9 - Reinforced bushing set'),
+    (7, 6, 26, 2, 0, 'VF9 - Stabilizer bar inspection');
+
+-- VF Wild
+INSERT INTO maintenance_catalogs_models_parts (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+VALUES
+    (7, 7, 23, 2, 1, 'VF Wild - Front struts prototype'),
+    (7, 7, 24, 2, 1, 'VF Wild - Rear shocks under test'),
+    (7, 7, 25, 1, 1, 'VF Wild - Control bushings experimental');
+
+-- ===================================================================
