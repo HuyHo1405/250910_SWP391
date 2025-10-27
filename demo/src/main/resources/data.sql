@@ -292,6 +292,7 @@ INSERT INTO booking_details (booking_id, maintenance_catalog_id, description, se
 -- Parts liên quan đến Pin (Battery)
 INSERT INTO parts (name, part_number, manufacturer, description, current_unit_price, quantity, status, created_at)
 VALUES
+
     ('Battery Cell Module - Type A', 1001, 'Tesla', 'High-capacity lithium-ion battery cell module for Model S', 15000000, 25, 'ACTIVE', GETDATE()),
     ('Battery Cooling System', 1002, 'Tesla', 'Liquid cooling system for battery temperature management', 8500000, 15, 'ACTIVE', GETDATE()),
     ('Battery Management System (BMS)', 1003, 'Panasonic', 'Electronic battery monitoring and control unit', 12000000, 10, 'ACTIVE', GETDATE()),
@@ -328,16 +329,93 @@ VALUES
     ('Coil Spring - Front', 6005, 'Eibach', 'Progressive rate coil spring for front suspension', 3200000, 15, 'ACTIVE', GETDATE()),
 
 -- Parts liên quan đến Điện tử (Software/Electronics)
-    ('Diagnostic OBD-II Module', 7001, 'Bosch', 'On-board diagnostics module for system scanning', 2800000, 20, 'ACTIVE', GETDATE()),
-    ('Vehicle Control Unit (VCU)', 7002, 'Tesla', 'Main vehicle electronic control unit', 18000000, 5, 'ACTIVE', GETDATE()),
-    ('Touchscreen Display - 17 inch', 7003, 'LG', 'Replacement center console touchscreen', 22000000, 8, 'ACTIVE', GETDATE()),
+--     ('Diagnostic OBD-II Module', 7001, 'Bosch', 'On-board diagnostics module for system scanning', 2800000, 20, 'ACTIVE', GETDATE()),
+--     ('Vehicle Control Unit (VCU)', 7002, 'Tesla', 'Main vehicle electronic control unit', 18000000, 5, 'ACTIVE', GETDATE()),
+--     ('Touchscreen Display - 17 inch', 7003, 'LG', 'Replacement center console touchscreen', 22000000, 8, 'ACTIVE', GETDATE()),
 
 -- Parts ít dùng / hết hàng
-    ('Emergency Brake Cable', 8001, 'Generic', 'Backup mechanical brake cable', 380000, 5, 'ACTIVE', GETDATE()),
-    ('Wiper Blade Set', 8002, 'Bosch', 'Front windshield wiper blade pair', 420000, 3, 'ACTIVE', GETDATE()),
-    ('Door Handle Assembly', 8003, 'Tesla', 'Electronic pop-out door handle mechanism', 6500000, 2, 'ACTIVE', GETDATE()),
-    ('Charge Port Cover', 8004, 'Tesla', 'Motorized charging port door assembly', 3800000, 1, 'INACTIVE', GETDATE());
+--     ('Emergency Brake Cable', 8001, 'Generic', 'Backup mechanical brake cable', 380000, 5, 'ACTIVE', GETDATE()),
+--     ('Wiper Blade Set', 8002, 'Bosch', 'Front windshield wiper blade pair', 420000, 3, 'ACTIVE', GETDATE()),
+--     ('Door Handle Assembly', 8003, 'Tesla', 'Electronic pop-out door handle mechanism', 6500000, 2, 'ACTIVE', GETDATE()),
+--     ('Charge Port Cover', 8004, 'Tesla', 'Motorized charging port door assembly', 3800000, 1, 'INACTIVE', GETDATE()),
+-- ===================================================================
+-- Bổ sung dữ lieu Part
+-- 1️ VF 3
+    ('VF3 Battery Pack - LFP 37kWh', 3001, 'VinES', 'Lithium Iron Phosphate (LFP) battery pack for VF 3', 320000000, 8, 'ACTIVE', GETDATE()),
+    ('VF3 Tire 15-inch EcoGrip', 3002, 'Bridgestone', '15-inch high-efficiency tire for VF 3', 2500000, 40, 'ACTIVE', GETDATE()),
+    ('VF3 Front Brake Disc', 3003, 'VinFast', 'Front brake disc, OE standard', 1500000, 20, 'ACTIVE', GETDATE()),
+    ('VF3 Coolant Pump Assembly', 3004, 'VinFast', 'Coolant pump for battery thermal system', 3800000, 10, 'ACTIVE', GETDATE()),
+    ('VF3 Air Filter Cartridge', 3005, 'VinFast', 'Engine air intake filter cartridge', 600000, 25, 'ACTIVE', GETDATE()),
+    ('VF3 Suspension Arm Set', 3006, 'VinFast', 'Front suspension arm set', 2700000, 15, 'ACTIVE', GETDATE()),
+    ('VF3 Battery ECU Unit', 3007, 'VinFast', 'Battery electronic control unit (ECU) for VF 3', 9500000, 6, 'ACTIVE', GETDATE()),
+    ('VF3 Door Handle Sensor (Old)', 3008, 'VinFast', 'Old version door handle sensor — no longer produced', 1200000, 0, 'INACTIVE', GETDATE()),
 
+-- ===================================================================
+-- 2 VF 5 Plus
+    ('VF5 Battery Module - NMC 45kWh', 3101, 'VinES', 'Nickel Manganese Cobalt (NMC) 45kWh battery module for VF 5 Plus', 350000000, 6, 'ACTIVE', GETDATE()),
+    ('VF5 Tire 16-inch AllSeason', 3102, 'Michelin', '16-inch all-season tire for VF 5 Plus', 3200000, 30, 'ACTIVE', GETDATE()),
+    ('VF5 Rear Brake Caliper', 3103, 'VinFast', 'Rear brake caliper assembly', 2500000, 12, 'ACTIVE', GETDATE()),
+    ('VF5 Coolant Radiator', 3104, 'VinFast', 'Cooling radiator for electric motor system', 4100000, 8, 'ACTIVE', GETDATE()),
+    ('VF5 Air Intake Filter', 3105, 'VinFast', 'Cabin air intake filter', 850000, 18, 'ACTIVE', GETDATE()),
+    ('VF5 Front Shock Absorber', 3106, 'VinFast', 'Front shock absorber set for VF 5 Plus', 3100000, 10, 'ACTIVE', GETDATE()),
+    ('VF5 Infotainment Unit V-Connect', 3107, 'VinFast', 'Central infotainment and control unit (V-Connect)', 19000000, 4, 'ACTIVE', GETDATE()),
+    ('VF5 Old Tire Sensor (Deprecated)', 3108, 'VinFast', 'Legacy tire pressure sensor — no longer sold', 950000, 0, 'INACTIVE', GETDATE()),
+
+-- ===================================================================
+-- 3️ VF 6
+    ('VF6 Battery Pack - 59kWh', 3201, 'VinES', 'High-capacity 59kWh battery pack for VF 6', 410000000, 5, 'ACTIVE', GETDATE()),
+    ('VF6 Tire 17-inch RoadMax', 3202, 'Pirelli', '17-inch performance tire for VF 6', 4200000, 24, 'ACTIVE', GETDATE()),
+    ('VF6 Brake Pad Kit', 3203, 'VinFast', 'Front/rear brake pad kit', 1300000, 25, 'ACTIVE', GETDATE()),
+    ('VF6 Battery Coolant Hose', 3204, 'VinFast', 'Battery coolant circulation hose', 950000, 14, 'ACTIVE', GETDATE()),
+    ('VF6 Cabin Air Filter', 3205, 'VinFast', 'Cabin air filter for interior ventilation', 700000, 20, 'ACTIVE', GETDATE()),
+    ('VF6 Rear Suspension Spring', 3206, 'VinFast', 'Rear suspension coil spring', 2800000, 8, 'ACTIVE', GETDATE()),
+    ('VF6 ADAS Main Control Unit', 3207, 'VinFast', 'Main processing unit for ADAS driver-assist system', 31000000, 3, 'ACTIVE', GETDATE()),
+    ('VF6 Mirror Adjustment Motor', 3208, 'VinFast', 'Mirror adjustment motor — old model', 650000, 1, 'INACTIVE', GETDATE()),
+
+-- ===================================================================
+-- 4️ VF 7
+    ('VF7 Battery Pack - 75kWh', 3301, 'VinES', '75kWh high-performance battery pack for VF 7', 520000000, 4, 'ACTIVE', GETDATE()),
+    ('VF7 Tire 18-inch UltraGrip', 3302, 'Goodyear', '18-inch UltraGrip SUV tire for VF 7', 4800000, 20, 'ACTIVE', GETDATE()),
+    ('VF7 Front Brake Disc Plus', 3303, 'VinFast', 'Enhanced alloy front brake disc', 2200000, 10, 'ACTIVE', GETDATE()),
+    ('VF7 Coolant Expansion Tank', 3304, 'VinFast', 'Coolant expansion reservoir tank', 1400000, 12, 'ACTIVE', GETDATE()),
+    ('VF7 Engine Air Filter XL', 3305, 'VinFast', 'High-efficiency engine air filter', 950000, 20, 'ACTIVE', GETDATE()),
+    ('VF7 Rear Suspension Arm', 3306, 'VinFast', 'Rear suspension arm assembly', 3300000, 6, 'ACTIVE', GETDATE()),
+    ('VF7 Digital Dashboard Module', 3307, 'VinFast', '12-inch digital dashboard display module', 25000000, 5, 'ACTIVE', GETDATE()),
+    ('VF7 Door Trim Set (Discontinued)', 3308, 'VinFast', 'Interior door trim set — old model', 1200000, 0, 'INACTIVE', GETDATE()),
+
+-- ===================================================================
+-- 5️ VF 8
+    ('VF8 Battery Pack - 87.7kWh', 3401, 'VinES', 'Premium 87.7kWh battery pack for VF 8', 600000000, 3, 'ACTIVE', GETDATE()),
+    ('VF8 Tire 19-inch TouringPro', 3402, 'Michelin', '19-inch premium TouringPro tire for VF 8', 5200000, 18, 'ACTIVE', GETDATE()),
+    ('VF8 Performance Brake Set', 3403, 'VinFast', 'High-performance brake set', 3600000, 10, 'ACTIVE', GETDATE()),
+    ('VF8 Coolant Radiator Assembly', 3404, 'VinFast', 'Complete cooling radiator assembly', 4200000, 8, 'ACTIVE', GETDATE()),
+    ('VF8 Cabin Air Purifier Filter', 3405, 'VinFast', 'HEPA air and dust purifier filter', 1100000, 12, 'ACTIVE', GETDATE()),
+    ('VF8 Active Suspension Control', 3406, 'VinFast', 'Active suspension control module', 43000000, 2, 'ACTIVE', GETDATE()),
+    ('VF8 Infotainment OS Chipset', 3407, 'VinFast', 'Vehicle infotainment OS processing chipset', 38000000, 3, 'ACTIVE', GETDATE()),
+    ('VF8 Door Motor Gen1', 3408, 'VinFast', 'First-gen door motor', 2100000, 0, 'INACTIVE', GETDATE()),
+
+-- ===================================================================
+-- 6️ VF 9
+    ('VF9 Dual Battery Pack - 92kWh', 3501, 'VinES', 'Dual 92kWh high-performance battery pack for VF 9', 720000000, 2, 'ACTIVE', GETDATE()),
+    ('VF9 Tire 20-inch PowerGrip', 3502, 'Goodyear', '20-inch PowerGrip premium SUV tire', 6100000, 12, 'ACTIVE', GETDATE()),
+    ('VF9 Electronic Brake System', 3503, 'VinFast', 'Electronic brake system with force balancing', 5300000, 6, 'ACTIVE', GETDATE()),
+    ('VF9 High-Capacity Coolant Pump', 3504, 'VinFast', 'High-capacity coolant circulation pump', 4700000, 5, 'ACTIVE', GETDATE()),
+    ('VF9 Air Intake Filter HEPA+', 3505, 'VinFast', 'HEPA+ fine dust intake air filter', 1600000, 8, 'ACTIVE', GETDATE()),
+    ('VF9 Adaptive Suspension Module', 3506, 'VinFast', 'Adaptive suspension control module', 56000000, 2, 'ACTIVE', GETDATE()),
+    ('VF9 Central Computing Unit', 3507, 'VinFast', 'Central computing and processing unit for VF 9', 95000000, 1, 'ACTIVE', GETDATE()),
+    ('VF9 Steering ECU (Old Model)', 3508, 'VinFast', 'Legacy steering ECU — old version', 13000000, 0, 'INACTIVE', GETDATE()),
+
+-- ===================================================================
+-- 7️ VF Wild
+    ('VF Wild Battery Pack - 85kWh Offroad', 3601, 'VinES', '85kWh off-road battery pack for VF Wild electric pickup', 640000000, 2, 'ACTIVE', GETDATE()),
+    ('VF Wild Tire 21-inch AllTerrain', 3602, 'Continental', '21-inch all-terrain off-road tire', 7200000, 8, 'ACTIVE', GETDATE()),
+    ('VF Wild Brake Reinforced Kit', 3603, 'VinFast', 'Reinforced heavy-duty brake kit', 6800000, 5, 'ACTIVE', GETDATE()),
+    ('VF Wild Coolant System Pro', 3604, 'VinFast', 'High-performance cooling system for off-road conditions', 5400000, 3, 'ACTIVE', GETDATE()),
+    ('VF Wild Dust Filter Element', 3605, 'VinFast', 'Desert-grade dust air filter element', 1800000, 6, 'ACTIVE', GETDATE()),
+    ('VF Wild Heavy-Duty Suspension', 3606, 'VinFast', 'Heavy-duty off-road suspension assembly', 62000000, 2, 'ACTIVE', GETDATE()),
+    ('VF Wild Navigation & Sensor Suite', 3607, 'VinFast', 'Advanced navigation and terrain sensor suite', 45000000, 2, 'ACTIVE', GETDATE()),
+    ('VF Wild Old Headlight Unit', 3608, 'VinFast', 'Legacy headlight unit — no longer in production', 3900000, 0, 'INACTIVE', GETDATE());
+-- ===================================================================
 -- ===================================================================
 -- BỔ SUNG SEED DATA CHO MAINTENANCE CATALOG DOMAIN
 -- Bao gồm: Catalog, CatalogModel, CatalogModelPart
