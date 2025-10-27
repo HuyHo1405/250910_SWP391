@@ -493,7 +493,78 @@ VALUES
     (9, 1, 150.0, 400000, 'Tesla Model S - Comprehensive system scan including autopilot', GETDATE()),
     (9, 2, 180.0, 450000, 'VinFast VF8 - Full diagnostic with VinFast proprietary tools', GETDATE()),
     (9, 3, 140.0, 380000, 'Toyota Corolla Cross EV - Standard EV diagnostic', GETDATE());
+-- ===================================================================
+-- bổ sung seed data cho bảng maintenance_catalogs_models_parts
+-- Battery Inspection (Kiểm tra pin)
+INSERT INTO maintenance_catalogs_models (maintenance_catalog_id, model_id, est_time_minutes, maintenance_price, notes, created_at)
+VALUES
+    (1, 1, 45.0, 120000, 'VF3 - Standard LFP battery health check', GETDATE()),
+    (1, 2, 55.0, 140000, 'VF5 Plus - NMC battery diagnostic', GETDATE()),
+    (1, 3, 60.0, 160000, 'VF6 - Medium capacity 59kWh pack inspection', GETDATE()),
+    (1, 4, 70.0, 180000, 'VF7 - 75kWh high capacity pack maintenance', GETDATE()),
+    (1, 5, 80.0, 200000, 'VF8 - Advanced thermal battery management check', GETDATE()),
+    (1, 6, 90.0, 230000, 'VF9 - Dual pack 92kWh battery diagnostic', GETDATE()),
+    (1, 7, 100.0, 250000, 'VF Wild - Offroad battery module inspection (Inactive model)', GETDATE()),
+-- Tire Rotation (trí lốp)
+    (2, 1, 25.0, 70000, 'VF3 - 15-inch eco tires', GETDATE()),
+    (2, 2, 30.0, 80000, 'VF5 Plus - 16-inch all-season tires', GETDATE()),
+    (2, 3, 35.0, 90000, 'VF6 - 17-inch road tires', GETDATE()),
+    (2, 4, 40.0, 100000, 'VF7 - 18-inch SUV tires', GETDATE()),
+    (2, 5, 45.0, 110000, 'VF8 - 19-inch touring tires', GETDATE()),
+    (2, 6, 50.0, 120000, 'VF9 - 20-inch performance tires', GETDATE()),
+    (2, 7, 55.0, 130000, 'VF Wild - 21-inch all-terrain tires (Inactive model)', GETDATE()),
+-- Brake System Check (Kiểm tra phanh)
+    (3, 1, 50.0, 150000, 'VF3 - Front disc brake inspection', GETDATE()),
+    (3, 2, 60.0, 170000, 'VF5 Plus - Rear caliper + pad wear check', GETDATE()),
+    (3, 3, 65.0, 190000, 'VF6 - Regenerative + mechanical brake system', GETDATE()),
+    (3, 4, 70.0, 210000, 'VF7 - Enhanced brake disc set check', GETDATE()),
+    (3, 5, 75.0, 230000, 'VF8 - Performance brake module inspection', GETDATE()),
+    (3, 6, 80.0, 250000, 'VF9 - Electronic brake balancing system', GETDATE()),
+    (3, 7, 90.0, 260000, 'VF Wild - Reinforced brake kit inspection (Inactive model)', GETDATE()),
+--  Software Update (Cập nhật phần mềm xe)
+    (4, 1, 60.0, 120000, 'VF3 - Firmware + infotainment patch update', GETDATE()),
+    (4, 2, 70.0, 150000, 'VF5 Plus - OTA software update', GETDATE()),
+    (4, 3, 80.0, 170000, 'VF6 - System diagnostics + software upgrade', GETDATE()),
+    (4, 4, 90.0, 200000, 'VF7 - ADAS + OS update', GETDATE()),
+    (4, 5, 100.0, 230000, 'VF8 - Full vehicle system update', GETDATE()),
+    (4, 6, 120.0, 250000, 'VF9 - Central computing firmware update', GETDATE()),
+    (4, 7, 110.0, 240000, 'VF Wild - Navigation + sensor software patch (Inactive model)', GETDATE()),
 
+--  Air Filter Replacement (Thay lọc gió)
+    (5, 1, 25.0, 80000, 'VF3 - Engine air filter cartridge', GETDATE()),
+    (5, 2, 30.0, 90000, 'VF5 Plus - Cabin air filter replacement', GETDATE()),
+    (5, 3, 35.0, 95000, 'VF6 - Cabin HEPA filter replacement', GETDATE()),
+    (5, 4, 40.0, 100000, 'VF7 - Premium air filter', GETDATE()),
+    (5, 5, 45.0, 110000, 'VF8 - Air purifier + carbon filter', GETDATE()),
+    (5, 6, 50.0, 120000, 'VF9 - Advanced HEPA+ filter', GETDATE()),
+    (5, 7, 55.0, 125000, 'VF Wild - Dust-resistant offroad filter (Inactive model)', GETDATE()),
+
+--  Coolant System Service (Bảo dưỡng hệ thống làm mát)
+    (6, 1, 40.0, 100000, 'VF3 - Battery coolant refill', GETDATE()),
+    (6, 2, 45.0, 120000, 'VF5 Plus - Dual coolant circuit', GETDATE()),
+    (6, 3, 50.0, 140000, 'VF6 - Thermal management maintenance', GETDATE()),
+    (6, 4, 55.0, 160000, 'VF7 - High-efficiency cooling inspection', GETDATE()),
+    (6, 5, 60.0, 180000, 'VF8 - Dual system (battery + motor) check', GETDATE()),
+    (6, 6, 70.0, 200000, 'VF9 - High-capacity coolant pump service', GETDATE()),
+    (6, 7, 75.0, 210000, 'VF Wild - Offroad cooling system check (Inactive model)', GETDATE()),
+
+-- Suspension Inspection (Kiểm tra hệ thống treo)
+    (7, 1, 50.0, 130000, 'VF3 - Basic suspension arm check', GETDATE()),
+    (7, 2, 55.0, 150000, 'VF5 Plus - Shock absorber inspection', GETDATE()),
+    (7, 3, 60.0, 170000, 'VF6 - Rear suspension spring check', GETDATE()),
+    (7, 4, 70.0, 190000, 'VF7 - Adaptive damping system check', GETDATE()),
+    (7, 5, 80.0, 210000, 'VF8 - Active suspension inspection', GETDATE()),
+    (7, 6, 90.0, 230000, 'VF9 - Adaptive suspension module check', GETDATE()),
+    (7, 7, 95.0, 250000, 'VF Wild - Heavy-duty offroad suspension (Inactive model)', GETDATE()),
+
+--  Wheel Alignment (Cân chỉnh bánh xe)
+    (8, 1, 30.0, 90000, 'VF3 - Compact alignment setup', GETDATE()),
+    (8, 2, 35.0, 100000, 'VF5 Plus - SUV alignment', GETDATE()),
+    (8, 3, 40.0, 110000, 'VF6 - Precision alignment', GETDATE()),
+    (8, 4, 45.0, 130000, 'VF7 - Sport alignment calibration', GETDATE()),
+    (8, 5, 50.0, 150000, 'VF8 - High-performance alignment', GETDATE()),
+    (8, 6, 55.0, 170000, 'VF9 - Large-size chassis calibration', GETDATE()),
+    (8, 7, 60.0, 180000, 'VF Wild - Offroad angle alignment (Inactive model)', GETDATE());
 -- ===================================================================
 -- BẢNG 12: MAINTENANCE_CATALOGS_MODELS_PARTS
 -- Linh kiện cần thiết cho từng combo (Catalog + Model)
