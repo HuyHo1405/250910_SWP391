@@ -95,18 +95,17 @@ VALUES
 -- ===================================================================
 INSERT INTO maintenance_catalogs (name, maintenance_service_type, description, status, created_at)
 VALUES
-    ('Battery Inspection', 'BATTERY_INSPECTION', 'Complete battery health check and diagnostics', 'ACTIVE', GETDATE()),
+    ('High-Voltage Battery Check', 'BATTERY_INSPECTION', 'Complete battery health check and diagnostics', 'ACTIVE', GETDATE()),-- đã chỉnh sửa lại tên dịch vụ
     ('Tire Rotation', 'TIRE_ROTATION', 'Rotate all four tires for even wear', 'ACTIVE', GETDATE()),
     ('Brake System Check', 'BRAKE_SYSTEM_CHECK', 'Inspect brake pads, rotors, and fluid levels', 'ACTIVE', GETDATE()),
-    ('Software Update', 'SOFTWARE_UPDATE', 'Update vehicle firmware and system software', 'ACTIVE', GETDATE()),
+    ('Firmware & System Update', 'SOFTWARE_UPDATE', 'Update vehicle firmware and system software', 'ACTIVE', GETDATE()),-- đã chỉnh sửa lại tên dịch vụ
     ('Air Filter Replacement', 'AIR_FILTER_REPLACEMENT', 'Replace cabin air filter for better air quality', 'ACTIVE', GETDATE()),
-    ('Coolant System Service', 'COOLANT_SYSTEM_SERVICE', 'Check and refill coolant for battery temperature management', 'ACTIVE', GETDATE()),
+    ('Battery Cooling System Service', 'COOLANT_SYSTEM_SERVICE', 'Check and refill coolant for battery temperature management', 'ACTIVE', GETDATE()),-- đã chỉnh sửa lại tên dịch vụ
     ('Suspension Inspection', 'SUSPENSION_INSPECTION', 'Inspect shocks, struts, and suspension components', 'ACTIVE', GETDATE()),
     ('Wheel Alignment', 'WHEEL_ALIGNMENT', 'Adjust wheel alignment for optimal handling', 'ACTIVE', GETDATE()),
-    ('Full Vehicle Diagnostic', 'FULL_VEHICLE_DIAGNOSTIC', 'Comprehensive system diagnostic scan', 'ACTIVE', GETDATE()),
-    ('Emergency Charging Service', 'EMERGENCY_CHARGING_SERVICE', 'On-site battery charging service', 'INACTIVE', GETDATE());
-
-
+    ('Comprehensive Vehicle Diagnostic', 'FULL_VEHICLE_DIAGNOSTIC', 'Comprehensive system diagnostic scan', 'ACTIVE', GETDATE()),-- đã chỉnh sửa lại tên dịch vụ
+    ('Emergency Mobile Charging', 'EMERGENCY_CHARGING_SERVICE', 'On-site battery charging service', 'INACTIVE', GETDATE());-- dịch vụ tạm thời ngưng cung cấp
+-- ===================================================================
 -- ===================================================================
 -- BẢNG 6: PERMISSIONS - Định nghĩa tất cả các quyền trong hệ thống
 -- ===================================================================
