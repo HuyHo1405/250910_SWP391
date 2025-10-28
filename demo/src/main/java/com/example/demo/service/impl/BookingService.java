@@ -1,5 +1,6 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.exception.BookingException;
 import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.BookingRequest;
 import com.example.demo.model.dto.BookingResponse;
@@ -7,6 +8,7 @@ import com.example.demo.model.dto.ScheduleDateTime;
 import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.*;
 import com.example.demo.repo.BookingRepo;
+import com.example.demo.repo.MaintenanceCatalogRepo;
 import com.example.demo.repo.UserRepo;
 import com.example.demo.repo.VehicleRepo;
 import com.example.demo.service.interfaces.IBookingDetailService;
@@ -19,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,16 +32,11 @@ public class BookingService implements IBookingService {
 
     private final IBookingDetailService bookingDetailService;
     private final AccessControlService accessControlService;
+
     private final BookingRepo bookingRepository;
     private final UserRepo userRepository;
     private final VehicleRepo vehicleRepository;
-
-    // Các trạng thái cho phép cancel
-    private final List<BookingStatus> CANCELLABLE_STATUSES = Arrays.asList(
-            BookingStatus.PENDING,
-            BookingStatus.CONFIRMED,
-            BookingStatus.RESCHEDULED
-    );
+    private final MaintenanceCatalogRepo maintenanceCatalogRepo;
 
     @Override
     public BookingResponse createBooking(BookingRequest request) {
@@ -62,12 +58,14 @@ public class BookingService implements IBookingService {
                 .vehicle(vehicle)
                 .scheduleDate(scheduleDate)
                 .bookingStatus(BookingStatus.PENDING)
-                .paymentStatus(PaymentStatus.UNPAID)
                 .build();
         booking = bookingRepository.save(booking);
 
         if (request.getServiceDetails() != null) {
             for (BookingRequest.ServiceDetail serviceDetail : request.getServiceDetails()) {
+                if(!maintenanceCatalogRepo.isServiceValidForVin(serviceDetail.getServiceId(), vehicle.getVin())) {
+                    throw new BookingException.ServiceNotCompatibleWithVehicle(serviceDetail.getServiceId(), vehicle.getVin());
+                }
                 bookingDetailService.addServiceToBooking(booking.getId(), serviceDetail);
             }
         }
@@ -110,13 +108,11 @@ public class BookingService implements IBookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookingResponse> getAllBookingsFiltered(
-            BookingStatus bookingStatus,
-            PaymentStatus paymentStatus) {
+    public List<BookingResponse> getAllBookingsFiltered(BookingStatus bookingStatus) {
 
         accessControlService.verifyCanAccessAllResources("BOOKING", "read");
 
-        List<Booking> bookings = bookingRepository.findWithFilters(bookingStatus, paymentStatus);
+        List<Booking> bookings = bookingRepository.findWithFilters(bookingStatus);
 
         return bookings.stream()
                 .map(BookingResponseMapper::toDto)
@@ -137,8 +133,7 @@ public class BookingService implements IBookingService {
 
         // Lấy các booking đã hoàn thành (DELIVERED hoặc MAINTENANCE_COMPLETE)
         List<Booking> completedBookings = bookingRepository.findByVehicleVin(vin).stream()
-                .filter(b -> b.getBookingStatus() == BookingStatus.DELIVERED
-                        || b.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE)
+                .filter(b -> b.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE)
                 .sorted((b1, b2) -> b2.getUpdatedAt().compareTo(b1.getUpdatedAt())) // Sort by newest first
                 .collect(Collectors.toList());
 
@@ -175,8 +170,7 @@ public class BookingService implements IBookingService {
 
         // Lấy các booking đã hoàn thành
         List<Booking> completedBookings = bookingRepository.findByCustomerId(customerId).stream()
-                .filter(b -> b.getBookingStatus() == BookingStatus.DELIVERED
-                        || b.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE)
+                .filter(b -> b.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE)
                 .sorted((b1, b2) -> b2.getUpdatedAt().compareTo(b1.getUpdatedAt()))
                 .collect(Collectors.toList());
 
@@ -198,7 +192,6 @@ public class BookingService implements IBookingService {
         return recentServices;
     }
 
-
     @Override
     @Transactional
     public BookingResponse updateBooking(Long id, BookingRequest request) {
@@ -208,7 +201,7 @@ public class BookingService implements IBookingService {
         accessControlService.verifyResourceAccess(booking.getCustomer().getId(), "BOOKING", "update");
 
         // Không cho update nếu đã hoàn thành hoặc đã hủy
-        if (booking.getBookingStatus() == BookingStatus.DELIVERED
+        if (booking.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE
                 || booking.getBookingStatus() == BookingStatus.CANCELLED) {
             throw new CommonException.InvalidOperation("Cannot update booking in status: " + booking.getBookingStatus());
         }
@@ -216,10 +209,6 @@ public class BookingService implements IBookingService {
         if (request.getScheduleDateTime() != null) {
             LocalDateTime scheduleDate = checkFutureScheduleDate(request.getScheduleDateTime());
             booking.setScheduleDate(scheduleDate);
-            // Nếu đổi lịch, có thể đổi status sang RESCHEDULED
-            if (booking.getBookingStatus() == BookingStatus.CONFIRMED) {
-                booking.setBookingStatus(BookingStatus.RESCHEDULED);
-            }
         }
 
         if (request.getVehicleVin() != null) {
@@ -249,78 +238,12 @@ public class BookingService implements IBookingService {
                 .orElseThrow(() -> new CommonException.NotFound("Booking", id));
 
         // Không cho xóa nếu đã hoàn thành hoặc hủy
-        if (booking.getBookingStatus() == BookingStatus.DELIVERED
+        if (booking.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE
                 || booking.getBookingStatus() == BookingStatus.CANCELLED) {
             throw new CommonException.InvalidOperation("Cannot delete booking in status: " + booking.getBookingStatus());
         }
 
         bookingRepository.delete(booking);
-    }
-
-    @Override
-    @Transactional
-    public BookingResponse cancelBooking(Long id, String reason) {
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new CommonException.NotFound("Booking", id));
-
-        accessControlService.verifyResourceAccess(booking.getCustomer().getId(), "BOOKING", "cancel");
-
-        // Kiểm tra trạng thái đã bị hủy chưa
-        if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
-            throw new CommonException.InvalidOperation("Booking is already cancelled");
-        }
-
-        // Kiểm tra trạng thái có cho phép cancel không
-        if (!CANCELLABLE_STATUSES.contains(booking.getBookingStatus())) {
-            throw new CommonException.InvalidOperation(
-                    "Cannot cancel booking in status: " + booking.getBookingStatus() +
-                            ". Only PENDING, CONFIRMED, or RESCHEDULED bookings can be cancelled."
-            );
-        }
-
-        // Kiểm tra xem đã thanh toán chưa - nếu đã thanh toán thì cần hoàn tiền
-        if (booking.getPaymentStatus() == PaymentStatus.PAID) {
-            // TODO: Tích hợp payment service để xử lý refund
-            booking.setPaymentStatus(PaymentStatus.REFUNDED);
-            log.info("Payment refund initiated for booking {}", id);
-        }
-
-        // Cập nhật trạng thái thành CANCELLED
-        booking.setBookingStatus(BookingStatus.CANCELLED);
-        booking = bookingRepository.save(booking);
-
-        log.info("Booking {} cancelled. Reason: {}", id, reason);
-        return BookingResponseMapper.toDto(booking);
-    }
-
-    @Override
-    @Transactional
-    public BookingResponse completeBooking(Long id) {
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new CommonException.NotFound("Booking", id));
-        accessControlService.verifyCanAccessAllResources("BOOKING", "complete");
-
-        // Kiểm tra trạng thái trước khi complete
-        if (booking.getBookingStatus() != BookingStatus.MAINTENANCE_COMPLETE) {
-            throw new CommonException.InvalidOperation(
-                    "Cannot complete booking in status: " + booking.getBookingStatus() +
-                            ". Booking must be in MAINTENANCE_COMPLETE status first."
-            );
-        }
-
-        // Kiểm tra đã thanh toán chưa
-        if (booking.getPaymentStatus() != PaymentStatus.PAID) {
-            throw new CommonException.InvalidOperation(
-                    "Cannot complete booking with unpaid status. Please complete payment first."
-            );
-        }
-
-        // Chuyển sang trạng thái hoàn thành - DELIVERED
-        booking.setBookingStatus(BookingStatus.DELIVERED);
-        booking = bookingRepository.save(booking);
-
-        log.info("Booking {} marked as delivered/completed", id);
-        return BookingResponseMapper.toDto(booking);
     }
 
     private LocalDateTime checkFutureScheduleDate(ScheduleDateTime scheduleDate) {
@@ -330,4 +253,5 @@ public class BookingService implements IBookingService {
         }
         return bookingDate;
     }
+
 }

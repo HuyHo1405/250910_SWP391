@@ -29,4 +29,5 @@ public class BookingDetail {
 
     @Column(name = "service_price", nullable = false)
     private Double servicePrice;
+
 }

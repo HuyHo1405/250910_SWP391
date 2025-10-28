@@ -1,11 +1,13 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.exception.BookingException; // Import mới
-import com.example.demo.exception.CommonException;  // Import mới
+import com.example.demo.exception.BookingException;
+import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.BookingResponse;
 import com.example.demo.model.entity.Booking;
-import com.example.demo.model.modelEnum.PaymentStatus;
+import com.example.demo.model.entity.Invoice;
+import com.example.demo.model.modelEnum.InvoiceStatus;
 import com.example.demo.repo.BookingRepo;
+import com.example.demo.repo.InvoiceRepo;
 import com.example.demo.service.interfaces.IPaymentService;
 import com.example.demo.utils.BookingResponseMapper;
 import lombok.RequiredArgsConstructor;
@@ -17,78 +19,86 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService implements IPaymentService {
 
     private final BookingRepo bookingRepo;
+    private final InvoiceRepo invoiceRepo;
     private final AccessControlService accessControlService;
 
     private Booking findBookingAndVerifyAccess(Long bookingId, String action) {
         Booking booking = bookingRepo.findById(bookingId)
-                // ✅ Sửa: Dùng NotFound
                 .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId));
 
-        accessControlService.verifyResourceAccess(booking.getCustomer().getId(), "PAYMENT", action);
-
-        PaymentStatus currentStatus = booking.getPaymentStatus();
-
-        if (currentStatus == PaymentStatus.REFUNDED || currentStatus == PaymentStatus.VOIDED) {
-            // ✅ Sửa: Dùng exception cụ thể cho việc thanh toán đã xử lý
-            throw new BookingException.PaymentAlreadyMade();
-        }
-
-        if (currentStatus == PaymentStatus.PAID && !"refund".equals(action)) {
-            // ✅ Sửa: Dùng InvalidStatusTransition để báo lỗi quy trình
-            throw new BookingException.InvalidStatusTransition(
-                    "Payment",
-                    currentStatus.name(),
-                    action
-            );
-        }
+        accessControlService.verifyResourceAccess(
+                booking.getCustomer().getId(),
+                "PAYMENT",
+                action
+        );
 
         return booking;
     }
 
-    @Transactional
-    public BookingResponse updatePaymentStatus(Booking booking, PaymentStatus status, Double amount, String reason) {
-        booking.setPaymentStatus(status);
-        if (amount != null && status == PaymentStatus.AUTHORIZED) {
-            booking.setTotalPrice(amount);
+    private Invoice getInvoiceAndValidate(Long bookingId, InvoiceStatus requiredStatus, InvoiceStatus targetStatus) {
+        Invoice invoice = invoiceRepo.findByBookingId(bookingId)
+                .orElseThrow(() -> new CommonException.NotFound("Invoice for Booking", bookingId));
+
+        InvoiceStatus currentStatus = invoice.getStatus();
+
+        // Kiểm tra nếu không ở trạng thái yêu cầu
+        if (currentStatus != requiredStatus) {
+            throw new BookingException.InvalidStatusTransition(
+                    "Invoice",
+                    currentStatus.name(),
+                    targetStatus.name()
+            );
         }
-        bookingRepo.save(booking);
-        return BookingResponseMapper.toDto(booking);
+
+        return invoice;
     }
 
-    // --- Các phương thức public không cần thay đổi ---
-
     @Transactional
-    @Override
-    public BookingResponse authorize(Long bookingId, Double amount) {
-        Booking booking = findBookingAndVerifyAccess(bookingId, "authorize");
-        return updatePaymentStatus(booking, PaymentStatus.AUTHORIZED, amount, null);
+    public BookingResponse updateInvoiceStatus(
+            Booking booking,
+            InvoiceStatus newStatus,
+            String reason
+    ) {
+        Invoice invoice = invoiceRepo.findByBookingId(booking.getId())
+                .orElseThrow(() -> new CommonException.NotFound("Invoice for Booking", booking.getId()));
+
+        invoice.setStatus(newStatus);
+
+        invoiceRepo.save(invoice);
+
+        return BookingResponseMapper.toDto(booking);
     }
 
     @Transactional
     @Override
     public BookingResponse pay(Long bookingId) {
         Booking booking = findBookingAndVerifyAccess(bookingId, "pay");
-        return updatePaymentStatus(booking, PaymentStatus.PAID, null, null);
+
+        // Chỉ cho phép pay từ UNPAID
+        getInvoiceAndValidate(bookingId, InvoiceStatus.UNPAID, InvoiceStatus.PAID);
+
+        return updateInvoiceStatus(booking, InvoiceStatus.PAID, null);
     }
 
     @Transactional
     @Override
     public BookingResponse refund(Long bookingId, String reason) {
         Booking booking = findBookingAndVerifyAccess(bookingId, "refund");
-        return updatePaymentStatus(booking, PaymentStatus.REFUNDED, null, reason);
-    }
 
-    @Transactional
-    @Override
-    public BookingResponse voidPayment(Long bookingId) {
-        Booking booking = findBookingAndVerifyAccess(bookingId, "void");
-        return updatePaymentStatus(booking, PaymentStatus.VOIDED, null, null);
+        // Chỉ cho phép refund từ PAID
+        getInvoiceAndValidate(bookingId, InvoiceStatus.PAID, InvoiceStatus.REFUNDED);
+
+        return updateInvoiceStatus(booking, InvoiceStatus.REFUNDED, reason);
     }
 
     @Transactional
     @Override
     public BookingResponse cancelPayment(Long bookingId, String reason) {
         Booking booking = findBookingAndVerifyAccess(bookingId, "cancel");
-        return updatePaymentStatus(booking, PaymentStatus.UNPAID, null, reason);
+
+        // Chỉ cho phép cancel từ UNPAID
+        getInvoiceAndValidate(bookingId, InvoiceStatus.UNPAID, InvoiceStatus.CANCELLED);
+
+        return updateInvoiceStatus(booking, InvoiceStatus.CANCELLED, reason);
     }
 }

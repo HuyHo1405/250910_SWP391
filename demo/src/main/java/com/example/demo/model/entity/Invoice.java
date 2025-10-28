@@ -35,20 +35,11 @@ public class Invoice {
     @Column(name = "issue_date", nullable = false)
     private LocalDateTime issueDate;
 
-    @Column(name = "due_date", nullable = false)
+    @Column(name = "due_date")
     private LocalDateTime dueDate;
 
-    @Column(name = "total_amount", nullable = false)
+    @Column(name = "total_amount")
     private Double totalAmount;
-
-    @Column(name = "tax_amount", nullable = false)
-    private Double taxAmount;
-
-    @Column(name = "discount_amount")
-    private Double discountAmount;
-
-    @Column(name = "final_amount", nullable = false)
-    private Double finalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
@@ -68,6 +59,10 @@ public class Invoice {
     @Builder.Default
     private List<Payment> payments = new ArrayList<>();
 
+
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<InvoiceLine> lines  = new ArrayList<>();
     // ================================
     // PRE/POST FUNCTIONS - Lifecycle Callbacks
     // ================================
@@ -88,10 +83,6 @@ public class Invoice {
             this.status = InvoiceStatus.DRAFT;
         }
 
-        // Set default discount amount if not set
-        if (this.discountAmount == null) {
-            this.discountAmount = 0.0;
-        }
     }
 
     @PreUpdate
@@ -105,10 +96,6 @@ public class Invoice {
 
     private String generateInvoiceNumber() {
         return "INV-" + System.currentTimeMillis();
-    }
-
-    public void calculateFinalAmount() {
-        this.finalAmount = this.totalAmount + this.taxAmount - this.discountAmount;
     }
 
     // Helper methods for managing payments

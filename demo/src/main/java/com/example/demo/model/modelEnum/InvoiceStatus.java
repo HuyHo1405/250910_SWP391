@@ -2,7 +2,7 @@ package com.example.demo.model.modelEnum;
 
 public enum InvoiceStatus {
     DRAFT,
-    PENDING,
+    UNPAID,
     PAID,
     OVERDUE,
     CANCELLED,

@@ -42,6 +42,10 @@ public class MaintenanceCatalog {
     @Builder.Default
     private List<MaintenanceCatalogModel> models = new ArrayList<>();
 
+    @OneToMany(mappedBy = "maintenanceCatalog", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<MaintenanceCatalogModelPart> parts = new ArrayList<>();
+
     @PrePersist
     void prePersist() {
         createdAt = LocalDateTime.now();

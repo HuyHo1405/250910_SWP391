@@ -1,6 +1,8 @@
 package com.example.demo.repo;
 
 import com.example.demo.model.entity.Booking;
+import com.example.demo.model.entity.MaintenanceCatalogModelPart;
+import com.example.demo.model.entity.Part;
 import com.example.demo.model.modelEnum.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,30 +23,15 @@ public interface BookingRepo extends JpaRepository<Booking, Long> {
 
     // Find by từng status chính
     List<Booking> findByBookingStatus(BookingStatus status);
-    List<Booking> findByPaymentStatus(PaymentStatus status);
 
     // API lấy bookings theo filter chính (core)
     @Query("SELECT b FROM Booking b WHERE " +
-            "(:bookingStatus IS NULL OR b.bookingStatus = :bookingStatus) AND " +
-            "(:paymentStatus IS NULL OR b.paymentStatus = :paymentStatus)")
+            "(:bookingStatus IS NULL OR b.bookingStatus = :bookingStatus)")
     List<Booking> findWithFilters(
-            @Param("bookingStatus") BookingStatus bookingStatus,
-            @Param("paymentStatus") PaymentStatus paymentStatus
+            @Param("bookingStatus") BookingStatus bookingStatus
     );
 
-    // Find by date range (nếu dùng)
-    List<Booking> findByScheduleDateBetween(LocalDateTime startDate, LocalDateTime endDate);
-
-    // Find upcoming bookings (nếu cần load lịch), past bookings, today bookings
-    List<Booking> findByScheduleDateAfter(LocalDateTime date);
-    List<Booking> findByScheduleDateBefore(LocalDateTime date);
-
-    // Count by main status
-    Long countByBookingStatus(BookingStatus status);
-    Long countByPaymentStatus(PaymentStatus status);
-
-    // Revenue queries (nếu cần tổng doanh thu cho analytics core)
-    @Query("SELECT SUM(b.totalPrice) FROM Booking b WHERE b.paymentStatus = :status")
-    Double calculateTotalRevenueByPaymentStatus(@Param("status") PaymentStatus status);
-
+    Booking findTopByCustomerIdAndVehicleVinAndBookingStatusOrderByScheduleDateDesc(
+            Long customerId, String vin, BookingStatus bookingStatus
+    );
 }

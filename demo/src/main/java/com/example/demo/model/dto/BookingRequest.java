@@ -30,7 +30,6 @@ public class BookingRequest {
     @Valid
     private ScheduleDateTime scheduleDateTime;
 
-    @NotEmpty(message = "Service list cannot be empty")
     @Valid
     private List<ServiceDetail> serviceDetails;
 
