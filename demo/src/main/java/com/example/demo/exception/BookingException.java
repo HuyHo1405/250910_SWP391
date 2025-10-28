@@ -187,4 +187,14 @@ public class BookingException extends BaseServiceException {
             );
         }
     }
+
+    public static class ServiceNotCompatibleWithVehicle extends BookingException {
+        public ServiceNotCompatibleWithVehicle(Long serviceId, String vin) {
+            super(
+                    "SERVICE_NOT_COMPATIBLE_WITH_VEHICLE",
+                    "Service ID " + serviceId + " is not applicable for vehicle VIN " + vin,
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+    }
 }

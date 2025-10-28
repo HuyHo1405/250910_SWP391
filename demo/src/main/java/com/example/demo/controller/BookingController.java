@@ -3,8 +3,8 @@ package com.example.demo.controller;
 import com.example.demo.model.dto.BookingRequest;
 import com.example.demo.model.dto.BookingResponse;
 import com.example.demo.model.modelEnum.BookingStatus;
-import com.example.demo.model.modelEnum.PaymentStatus;
 import com.example.demo.service.interfaces.IBookingService;
+import com.example.demo.service.interfaces.IBookingStatusService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +19,7 @@ import java.util.List;
 @Tag(name = "Booking")
 public class BookingController {
     private final IBookingService bookingService;
+    private final IBookingStatusService bookingStatusService;
 
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingRequest request) {
@@ -46,11 +47,10 @@ public class BookingController {
 
     @GetMapping
     public ResponseEntity<List<BookingResponse>> getAllBookings(
-            @RequestParam(required = false) BookingStatus bookingStatus,
-            @RequestParam(required = false) PaymentStatus paymentStatus
+            @RequestParam(required = false) BookingStatus bookingStatus
     ) {
         List<BookingResponse> responses = bookingService.getAllBookingsFiltered(
-                bookingStatus, paymentStatus
+                bookingStatus
         );
         return ResponseEntity.ok(responses);
     }
@@ -63,6 +63,7 @@ public class BookingController {
         return ResponseEntity.ok(resp);
     }
 
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
         bookingService.deleteBooking(id);
@@ -73,13 +74,25 @@ public class BookingController {
     public ResponseEntity<BookingResponse> cancelBooking(
             @PathVariable Long id,
             @RequestParam(required = false) String reason) {
-        BookingResponse resp = bookingService.cancelBooking(id, reason);
+        BookingResponse resp = bookingStatusService.cancelBooking(id, reason);
+        return ResponseEntity.ok(resp);
+    }
+
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<BookingResponse> confirmBooking(@PathVariable Long id) {
+        BookingResponse resp = bookingStatusService.confirmBooking(id);
+        return ResponseEntity.ok(resp);
+    }
+
+    @PostMapping("/{id}/start-maintenance")
+    public ResponseEntity<BookingResponse> startMaintenance(@PathVariable Long id) {
+        BookingResponse resp = bookingStatusService.startMaintenance(id);
         return ResponseEntity.ok(resp);
     }
 
     @PostMapping("/{id}/complete")
     public ResponseEntity<BookingResponse> completeBooking(@PathVariable Long id) {
-        BookingResponse resp = bookingService.completeBooking(id);
+        BookingResponse resp = bookingStatusService.completeMaintenance(id);
         return ResponseEntity.ok(resp);
     }
 }

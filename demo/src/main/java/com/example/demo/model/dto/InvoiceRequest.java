@@ -2,6 +2,7 @@ package com.example.demo.model.dto;
 
 import com.example.demo.model.modelEnum.InvoiceStatus;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -36,15 +37,8 @@ public class InvoiceRequest {
     }
 
     @Data
+    @AllArgsConstructor
     public static class Update {
-        @PositiveOrZero(message = "Total amount must be >= 0")
-        private Double totalAmount;
-
-        @PositiveOrZero(message = "Tax amount must be >= 0")
-        private Double taxAmount;
-
-        @PositiveOrZero(message = "Discount amount must be >= 0")
-        private Double discountAmount;
 
         private LocalDateTime dueDate;
 

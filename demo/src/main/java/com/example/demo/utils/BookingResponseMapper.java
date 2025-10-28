@@ -28,7 +28,6 @@ public class BookingResponseMapper {
                 .vehicleModel(booking.getVehicle().getModel().getModelName())
                 .scheduleDateTime(scheduleDateTime)
                 .bookingStatus(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
-                .paymentStatus(booking.getPaymentStatus() != null ? booking.getPaymentStatus().name() : null)
                 .totalPrice(booking.getTotalPrice())
                 .createdAt(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())

@@ -9,6 +9,7 @@ import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.entity.User;
 import com.example.demo.repo.RoleRepo;
 import com.example.demo.repo.UserRepo;
+import com.example.demo.service.interfaces.IMailService;
 import com.example.demo.service.interfaces.IPasswordService;
 import com.example.demo.service.interfaces.IUserProfileService;
 import com.example.demo.exception.CommonException;
@@ -30,6 +31,7 @@ public class UserProfileService implements IUserProfileService {
     private final UserValidationService userValidationService;
     private final AccessControlService accessControlService;
     private final IPasswordService passwordService;
+    private final IMailService mailService;
 
     private final UserRepo userRepo;
     private final RoleRepo roleRepo;
@@ -52,7 +54,7 @@ public class UserProfileService implements IUserProfileService {
         // Gen password and send mail
         String genPassword = passwordService.generatePassword();
         user.setHashedPassword(passwordEncoder.encode(genPassword));
-        //TODO mail service
+        mailService.sendGeneratedPassword(request.getEmail(), genPassword);
 
         // Xử lý role: nullable, mặc định CUSTOMER
         String roleDisplayName = (request.getRoleDisplayName() != null) ? request.getRoleDisplayName() : "Customer";

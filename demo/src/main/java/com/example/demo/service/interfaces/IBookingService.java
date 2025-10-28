@@ -13,13 +13,10 @@ public interface IBookingService {
     List<BookingResponse> getBookingsByCustomerId(Long customerId);
     List<BookingResponse> getBookingsByVehicleVin(String vin);
     List<BookingResponse> getAllBookingsFiltered(
-            BookingStatus bookingStatus,
-            PaymentStatus paymentStatus
+            BookingStatus bookingStatus
     );
     List<BookingResponse.ServiceDetail> getRecentlyUsedServicesByVehicle(String vin, int limit);
     List<BookingResponse.ServiceDetail> getRecentlyUsedServicesByCustomer(Long customerId, int limit);
     BookingResponse updateBooking(Long id, BookingRequest request);
     void deleteBooking(Long id);
-    BookingResponse cancelBooking(Long id, String reason);
-    BookingResponse completeBooking(Long id);
 }

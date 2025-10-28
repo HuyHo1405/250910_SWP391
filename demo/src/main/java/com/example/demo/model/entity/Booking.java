@@ -36,11 +36,6 @@ public class Booking {
     @Column(name = "booking_status", nullable = false, length = 20)
     private BookingStatus bookingStatus;
 
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status", nullable = false, length = 20)
-    private PaymentStatus paymentStatus;
-
     @Column(name = "total_price")
     private Double totalPrice;
 
@@ -61,9 +56,6 @@ public class Booking {
         // Khởi tạo mặc định các status
         if (bookingStatus == null) {
             bookingStatus = BookingStatus.PENDING;
-        }
-        if (paymentStatus == null) {
-            paymentStatus = PaymentStatus.UNPAID;
         }
     }
 
