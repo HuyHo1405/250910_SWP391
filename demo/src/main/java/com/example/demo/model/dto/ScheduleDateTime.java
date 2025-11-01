@@ -13,15 +13,15 @@ import java.time.format.DateTimeFormatter;
 @Data
 @Builder
 public class ScheduleDateTime {
-    @NotBlank(message = "Date/time format is required")
+    @NotBlank(message = "Định dạng ngày/giờ không được để trống")
     private String format;          // Ex: "yyyy-MM-dd HH:mm", "dd/MM/yyyy HH:mm", "timestamp", "iso"
-    @NotBlank(message = "Date/time value is required")
+    @NotBlank(message = "Giá trị ngày/giờ không được để trống")
     private String value;           // Ex: "2025-10-14 13:30", "14/10/2025 13:30", ISO string, or timestamp
 
     // You can add a timezone field if needed:
     private String timezone;        // Optional
 
-    @AssertTrue(message = "Invalid schedule date/time format or value")
+    @AssertTrue(message = "Định dạng hoặc giá trị ngày/giờ không hợp lệ")
     public boolean isValid() {
         try {
             if (format == null || value == null) return false;
@@ -45,4 +45,3 @@ public class ScheduleDateTime {
     }
 
 }
-

@@ -3,6 +3,7 @@ package com.example.demo.exception;
 import org.springframework.http.HttpStatus;
 
 public class UserException extends BaseServiceException {
+
     public UserException(String code, String message, HttpStatus httpStatus) {
         super(code, message, httpStatus);
     }
@@ -15,7 +16,7 @@ public class UserException extends BaseServiceException {
         public InsufficientPermissions() {
             super(
                     "INSUFFICIENT_PERMISSIONS",
-                    "You don't have permission to perform this action",
+                    "Bạn không có quyền thực hiện hành động này",
                     HttpStatus.FORBIDDEN
             );
         }
@@ -25,7 +26,7 @@ public class UserException extends BaseServiceException {
         public AccountInactive() {
             super(
                     "ACCOUNT_INACTIVE",
-                    "User account is inactive",
+                    "Tài khoản người dùng không hoạt động",
                     HttpStatus.FORBIDDEN
             );
         }
@@ -35,7 +36,7 @@ public class UserException extends BaseServiceException {
         public AccountDeleted() {
             super(
                     "ACCOUNT_DELETED",
-                    "User account has been deleted",
+                    "Tài khoản người dùng đã bị xóa",
                     HttpStatus.GONE
             );
         }
@@ -49,7 +50,7 @@ public class UserException extends BaseServiceException {
         public InvalidPassword() {
             super(
                     "INVALID_PASSWORD",
-                    "Current password is incorrect",
+                    "Mật khẩu hiện tại không chính xác",
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -59,7 +60,7 @@ public class UserException extends BaseServiceException {
         public WeakPassword() {
             super(
                     "WEAK_PASSWORD",
-                    "Password does not meet security requirements",
+                    "Mật khẩu không đáp ứng yêu cầu bảo mật",
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -69,7 +70,7 @@ public class UserException extends BaseServiceException {
         public CannotDeleteSelf() {
             super(
                     "CANNOT_DELETE_SELF",
-                    "You cannot delete your own account",
+                    "Bạn không thể xóa tài khoản của chính mình",
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -79,7 +80,7 @@ public class UserException extends BaseServiceException {
         public CannotChangeOwnRole() {
             super(
                     "CANNOT_CHANGE_OWN_ROLE",
-                    "You cannot change your own role",
+                    "Bạn không thể thay đổi vai trò của chính mình",
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -93,7 +94,7 @@ public class UserException extends BaseServiceException {
         public InvalidRoleTransition(String from, String to) {
             super(
                     "INVALID_ROLE_TRANSITION",
-                    String.format("Cannot change role from %s to %s", from, to),
+                    String.format("Không thể thay đổi vai trò từ %s sang %s", from, to),
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -103,7 +104,7 @@ public class UserException extends BaseServiceException {
         public RoleInUse(String roleName) {
             super(
                     "ROLE_IN_USE",
-                    String.format("Cannot delete role '%s' - it is assigned to users", roleName),
+                    String.format("Không thể xóa vai trò '%s' - nó đang được gán cho người dùng", roleName),
                     HttpStatus.CONFLICT
             );
         }

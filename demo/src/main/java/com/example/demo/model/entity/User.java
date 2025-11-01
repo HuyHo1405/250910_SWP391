@@ -26,16 +26,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "full_name", nullable = false, length = 255)
+    @Column(name = "full_name", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String fullName;
 
-    @Column(name = "email_address", nullable = false, unique = true, length = 255)
+    @Column(name = "email_address", nullable = false, unique = true)
     private String emailAddress;
 
     @Column(name = "phone_number", nullable = false, length = 20)
     private String phoneNumber;
 
-    @Column(name = "hashed_password", nullable = false, length = 255)
+    @Column(name = "hashed_password", nullable = false)
     private String hashedPassword;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -80,18 +80,4 @@ public class User {
             vehicles = new HashSet<>();
         }
     }
-
-    // ================================
-    // HELPER FUNCTIONS - Business Logic
-    // ================================
-
-//    public void addVehicle(Vehicle v) {
-//        vehicles.add(v);
-//        v.setCustomer(this);
-//    }
-//
-//    public void removeVehicle(Vehicle v) {
-//        vehicles.remove(v);
-//        v.setCustomer(null);
-//    }
 }

@@ -2,23 +2,21 @@ package com.example.demo.service.impl;
 
 import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.BookingResponse;
-import com.example.demo.model.dto.InvoiceRequest;
-import com.example.demo.model.entity.Booking;
-import com.example.demo.model.entity.Invoice;
+import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.model.modelEnum.InvoiceStatus;
-import com.example.demo.model.modelEnum.PaymentStatus;
 import com.example.demo.repo.BookingRepo;
 import com.example.demo.repo.InvoiceRepo;
+import com.example.demo.repo.MaintenanceCatalogModelPartRepo;
+import com.example.demo.repo.PartRepo;
 import com.example.demo.service.interfaces.IBookingStatusService;
 import com.example.demo.service.interfaces.IInvoiceService;
-import com.example.demo.utils.BookingResponseMapper;
+import com.example.demo.utils.BookingResponseMapper; // <-- THAY ĐỔI IMPORT
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,6 +30,8 @@ public class BookingStatusService implements IBookingStatusService {
     private final AccessControlService accessControlService;
 
     private final BookingRepo bookingRepository;
+    private final MaintenanceCatalogModelPartRepo maintenanceCatalogModelPartRepo;
+    private final PartRepo partRepo;
 
     // Các trạng thái cho phép cancel
     private final List<BookingStatus> CANCELLABLE_STATUSES = Arrays.asList(
@@ -47,13 +47,15 @@ public class BookingStatusService implements IBookingStatusService {
 
         accessControlService.verifyCanAccessAllResources( "BOOKING", "confirm");
 
-        //TODO check số lượng linh kiện? confirm: cancel
+        if(!checkEnoughPartForBooking(booking)) {
+            throw new CommonException.InvalidOperation("Không đủ số lượng linh kiện cần thiết để thực hiện đơn");
+        }
 
-        //TODO chỉnh dô reserved trong part
+        updateReservedParts(booking);
 
         // Chỉ cho phép xác nhận nếu đang ở trạng thái PENDING
         if (booking.getBookingStatus() != BookingStatus.PENDING) {
-            throw new CommonException.InvalidOperation("Only PENDING bookings can be confirmed.");
+            throw new CommonException.InvalidOperation("Chỉ có thể xác nhận các đặt lịch ở trạng thái PENDING");
         }
 
         // Chuyển trạng thái sang CONFIRMED
@@ -61,7 +63,8 @@ public class BookingStatusService implements IBookingStatusService {
         invoiceService.create(id);
         bookingRepository.save(booking);
 
-        return BookingResponseMapper.toDto(booking);
+        // Trả về DTO đầy đủ (bao gồm cả hóa đơn vừa tạo)
+        return BookingResponseMapper.toDtoFull(booking);
     }
 
 
@@ -73,14 +76,15 @@ public class BookingStatusService implements IBookingStatusService {
         accessControlService.verifyCanAccessAllResources( "BOOKING", "start-maintenance");
 
         if (booking.getBookingStatus() != BookingStatus.CONFIRMED) {
-            throw new CommonException.InvalidOperation("Booking is not confirmed for this operation!");
+            throw new CommonException.InvalidOperation("Đặt lịch chưa được xác nhận cho thao tác này");
         }
 
         booking.setBookingStatus(BookingStatus.IN_PROGRESS);
 
-        //TODO update part: quantity = current - reserved
+        usePartsForMaintenance(booking);
 
-        return BookingResponseMapper.toDto(booking);
+        // Trả về DTO đầy đủ
+        return BookingResponseMapper.toDtoFull(booking);
     }
 
     @Override
@@ -99,8 +103,8 @@ public class BookingStatusService implements IBookingStatusService {
         // Kiểm tra trạng thái có cho phép cancel không
         if (!CANCELLABLE_STATUSES.contains(booking.getBookingStatus())) {
             throw new CommonException.InvalidOperation(
-                    "Cannot cancel booking in status: " + booking.getBookingStatus() +
-                            ". Only PENDING bookings can be cancelled."
+                    "Không thể hủy đặt lịch ở trạng thái: " + booking.getBookingStatus() +
+                            ". Chỉ có thể hủy các đặt lịch ở trạng thái PENDING."
             );
         }
 
@@ -108,7 +112,9 @@ public class BookingStatusService implements IBookingStatusService {
         booking.setBookingStatus(BookingStatus.CANCELLED);
 
         log.info("Booking {} cancelled. Reason: {}", id, reason);
-        return BookingResponseMapper.toDto(bookingRepository.save(booking));
+
+        // Trả về DTO đầy đủ
+        return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
     }
 
     @Override
@@ -121,7 +127,7 @@ public class BookingStatusService implements IBookingStatusService {
         // Kiểm tra trạng thái trước khi complete
         if (booking.getBookingStatus() != BookingStatus.IN_PROGRESS) {
             throw new CommonException.InvalidOperation(
-                    "Cannot complete booking that has not in progress."
+                    "Không thể hoàn thành đặt lịch chưa được bắt đầu"
             );
         }
 
@@ -130,6 +136,60 @@ public class BookingStatusService implements IBookingStatusService {
         invoiceService.updateStatus(id, InvoiceStatus.UNPAID);
 
         log.info("Booking {} marked as delivered/completed", id);
-        return BookingResponseMapper.toDto(bookingRepository.save(booking));
+
+        // Trả về DTO đầy đủ (bao gồm cả hóa đơn đã cập nhật trạng thái)
+        return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
+    }
+
+    private boolean checkEnoughPartForBooking(Booking booking) {
+        for (BookingDetail detail : booking.getBookingDetails()) {
+            MaintenanceCatalog catalog = detail.getCatalog();
+            VehicleModel model = booking.getVehicle().getModel();
+            List<MaintenanceCatalogModelPart> requiredParts =
+                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalog.getId(), model.getId());
+
+            for (MaintenanceCatalogModelPart mp : requiredParts) {
+                Part part = mp.getPart();
+                int available = part.getQuantity() - part.getReserved();
+                if (available < mp.getQuantityRequired()) {
+                    return false; // thiếu part
+                }
+            }
+        }
+        return true; // đủ hết part
+    }
+
+    private void updateReservedParts(Booking booking) {
+        for (BookingDetail detail : booking.getBookingDetails()) {
+            MaintenanceCatalog catalog = detail.getCatalog();
+            VehicleModel model = booking.getVehicle().getModel();
+
+            List<MaintenanceCatalogModelPart> requiredParts =
+                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalog.getId(), model.getId());
+
+            for (MaintenanceCatalogModelPart mp : requiredParts) {
+                Part part = mp.getPart();
+                part.setReserved(part.getReserved() + mp.getQuantityRequired());
+                partRepo.save(part);
+            }
+        }
+    }
+
+    private void usePartsForMaintenance(Booking booking) {
+        for (BookingDetail detail : booking.getBookingDetails()) {
+            MaintenanceCatalog catalog = detail.getCatalog();
+            VehicleModel model = booking.getVehicle().getModel();
+            List<MaintenanceCatalogModelPart> requiredParts =
+                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalog.getId(), model.getId());
+
+            for (MaintenanceCatalogModelPart mp : requiredParts) {
+                Part part = mp.getPart();
+                int qty = mp.getQuantityRequired();
+
+                part.setQuantity(part.getQuantity() - qty);
+                part.setReserved(part.getReserved() - qty);
+                partRepo.save(part);
+            }
+        }
     }
 }

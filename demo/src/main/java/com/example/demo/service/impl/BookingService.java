@@ -13,8 +13,8 @@ import com.example.demo.repo.UserRepo;
 import com.example.demo.repo.VehicleRepo;
 import com.example.demo.service.interfaces.IBookingDetailService;
 import com.example.demo.service.interfaces.IBookingService;
-import com.example.demo.utils.ScheduleDateTimeParser;
-import com.example.demo.utils.BookingResponseMapper;
+import com.example.demo.utils.ScheduleDateTimeParser; // Giữ nguyên util parser
+import com.example.demo.utils.BookingResponseMapper; // <-- THAY ĐỔI IMPORT
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,7 +49,7 @@ public class BookingService implements IBookingService {
         Vehicle vehicle = vehicleRepository.findByVin(request.getVehicleVin())
                 .orElseThrow(() -> new CommonException.NotFound("Vehicle", request.getVehicleVin()));
 
-        accessControlService.verifyResourceAccess(vehicle.getUser().getId(), "VEHICLE", "READ");
+        accessControlService.verifyResourceAccess(vehicle.getCustomer().getId(), "VEHICLE", "READ");
 
         LocalDateTime scheduleDate = checkFutureScheduleDate(request.getScheduleDateTime());
 
@@ -70,11 +70,10 @@ public class BookingService implements IBookingService {
             }
         }
 
-        double totalPrice = bookingDetailService.calculateBookingTotal(booking.getId());
-        booking.setTotalPrice(totalPrice);
         booking = bookingRepository.save(booking);
 
-        return BookingResponseMapper.toDto(booking, request.getScheduleDateTime());
+        // Trả về DTO có chi tiết dịch vụ
+        return BookingResponseMapper.toDtoWithDetails(booking, request.getScheduleDateTime());
     }
 
     @Override
@@ -83,7 +82,9 @@ public class BookingService implements IBookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", id));
         accessControlService.verifyResourceAccess(booking.getCustomer().getId(), "BOOKING", "read");
-        return BookingResponseMapper.toDto(booking);
+
+        // Trả về DTO đầy đủ (Booking + Details + Invoice + Lines)
+        return BookingResponseMapper.toDtoFull(booking);
     }
 
     @Override
@@ -92,8 +93,10 @@ public class BookingService implements IBookingService {
         if (!userRepository.existsById(customerId))
             throw new CommonException.NotFound("User", customerId);
         accessControlService.verifyResourceAccess(customerId, "BOOKING", "read");
+
+        // Trả về DTO tóm tắt (Summary)
         return bookingRepository.findByCustomerId(customerId)
-                .stream().map(BookingResponseMapper::toDto).collect(Collectors.toList());
+                .stream().map(BookingResponseMapper::toDtoSummary).collect(Collectors.toList());
     }
 
     @Override
@@ -101,9 +104,11 @@ public class BookingService implements IBookingService {
     public List<BookingResponse> getBookingsByVehicleVin(String vin) {
         Vehicle vehicle = vehicleRepository.findByVin(vin)
                 .orElseThrow(() -> new CommonException.NotFound("Vehicle", vin));
-        accessControlService.verifyResourceAccess(vehicle.getUser().getId(), "BOOKING", "read");
+        accessControlService.verifyResourceAccess(vehicle.getCustomer().getId(), "BOOKING", "read");
+
+        // Trả về DTO tóm tắt (Summary)
         return bookingRepository.findByVehicleVin(vin)
-                .stream().map(BookingResponseMapper::toDto).collect(Collectors.toList());
+                .stream().map(BookingResponseMapper::toDtoSummary).collect(Collectors.toList());
     }
 
     @Override
@@ -114,8 +119,9 @@ public class BookingService implements IBookingService {
 
         List<Booking> bookings = bookingRepository.findWithFilters(bookingStatus);
 
+        // Trả về DTO tóm tắt (Summary)
         return bookings.stream()
-                .map(BookingResponseMapper::toDto)
+                .map(BookingResponseMapper::toDtoSummary)
                 .collect(Collectors.toList());
     }
 
@@ -129,7 +135,7 @@ public class BookingService implements IBookingService {
                 .orElseThrow(() -> new CommonException.NotFound("Vehicle", vin));
 
         // Access control
-        accessControlService.verifyResourceAccess(vehicle.getUser().getId(), "BOOKING", "read");
+        accessControlService.verifyResourceAccess(vehicle.getCustomer().getId(), "BOOKING", "read");
 
         // Lấy các booking đã hoàn thành (DELIVERED hoặc MAINTENANCE_COMPLETE)
         List<Booking> completedBookings = bookingRepository.findByVehicleVin(vin).stream()
@@ -142,10 +148,9 @@ public class BookingService implements IBookingService {
                 .flatMap(booking -> booking.getBookingDetails().stream())
                 .map(detail -> BookingResponse.ServiceDetail.builder()
                         .id(detail.getId())
-                        .serviceId(detail.getService().getId())
-                        .serviceName(detail.getService().getName())
+                        .serviceId(detail.getCatalog().getId())
+                        .serviceName(detail.getCatalog().getName())
                         .description(detail.getDescription())
-                        .servicePrice(detail.getServicePrice())
                         .build())
                 .distinct() // Remove duplicates based on serviceId
                 .limit(limit > 0 ? limit : 10) // Default limit 10
@@ -179,10 +184,9 @@ public class BookingService implements IBookingService {
                 .flatMap(booking -> booking.getBookingDetails().stream())
                 .map(detail -> BookingResponse.ServiceDetail.builder()
                         .id(detail.getId())
-                        .serviceId(detail.getService().getId())
-                        .serviceName(detail.getService().getName())
+                        .serviceId(detail.getCatalog().getId())
+                        .serviceName(detail.getCatalog().getName())
                         .description(detail.getDescription())
-                        .servicePrice(detail.getServicePrice())
                         .build())
                 .distinct()
                 .limit(limit > 0 ? limit : 10)
@@ -203,7 +207,7 @@ public class BookingService implements IBookingService {
         // Không cho update nếu đã hoàn thành hoặc đã hủy
         if (booking.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE
                 || booking.getBookingStatus() == BookingStatus.CANCELLED) {
-            throw new CommonException.InvalidOperation("Cannot update booking in status: " + booking.getBookingStatus());
+            throw new CommonException.InvalidOperation("Không được cập nhật đơn với trangj thái này: " + booking.getBookingStatus());
         }
 
         if (request.getScheduleDateTime() != null) {
@@ -219,8 +223,6 @@ public class BookingService implements IBookingService {
 
         if (request.getServiceDetails() != null) {
             bookingDetailService.updateBookingServices(id, request.getServiceDetails());
-            double totalPrice = bookingDetailService.calculateBookingTotal(id);
-            booking.setTotalPrice(totalPrice);
         }
 
         booking = bookingRepository.save(booking);
@@ -228,7 +230,9 @@ public class BookingService implements IBookingService {
         ScheduleDateTime responseSchedule = request.getScheduleDateTime() != null
                 ? request.getScheduleDateTime()
                 : ScheduleDateTimeParser.format(booking.getScheduleDate(), "yyyy-MM-dd HH:mm:ss", "Asia/Ho_Chi_Minh");
-        return BookingResponseMapper.toDto(booking, responseSchedule);
+
+        // Trả về DTO có chi tiết dịch vụ
+        return BookingResponseMapper.toDtoWithDetails(booking, responseSchedule);
     }
 
     @Override
@@ -240,7 +244,7 @@ public class BookingService implements IBookingService {
         // Không cho xóa nếu đã hoàn thành hoặc hủy
         if (booking.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE
                 || booking.getBookingStatus() == BookingStatus.CANCELLED) {
-            throw new CommonException.InvalidOperation("Cannot delete booking in status: " + booking.getBookingStatus());
+            throw new CommonException.InvalidOperation("Không thể xóa đơn với với trạng thái này: " + booking.getBookingStatus());
         }
 
         bookingRepository.delete(booking);
@@ -249,7 +253,7 @@ public class BookingService implements IBookingService {
     private LocalDateTime checkFutureScheduleDate(ScheduleDateTime scheduleDate) {
         LocalDateTime bookingDate = ScheduleDateTimeParser.parse(scheduleDate);
         if (bookingDate.isBefore(LocalDateTime.now())) {
-            throw new CommonException.InvalidOperation("Booking date/time must be in the future.");
+            throw new CommonException.InvalidOperation("Thời gian đăt đơn phải ở tương lai");
         }
         return bookingDate;
     }

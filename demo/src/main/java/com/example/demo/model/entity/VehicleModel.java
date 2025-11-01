@@ -23,17 +23,14 @@ public class VehicleModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "brand_name", nullable = false, length = 255)
+    @Column(name = "brand_name", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String brandName;
 
-    @Column(name = "model_name", nullable = false, length = 255)
+    @Column(name = "model_name", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String modelName;
 
-    @Column(name = "dimensions", length = 255)
+    @Column(name = "dimensions", columnDefinition = "NVARCHAR(255)")
     private String dimensions;
-
-    @Column(name = "year_introduce", length = 4)
-    private String yearIntroduce;
 
     @Column(name = "seats", nullable = false)
     private Integer seats;

@@ -19,14 +19,14 @@ import java.util.Set;
 @AllArgsConstructor
 public class BookingRequest {
 
-    @NotNull(message = "Customer ID is required")
-    @Positive(message = "Customer ID must be positive")
+    @NotNull(message = "Mã người dùng không được để trống")
+    @Positive(message = "Mã người dùng phải không âm")
     private Long customerId;
 
-    @NotNull(message = "Vehicle VIN is required")
+    @NotBlank(message = "Mã VIN không được để trống")
     private String vehicleVin;
 
-    @NotNull(message = "Schedule date/time is required")
+    @NotNull(message = "Thời gian lịch hẹn không được để trống")
     @Valid
     private ScheduleDateTime scheduleDateTime;
 
@@ -34,7 +34,7 @@ public class BookingRequest {
     private List<ServiceDetail> serviceDetails;
 
     // Method phải bắt đầu với 'is' để validator nhận ra
-    @AssertTrue(message = "Duplicate service IDs detected in the booking request")
+    @AssertTrue(message = "Các dịch vụ không được trùng nhau")
     private boolean isServiceIdsUnique() {
         if (serviceDetails == null || serviceDetails.isEmpty()) {
             return true; // Skip validation nếu list rỗng (handled by @NotEmpty)
@@ -57,11 +57,11 @@ public class BookingRequest {
     @AllArgsConstructor
     public static class ServiceDetail {
 
-        @NotNull(message = "Service ID is required")
-        @Positive(message = "Service ID must be positive")
+        @NotNull(message = "Mã dịch vụ không được trống")
+        @Positive(message = "Mã dịch vụ phải không âm")
         private Long serviceId;
 
-        @Size(max = 500, message = "Description cannot exceed 500 characters")
+        @Size(max = 500, message = "Mô tả không vượt quá 500 ký tự")
         private String description;
     }
 }

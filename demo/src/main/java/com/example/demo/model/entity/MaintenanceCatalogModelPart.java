@@ -33,6 +33,6 @@ public class MaintenanceCatalogModelPart {
     @Column(name = "is_optional")
     private Boolean isOptional;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String notes;
 }

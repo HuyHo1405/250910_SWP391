@@ -10,18 +10,24 @@ import java.time.LocalDateTime;
 public class PaymentRequest {
 
     @Data
+    public static class CreatePaymentLink {
+        @NotNull(message = "Mã hóa đơn không được để trống")
+        private Long invoiceId;
+    }
+
+    @Data
     public static class Create {
-        @NotNull(message = "Invoice ID must not be null")
+        @NotNull(message = "Mã hóa đơn không được để trống")
         private Long invoiceId;
 
-        @NotNull(message = "Payment method must not be null")
+        @NotNull(message = "Phương thức thanh toán không được để trống")
         private PaymentMethod paymentMethod;
 
-        @NotNull(message = "Amount must not be null")
-        @Positive(message = "Amount must be greater than 0")
+        @NotNull(message = "Số tiền không được để trống")
+        @Positive(message = "Số tiền phải lớn hơn 0")
         private Double amount;
 
-        @Size(max = 255, message = "Transaction reference must not exceed 255 characters")
+        @Size(max = 255, message = "Mã giao dịch không được vượt quá 255 ký tự")
         private String transactionRef;
 
         private PaymentStatus status; // Optional, will default to PENDING
@@ -31,14 +37,14 @@ public class PaymentRequest {
 
     @Data
     public static class Update {
-        @Positive(message = "Amount must be greater than 0")
+        @Positive(message = "Số tiền phải lớn hơn 0")
         private Double amount;
 
         private PaymentMethod paymentMethod;
 
         private PaymentStatus status;
 
-        @Size(max = 255, message = "Transaction reference must not exceed 255 characters")
+        @Size(max = 255, message = "Mã giao dịch không được vượt quá 255 ký tự")
         private String transactionRef;
 
         private LocalDateTime paidAt;
@@ -46,7 +52,7 @@ public class PaymentRequest {
 
     @Data
     public static class StatusUpdate {
-        @NotNull(message = "Status must not be null")
+        @NotNull(message = "Trạng thái không được để trống")
         private PaymentStatus status;
 
         private String transactionRef;
@@ -54,8 +60,8 @@ public class PaymentRequest {
 
     @Data
     public static class Process {
-        @NotBlank(message = "Transaction reference must not be blank")
-        @Size(max = 255, message = "Transaction reference must not exceed 255 characters")
+        @NotBlank(message = "Mã giao dịch không được để trống")
+        @Size(max = 255, message = "Mã giao dịch không được vượt quá 255 ký tự")
         private String transactionRef;
     }
 }

@@ -9,7 +9,7 @@ import com.example.demo.model.modelEnum.InvoiceStatus;
 import com.example.demo.repo.BookingRepo;
 import com.example.demo.repo.InvoiceRepo;
 import com.example.demo.service.interfaces.IPaymentService;
-import com.example.demo.utils.BookingResponseMapper;
+import com.example.demo.utils.BookingResponseMapper; // <-- ĐÃ CẬP NHẬT IMPORT
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +44,7 @@ public class PaymentService implements IPaymentService {
         // Kiểm tra nếu không ở trạng thái yêu cầu
         if (currentStatus != requiredStatus) {
             throw new BookingException.InvalidStatusTransition(
-                    "Invoice",
+                    "Hóa đơn",
                     currentStatus.name(),
                     targetStatus.name()
             );
@@ -66,7 +66,8 @@ public class PaymentService implements IPaymentService {
 
         invoiceRepo.save(invoice);
 
-        return BookingResponseMapper.toDto(booking);
+        // Trả về DTO đầy đủ (Booking + Details + Invoice)
+        return BookingResponseMapper.toDtoFull(booking); // <-- ĐÃ THAY ĐỔI
     }
 
     @Transactional

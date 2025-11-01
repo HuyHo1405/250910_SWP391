@@ -16,7 +16,7 @@ public class BookingException extends BaseServiceException {
         public InvalidStatusTransition(String domain, String from, String to) {
             super(
                     "INVALID_STATUS_TRANSITION",
-                    String.format("[%s] Cannot transition from %s to %s", domain, from, to),
+                    String.format("[%s] Không thể chuyển trạng thái từ %s sang %s", domain, from, to),
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -26,7 +26,7 @@ public class BookingException extends BaseServiceException {
         public CannotDelete(String lifecycleStatus) {
             super(
                     "CANNOT_DELETE_BOOKING",
-                    String.format("Cannot delete booking with lifecycle status: %s", lifecycleStatus),
+                    String.format("Không thể xóa đặt lịch với trạng thái vòng đời: %s", lifecycleStatus),
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -36,7 +36,7 @@ public class BookingException extends BaseServiceException {
         public CannotCancel(String status, String reason) {
             super(
                     "CANNOT_CANCEL_BOOKING",
-                    String.format("Cannot cancel: status=%s, reason=%s", status, reason),
+                    String.format("Không thể hủy: trạng thái=%s, lý do=%s", status, reason),
                     HttpStatus.CONFLICT
             );
         }
@@ -50,7 +50,7 @@ public class BookingException extends BaseServiceException {
         public ScheduleConflict() {
             super(
                     "SCHEDULE_CONFLICT",
-                    "This time slot is already booked",
+                    "Khung thời gian này đã được đặt lịch",
                     HttpStatus.CONFLICT
             );
         }
@@ -60,7 +60,7 @@ public class BookingException extends BaseServiceException {
         public SchedulePassed() {
             super(
                     "SCHEDULE_PASSED",
-                    "Schedule date must be in the future",
+                    "Ngày đặt lịch phải trong tương lai",
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -70,7 +70,7 @@ public class BookingException extends BaseServiceException {
         public InvalidDateRange() {
             super(
                     "INVALID_DATE_RANGE",
-                    "Start date must be before end date",
+                    "Ngày bắt đầu phải trước ngày kết thúc",
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -80,7 +80,7 @@ public class BookingException extends BaseServiceException {
         public AlreadyCheckedIn() {
             super(
                     "ALREADY_CHECKED_IN",
-                    "The booking has already been checked in",
+                    "Đặt lịch đã được nhận xe",
                     HttpStatus.CONFLICT
             );
         }
@@ -94,7 +94,7 @@ public class BookingException extends BaseServiceException {
         public CannotStartInspection(String scheduleStatus) {
             super(
                     "CANNOT_START_INSPECTION",
-                    String.format("Cannot start inspection when schedule status is: %s", scheduleStatus),
+                    String.format("Không thể bắt đầu kiểm tra khi trạng thái đặt lịch là: %s", scheduleStatus),
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -104,7 +104,7 @@ public class BookingException extends BaseServiceException {
         public MaintenanceNotApproved() {
             super(
                     "MAINTENANCE_NOT_APPROVED",
-                    "Repair/maintenance must be approved before starting",
+                    "Sửa chữa/bảo trì phải được phê duyệt trước khi bắt đầu",
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -114,7 +114,7 @@ public class BookingException extends BaseServiceException {
         public MaintenanceAlreadyCompleted() {
             super(
                     "MAINTENANCE_ALREADY_COMPLETED",
-                    "Maintenance is already completed",
+                    "Bảo trì đã hoàn thành",
                     HttpStatus.CONFLICT
             );
         }
@@ -128,7 +128,7 @@ public class BookingException extends BaseServiceException {
         public PaymentAlreadyMade() {
             super(
                     "PAYMENT_ALREADY_MADE",
-                    "Payment has already been processed",
+                    "Thanh toán đã được xử lý",
                     HttpStatus.CONFLICT
             );
         }
@@ -138,7 +138,7 @@ public class BookingException extends BaseServiceException {
         public PaymentNotAuthorized() {
             super(
                     "PAYMENT_NOT_AUTHORIZED",
-                    "Payment is not authorized/pre-authorized",
+                    "Thanh toán chưa được phê duyệt/ủy quyền trước",
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -148,7 +148,7 @@ public class BookingException extends BaseServiceException {
         public RefundNotAllowed(String reason) {
             super(
                     "REFUND_NOT_ALLOWED",
-                    String.format("Refund not allowed. Reason: %s", reason),
+                    String.format("Không được phép hoàn tiền. Lý do: %s", reason),
                     HttpStatus.CONFLICT
             );
         }
@@ -162,7 +162,7 @@ public class BookingException extends BaseServiceException {
         public ServiceInactive(String serviceName) {
             super(
                     "SERVICE_INACTIVE",
-                    String.format("Service '%s' is not available", serviceName),
+                    String.format("Dịch vụ '%s' không có sẵn", serviceName),
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -172,7 +172,7 @@ public class BookingException extends BaseServiceException {
         public VehicleNotOwned() {
             super(
                     "VEHICLE_NOT_OWNED",
-                    "Vehicle does not belong to this customer",
+                    "Xe không thuộc về khách hàng này",
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -182,7 +182,7 @@ public class BookingException extends BaseServiceException {
         public EmptyServiceList() {
             super(
                     "EMPTY_SERVICE_LIST",
-                    "Booking must have at least one service",
+                    "Đặt lịch phải có ít nhất một dịch vụ",
                     HttpStatus.BAD_REQUEST
             );
         }
@@ -192,7 +192,7 @@ public class BookingException extends BaseServiceException {
         public ServiceNotCompatibleWithVehicle(Long serviceId, String vin) {
             super(
                     "SERVICE_NOT_COMPATIBLE_WITH_VEHICLE",
-                    "Service ID " + serviceId + " is not applicable for vehicle VIN " + vin,
+                    "Dịch vụ ID " + serviceId + " không áp dụng cho xe VIN " + vin,
                     HttpStatus.BAD_REQUEST
             );
         }

@@ -24,7 +24,7 @@ public class UserValidationService {
 
     public void checkPhoneAvailability(String phone) {
         if (userRepo.findByPhoneNumber(phone).isPresent()) {
-            throw new CommonException.AlreadyExists("User", "phone number", phone);
+            throw new CommonException.AlreadyExists("User", "số điện thoại", phone);
         }
     }
 }

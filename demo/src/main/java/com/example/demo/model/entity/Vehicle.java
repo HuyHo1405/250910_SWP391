@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString(exclude = {"customer", "model"})
 @Builder
 public class Vehicle {
 
@@ -30,14 +29,14 @@ public class Vehicle {
     @Column(name = "plate_number", unique = true)
     private String plateNumber;
 
-    @Column(name = "year", length = 4)
-    private String year;
-
-    @Column(name = "color")
+    @Column(name = "color", columnDefinition = "NVARCHAR(12)")
     private String color;
 
     @Column(name = "distance_traveled_km")
     private Double distanceTraveledKm;
+
+    @Column(name = "battery_degradation")
+    private Double batteryDegration;
 
     @Column(name = "purchased_at", nullable = false)
     private LocalDateTime purchasedAt;
@@ -51,7 +50,7 @@ public class Vehicle {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "customer_id", nullable = false)
-    private User user;
+    private User customer;
 
     // ManyToOne với Model
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

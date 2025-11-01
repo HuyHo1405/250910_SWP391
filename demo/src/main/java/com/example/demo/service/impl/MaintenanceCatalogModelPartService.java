@@ -39,9 +39,9 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
     public List<MaintenanceCatalogModelPartResponse> syncBatch(Long catalogId, Long modelId, List<MaintenanceCatalogModelPartRequest> requests) {
         // Validate catalog & model tồn tại
         MaintenanceCatalog catalog = catalogRepo.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
         VehicleModel model = vehicleModelRepo.findById(modelId)
-                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model with Id", modelId));
+                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", modelId));
 
         accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "update");
 
@@ -63,7 +63,7 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
     @Override
     public void deleteBatch(Long catalogId) {
         catalogRepo.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
 
         accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "delete");
         catalogModelPartRepo.deleteAllByMaintenanceCatalogId(catalogId);
@@ -72,20 +72,20 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
     @Override
     public MaintenanceCatalogModelPartResponse updateByIds(Long catalogId, Long modelId, Long partId, MaintenanceCatalogModelPartRequest request) {
         catalogRepo.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
         vehicleModelRepo.findById(modelId)
-                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model with Id", modelId));
+                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", modelId));
         partRepo.findById(partId)
-                .orElseThrow(() -> new CommonException.NotFound("Part with Id", partId));
+                .orElseThrow(() -> new CommonException.NotFound("Linh kiện với Id", partId));
 
         accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "update");
 
         MaintenanceCatalogModelPart entity = catalogModelPartRepo
                 .findByMaintenanceCatalogIdAndVehicleModelIdAndPartId(catalogId, modelId, partId)
                 .orElseThrow(() -> new CommonException.NotFound(
-                        "Maintenance Catalog with Id: " + catalogId +
-                                " for Vehicle Model with Id: " + partId +
-                                " Contains Part With Id: " + partId));
+                        "Dịch vụ với Id: " + catalogId +
+                                " cho mẫu xe Id: " + partId +
+                                " với linh kiện Id: " + partId));
         updateFields(entity, request);
         return toResponse(catalogModelPartRepo.save(entity));
     }
@@ -94,20 +94,20 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
     @Transactional(readOnly = true)
     public MaintenanceCatalogModelPartResponse findByIds(Long catalogId, Long modelId, Long partId) {
         catalogRepo.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
         vehicleModelRepo.findById(modelId)
-                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model with Id", modelId));
+                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", modelId));
         partRepo.findById(partId)
-                .orElseThrow(() -> new CommonException.NotFound("Part with Id", partId));
+                .orElseThrow(() -> new CommonException.NotFound("Linh kiện với Id", partId));
 
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
 
         MaintenanceCatalogModelPart entity = catalogModelPartRepo
                 .findByMaintenanceCatalogIdAndVehicleModelIdAndPartId(catalogId, modelId, partId)
                 .orElseThrow(() -> new CommonException.NotFound(
-                        "Maintenance Catalog with Id: " + catalogId +
-                            ", for Vehicle Model with Id: " + partId +
-                            ", Contains Part With Id: " + partId));
+                        "Dịch vụ với Id: " + catalogId +
+                                " cho mẫu xe Id: " + partId +
+                                " với linh kiện Id: " + partId));
 
         return toResponse(entity);
     }

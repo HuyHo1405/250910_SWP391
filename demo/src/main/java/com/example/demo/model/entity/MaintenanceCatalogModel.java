@@ -1,12 +1,9 @@
 package com.example.demo.model.entity;
 
-import com.example.demo.model.modelEnum.InvoiceItemType;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "maintenance_catalogs_models")
@@ -34,7 +31,7 @@ public class MaintenanceCatalogModel {
     @Column(name = "maintenance_price")
     private Double maintenancePrice;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "notes", columnDefinition = "NVARCHAR(255)")
     private String notes;
 
     @Column(name = "created_at", updatable = false)

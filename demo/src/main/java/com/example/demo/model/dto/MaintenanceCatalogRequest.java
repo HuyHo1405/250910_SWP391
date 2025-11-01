@@ -7,12 +7,12 @@ import lombok.Data;
 @Data
 public class MaintenanceCatalogRequest {
 
-    @NotBlank(message = "Service name must not be blank")
+    @NotBlank(message = "Tên dịch vụ không được để trống")
     private String name;
 
     private String description;
 
-    @NotNull(message = "Service type is required")
+    @NotNull(message = "Loại dịch vụ không được để trống")
     private MaintenanceCatalogType maintenanceServiceType;
 
 }

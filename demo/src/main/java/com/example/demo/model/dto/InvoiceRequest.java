@@ -11,27 +11,16 @@ public class InvoiceRequest {
 
     @Data
     public static class Create {
-        @NotNull(message = "Booking ID must not be null")
+        @NotNull(message = "Mã đặt lịch không được để trống")
         private Long bookingId;
 
-        @Size(max = 50, message = "Invoice number must not exceed 50 characters")
+        @Size(max = 50, message = "Số hóa đơn không được vượt quá 50 ký tự")
         private String invoiceNumber; // Optional, will auto-generate if not provided
 
-        @NotNull(message = "Issue date must not be null")
+        @NotNull(message = "Ngày xuất hóa đơn không được để trống")
         private LocalDateTime issueDate;
 
         private LocalDateTime dueDate; // Optional, will default to 30 days from issue date
-
-        @NotNull(message = "Total amount must not be null")
-        @PositiveOrZero(message = "Total amount must be >= 0")
-        private Double totalAmount;
-
-        @NotNull(message = "Tax amount must not be null")
-        @PositiveOrZero(message = "Tax amount must be >= 0")
-        private Double taxAmount;
-
-        @PositiveOrZero(message = "Discount amount must be >= 0")
-        private Double discountAmount;
 
         private InvoiceStatus status; // Optional, will default to DRAFT
     }
@@ -47,7 +36,7 @@ public class InvoiceRequest {
 
     @Data
     public static class StatusUpdate {
-        @NotNull(message = "Status must not be null")
+        @NotNull(message = "Trạng thái không được để trống")
         private InvoiceStatus status;
     }
 }

@@ -16,5 +16,4 @@ public class InvoiceLineResponse {
     private InvoiceItemType itemType; // Enum: InvoiceItemType (SERVICE hoặc PART)
     private Double quantity;
     private Double unitPrice;
-    private Double taxRate;
 }

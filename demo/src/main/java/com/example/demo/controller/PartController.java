@@ -234,7 +234,7 @@ public class PartController {
                     )
             )
     })
-    public ResponseEntity<PartResponse> getPartByPartNumber(@PathVariable Integer partNumber) {
+    public ResponseEntity<PartResponse> getPartByPartNumber(@PathVariable String partNumber) {
         PartResponse response = partService.getPartByPartNumber(partNumber);
         return ResponseEntity.ok(response);
     }
@@ -973,185 +973,12 @@ public class PartController {
     }
 
     @PatchMapping("/{id}/reactivate")
-    @Operation(
-            summary = "Reactivate part",
-            description = "Reactivate a specific part by setting its status to ACTIVE. Requires admin or authorized staff permission."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Part reactivated successfully",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = PartResponse.class),
-                            examples = @ExampleObject(
-                                    value = """
-        {
-          "id": 33,
-          "partNumber": 101,
-          "name": "Battery X",
-          "manufacturer": "Tesla",
-          "description": "New battery",
-          "currentUnitPrice": 0.1,
-          "quantity": 110,
-          "status": "ACTIVE",
-          "createdAt": "2025-10-23T11:28:43.3724123"
-        }
-        """
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Part is already active",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(
-                                    value = """
-        {
-          "code": "INVALID_INPUT",
-          "message": "Part is already active",
-          "timestamp": "2025-10-23T12:26:12.385",
-          "path": "uri=/api/parts/33/reactivate"
-        }
-        """
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "Permission denied (not admin or authorized staff)",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    value = """
-        {
-          "code": "FORBIDDEN",
-          "message": "You are not authorized to reactivate parts",
-          "timestamp": "2025-10-23T12:26:44.092",
-          "path": "uri=/api/parts/33/reactivate"
-        }
-        """
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Part not found",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    value = """
-        {
-          "code": "NOT_FOUND",
-          "message": "Part not found with id: 999",
-          "timestamp": "2025-10-23T12:26:55.257",
-          "path": "uri=/api/parts/999/reactivate"
-        }
-        """
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    value = """
-        {
-          "code": "INTERNAL_ERROR",
-          "message": "An unexpected error occurred",
-          "timestamp": "2025-10-23T12:27:55.145",
-          "path": "uri=/api/parts/33/reactivate"
-        }
-        """
-                            )
-                    )
-            )
-    })
     public ResponseEntity<PartResponse> reactivatePart(@PathVariable Long id) {
         PartResponse response = partService.reactivatePart(id);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}/check-availability")
-    @Operation(
-            summary = "Check part availability",
-            description = "Check if a specific part has sufficient stock to meet the required quantity."
-    )
-    @Parameter(
-            name = "requiredQuantity",
-            description = "The quantity required for checking availability",
-            required = true,
-            example = "25"
-    )
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Availability check completed successfully",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = Boolean.class),
-                            examples = @ExampleObject(
-                                    value = "true"
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Invalid required quantity",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(
-                                    value = """
-        {
-          "code": "INVALID_INPUT",
-          "message": "Required quantity must be greater than zero",
-          "timestamp": "2025-10-23T12:26:12.385",
-          "path": "uri=/api/parts/33/check-availability"
-        }
-        """
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "Part not found",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    value = """
-        {
-          "code": "NOT_FOUND",
-          "message": "Part not found with id: 999",
-          "timestamp": "2025-10-23T12:26:55.257",
-          "path": "uri=/api/parts/999/check-availability"
-        }
-        """
-                            )
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal server error",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(
-                                    value = """
-        {
-          "code": "INTERNAL_ERROR",
-          "message": "An unexpected error occurred",
-          "timestamp": "2025-10-23T12:27:55.145",
-          "path": "uri=/api/parts/33/check-availability"
-        }
-        """
-                            )
-                    )
-            )
-    })
     public ResponseEntity<Boolean> checkAvailability(
             @PathVariable Long id,
             @RequestParam Integer requiredQuantity) {

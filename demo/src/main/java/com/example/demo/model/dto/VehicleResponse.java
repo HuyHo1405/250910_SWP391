@@ -17,9 +17,9 @@ public class VehicleResponse {
     private String vin;
     private String name;
     private String plateNumber;
-    private String year;
     private String color;
     private Double distanceTraveledKm;
+    private Double batteryDegradation;
     private LocalDateTime purchasedAt;
     private LocalDateTime createdAt;
     private String entityStatus;
@@ -44,16 +44,16 @@ public class VehicleResponse {
                 .vin(vehicle.getVin())
                 .name(vehicle.getName())
                 .plateNumber(vehicle.getPlateNumber())
-                .year(vehicle.getYear())
                 .color(vehicle.getColor())
                 .distanceTraveledKm(vehicle.getDistanceTraveledKm())
+                .batteryDegradation(vehicle.getBatteryDegration())
                 .purchasedAt(vehicle.getPurchasedAt())
                 .createdAt(vehicle.getCreatedAt())
                 .entityStatus(vehicle.getEntityStatus().name())
 
                 // Quan hệ user
-                .userId(vehicle.getUser() != null ? vehicle.getUser().getId() : null)
-                .username(vehicle.getUser() != null ? vehicle.getUser().getFullName() : null)
+                .userId(vehicle.getCustomer() != null ? vehicle.getCustomer().getId() : null)
+                .username(vehicle.getCustomer() != null ? vehicle.getCustomer().getFullName() : null)
 
                 // Quan hệ model
                 .modelId(vehicle.getModel() != null ? vehicle.getModel().getId() : null)

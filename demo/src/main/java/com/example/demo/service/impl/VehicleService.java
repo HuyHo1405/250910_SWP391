@@ -62,7 +62,7 @@ public class VehicleService implements IVehicleService {
         Vehicle vehicle = getActiveVehicleOrThrow(vin);
 
         // 2. Check access permission (ownership-based for customers)
-        accessControlService.verifyResourceAccess(vehicle.getUser().getId(), "VEHICLE", "update");
+        accessControlService.verifyResourceAccess(vehicle.getCustomer().getId(), "VEHICLE", "update");
 
         // 3. Update fields
         updateVehicleFields(vehicle, request);
@@ -81,7 +81,7 @@ public class VehicleService implements IVehicleService {
         Vehicle vehicle = getActiveVehicleOrThrow(vin);
 
         // Check access permission (ownership-based for customers)
-        accessControlService.verifyResourceAccess(vehicle.getUser().getId(), "VEHICLE", "read");
+        accessControlService.verifyResourceAccess(vehicle.getCustomer().getId(), "VEHICLE", "read");
 
         return VehicleResponse.fromEntity(vehicle);
     }
@@ -94,7 +94,7 @@ public class VehicleService implements IVehicleService {
         // Check access permission (ownership-based for customers)
         accessControlService.verifyResourceAccess(userId, "VEHICLE", "read");
 
-        return vehicleRepo.findByUserIdAndEntityStatus(userId, EntityStatus.ACTIVE)
+        return vehicleRepo.findByCustomerIdAndEntityStatus(userId, EntityStatus.ACTIVE)
                 .stream()
                 .map(VehicleResponse::fromEntity)
                 .collect(Collectors.toList());
@@ -122,7 +122,7 @@ public class VehicleService implements IVehicleService {
         Vehicle vehicle = getActiveVehicleOrThrow(vin);
 
         // Check access permission (ownership-based for customers)
-        accessControlService.verifyResourceAccess(vehicle.getUser().getId(), "VEHICLE", "delete");
+        accessControlService.verifyResourceAccess(vehicle.getCustomer().getId(), "VEHICLE", "delete");
 
         vehicleRepo.softDelete(vin);
         vehicle.setEntityStatus(EntityStatus.INACTIVE);
@@ -135,16 +135,16 @@ public class VehicleService implements IVehicleService {
 
     private void validateVehicleUniqueness(String vin, String plateNumber) {
         if (vehicleRepo.existsByVinAndEntityStatus(vin, EntityStatus.ACTIVE)) {
-            throw new CommonException.AlreadyExists("Vehicle", "VIN", vin);
+            throw new CommonException.AlreadyExists("Xe", "mã VIN", vin);
         }
         if (vehicleRepo.existsByPlateNumberAndEntityStatus(plateNumber, EntityStatus.ACTIVE)) {
-            throw new CommonException.AlreadyExists("Vehicle", "plate number", plateNumber);
+            throw new CommonException.AlreadyExists("Xe", "Biển số xe", plateNumber);
         }
     }
 
     private Vehicle getActiveVehicleOrThrow(String vin) {
         return vehicleRepo.findByVinAndEntityStatus(vin, EntityStatus.ACTIVE)
-                .orElseThrow(() -> new CommonException.NotFound("Vehicle", vin));
+                .orElseThrow(() -> new CommonException.NotFound("Xe", vin));
     }
 
     private User getUserOrThrow(Long userId) {
@@ -154,7 +154,7 @@ public class VehicleService implements IVehicleService {
 
     private VehicleModel getVehicleModelOrThrow(Long modelId) {
         return vehicleModelRepo.findById(modelId)
-                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model", modelId));
+                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe", modelId));
     }
 
     private Vehicle buildVehicle(VehicleRequest.Create request, User user, VehicleModel model) {
@@ -162,12 +162,12 @@ public class VehicleService implements IVehicleService {
                 .vin(request.getVin())
                 .name(request.getName())
                 .plateNumber(request.getPlateNumber())
-                .year(request.getYear())
                 .color(request.getColor())
                 .distanceTraveledKm(request.getDistanceTraveledKm())
+                .batteryDegration(request.getBatteryDegradation())
                 .purchasedAt(request.getPurchasedAt())
                 .createdAt(LocalDateTime.now())
-                .user(user)
+                .customer(user)
                 .model(model)
                 .entityStatus(EntityStatus.ACTIVE)
                 .build();
@@ -183,16 +183,16 @@ public class VehicleService implements IVehicleService {
             vehicle.setPlateNumber(request.getPlateNumber());
         }
 
-        if (request.getYear() != null) {
-            vehicle.setYear(request.getYear());
-        }
-
         if (request.getColor() != null) {
             vehicle.setColor(request.getColor());
         }
 
         if (request.getDistanceTraveledKm() != null) {
             vehicle.setDistanceTraveledKm(request.getDistanceTraveledKm());
+        }
+
+        if (request.getBatteryDegradation() != null) {
+            vehicle.setBatteryDegration(request.getBatteryDegradation());
         }
 
         if (request.getPurchasedAt() != null) {
@@ -207,7 +207,7 @@ public class VehicleService implements IVehicleService {
 
     private void validatePlateNumberUniqueness(String plateNumber) {
         if (vehicleRepo.existsByPlateNumberAndEntityStatus(plateNumber, EntityStatus.ACTIVE)) {
-            throw new CommonException.AlreadyExists("Vehicle", "plate number", plateNumber);
+            throw new CommonException.AlreadyExists("Xe", "Biển số xe", plateNumber);
         }
     }
 }

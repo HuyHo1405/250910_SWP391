@@ -60,7 +60,7 @@ public class UserProfileService implements IUserProfileService {
         String roleDisplayName = (request.getRoleDisplayName() != null) ? request.getRoleDisplayName() : "Customer";
 
         Role role = roleRepo.findByDisplayName(roleDisplayName)
-                .orElseThrow(() -> new CommonException.NotFound("Role Display Name", roleDisplayName));
+                .orElseThrow(() -> new CommonException.NotFound("Tên hiển thị của Role", roleDisplayName));
 
         userContextService.checkRoleEditable(role.getId());
 

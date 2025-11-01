@@ -44,7 +44,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
         // ✅ Validation: Kiểm tra tên catalog bị trùng
         if (catalogRepository.existsByName(request.getName())) {
-            throw new CommonException.AlreadyExists("Maintenance Catalog", "Name",  request.getName());
+            throw new CommonException.AlreadyExists("Dịch vụ", "Tên",  request.getName());
         }
 
         MaintenanceCatalog catalog = MaintenanceCatalog.builder()
@@ -69,12 +69,12 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
         // ✅ Exception: Sử dụng MaintenanceCatalogException.CatalogNotFound
         MaintenanceCatalog catalog = catalogRepository.findById(id)
-                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", id));
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", id));
 
         // ✅ Validation: Kiểm tra tên trùng (trừ catalog hiện tại)
         if (!catalog.getName().equals(request.getName()) &&
                 catalogRepository.existsByName(request.getName())) {
-            throw new CommonException.AlreadyExists("Maintenance Catalog", "Name",  request.getName());
+            throw new CommonException.AlreadyExists("Dịch vụ", "Tên",  request.getName());
         }
 
         catalog.setName(request.getName());
@@ -95,7 +95,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
         // ✅ Exception: Sử dụng MaintenanceCatalogException.CatalogNotFound
         MaintenanceCatalog catalog = catalogRepository.findById(id)
-                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", id));
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", id));
 
         // ✅ Kiểm tra catalog có active không
         if (catalog.getStatus() != EntityStatus.ACTIVE) {
@@ -118,7 +118,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
         // ✅ Nếu truyền VIN, validate VIN có tồn tại không
         if (vin != null && !vin.isEmpty()) {
             if (!vehicleRepository.existsByVinAndEntityStatus(vin, EntityStatus.ACTIVE)) {
-                throw new CommonException.NotFound("Vehicle with Vin", vin);
+                throw new CommonException.NotFound("Xe với mã VIN", vin);
             }
         }
 
@@ -142,7 +142,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "delete");
 
         MaintenanceCatalog entity = catalogRepository.findById(id)
-                .orElseThrow(() ->  new CommonException.NotFound("Maintenance Catalog with Id", id));
+                .orElseThrow(() ->  new CommonException.NotFound("Dịch vụ với Id", id));
 
         try {
             // Delete all associated catalog-model relationships first
@@ -156,7 +156,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
         } catch (Exception e) {
             log.error("Failed to delete catalog id={}: {}", id, e.getMessage());
             throw new MaintenanceCatalogException.BatchOperationFailed(
-                    "Cannot delete catalog: " + e.getMessage()
+                    "Không thể xóa dịch vụ: " + e.getMessage()
             );
         }
     }

@@ -35,9 +35,8 @@ public class ReminderService implements IReminderService {
     public void scanAndNotify() {
         log.info("Scheduled scanAndNotify started at {}", LocalDateTime.now());
         List<Vehicle> vehicles = vehicleRepo.findAll();
-        System.out.println(vehicles.size());
         for (Vehicle vehicle : vehicles) {
-            User customer = vehicle.getUser();
+            User customer = vehicle.getCustomer();
             ReminderInfo info = getLastMaintenanceInfo(customer.getId(), vehicle.getVin(), vehicle);
             long daysSinceLastVisit = ChronoUnit.DAYS.between(
                     info.getLastDate().toLocalDate(),

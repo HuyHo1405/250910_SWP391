@@ -36,14 +36,14 @@ public class Booking {
     @Column(name = "booking_status", nullable = false, length = 20)
     private BookingStatus bookingStatus;
 
-    @Column(name = "total_price")
-    private Double totalPrice;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Invoice invoice;
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

@@ -23,16 +23,16 @@ public class Part {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 255)
+    @Column(name = "name", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String name;
 
     @Column(name = "part_number", nullable = false)
-    private Integer partNumber;
+    private String partNumber;
 
-    @Column(name = "manufacturer", nullable = false, length = 255)
+    @Column(name = "manufacturer", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String manufacturer;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Column(name = "description", columnDefinition = "NVARCHAR(255)")
     private String description;
 
     @Column(name = "current_unit_price", nullable = false)
@@ -40,6 +40,9 @@ public class Part {
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
+
+    @Column(name = "reserved", nullable = false)
+    private Integer reserved;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)

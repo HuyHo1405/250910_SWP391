@@ -13,8 +13,6 @@ public interface IBookingDetailService {
 
     void updateBookingServices(Long bookingId, List<BookingRequest.ServiceDetail> serviceDetails);
 
-    Double calculateBookingTotal(Long bookingId);
-
     List<BookingDetail> getBookingDetailsByBookingId(Long bookingId);
 
     BookingDetail updateServiceDescription(Long detailId, String description);

@@ -36,7 +36,7 @@ public class AccessControlService {
                         currentUser.getId(), action, resourceOwnerId);
                 // ✅ Sửa: Dùng CommonException.Forbidden thay vì VehicleException
                 throw new CommonException.Forbidden(
-                        "You are not authorized to access this resource"
+                        "Bạn không được phép truy cập tài nguyên này"
                 );
             }
         }

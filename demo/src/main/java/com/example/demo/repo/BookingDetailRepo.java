@@ -14,8 +14,8 @@ import java.util.Optional;
 public interface BookingDetailRepo extends JpaRepository<BookingDetail, Long> {
     // Basic finders
     List<BookingDetail> findByBookingId(Long bookingId);
-    List<BookingDetail> findByServiceId(Long serviceId);
-    Optional<BookingDetail> findByBookingIdAndServiceId(Long bookingId, Long serviceId);
+    List<BookingDetail> findByCatalogId(Long catalogId);
+    Optional<BookingDetail> findByBookingIdAndCatalogId(Long bookingId, Long catalogId);
 
     // Delete operations
     @Modifying
@@ -23,30 +23,10 @@ public interface BookingDetailRepo extends JpaRepository<BookingDetail, Long> {
     void deleteByBookingId(@Param("bookingId") Long bookingId);
 
     @Modifying
-    @Query("DELETE FROM BookingDetail bd WHERE bd.booking.id = :bookingId AND bd.service.id = :serviceId")
+    @Query("DELETE FROM BookingDetail bd WHERE bd.booking.id = :bookingId AND bd.catalog.id = :serviceId")
     void deleteByBookingIdAndServiceId(@Param("bookingId") Long bookingId, @Param("serviceId") Long serviceId);
 
-    // Calculate totals
-    @Query("SELECT SUM(bd.servicePrice) FROM BookingDetail bd WHERE bd.booking.id = :bookingId")
-    Double calculateTotalByBookingId(@Param("bookingId") Long bookingId);
-
-    // Count operations
-    Long countByBookingId(Long bookingId);
-    Long countByServiceId(Long serviceId);
-
     // Statistics queries
-    @Query("SELECT bd.service.name, COUNT(bd) FROM BookingDetail bd GROUP BY bd.service.name ORDER BY COUNT(bd) DESC")
+    @Query("SELECT bd.catalog.name, COUNT(bd) FROM BookingDetail bd GROUP BY bd.catalog.name ORDER BY COUNT(bd) DESC")
     List<Object[]> getMostPopularServices();
-
-    @Query("SELECT bd.service.name, SUM(bd.servicePrice) FROM BookingDetail bd " +
-            "GROUP BY bd.service.name ORDER BY SUM(bd.servicePrice) DESC")
-    List<Object[]> getServiceRevenueStatistics();
-
-    // Find booking details with service information
-    @Query("SELECT bd FROM BookingDetail bd JOIN FETCH bd.service WHERE bd.booking.id = :bookingId")
-    List<BookingDetail> findByBookingIdWithService(@Param("bookingId") Long bookingId);
-
-    // Find booking details by price range
-    @Query("SELECT bd FROM BookingDetail bd WHERE bd.servicePrice BETWEEN :minPrice AND :maxPrice")
-    List<BookingDetail> findByPriceRange(@Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice);
 }

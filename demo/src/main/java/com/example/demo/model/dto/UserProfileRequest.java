@@ -19,21 +19,21 @@ public class UserProfileRequest {
     @NoArgsConstructor
     public static class Profile {
 
-        @NotBlank(message = "Email address can not be blank")
-        @Email(message = "Email must be valid")
+        @NotBlank(message = "Địa chỉ email không được để trống")
+        @Email(message = "Email phải hợp lệ")
         private String email;
 
-        @NotBlank(message = "Full name can not be blank")
-        @Size(min = 2, max = 100, message = "Full name must be between 2 and 100 characters")
+        @NotBlank(message = "Họ tên không được để trống")
+        @Size(min = 2, max = 100, message = "Họ tên phải từ 2 đến 100 ký tự")
         private String fullName;
 
-        @NotBlank(message = "Phone number can not be blank")
-        @Pattern(regexp = "^(\\+84|0)[0-9]{9}$", message = "Phone number must be valid Vietnamese format")
+        @NotBlank(message = "Số điện thoại không được để trống")
+        @Pattern(regexp = "^(\\+84|0)[0-9]{9}$", message = "Số điện thoại phải là định dạng Việt Nam hợp lệ")
         private String phoneNumber;
 
-        @NotBlank(message = "Role can not be blank")
+        @NotBlank(message = "Vai trò không được để trống")
         @Pattern(regexp = "^(Admin|Staff Employee|Technician Employee|Customer)$",
-                message = "Role must be Admin, Staff Employee, Customer, or Technician Employee")
+                message = "Vai trò phải là Admin, Staff Employee, Customer, hoặc Technician Employee")
         private String roleDisplayName;
     }
 
@@ -42,12 +42,12 @@ public class UserProfileRequest {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Password{
-        @NotBlank(message = "Old password can not be blank")
-        @Size(min = 8, message = "Old password must be at least 8 characters long")
+        @NotBlank(message = "Mật khẩu cũ không được để trống")
+        @Size(min = 8, message = "Mật khẩu cũ phải có ít nhất 8 ký tự")
         private String oldPassword;
 
-        @NotBlank(message = "New password can not be blank")
-        @Size(min = 8, message = "New password must be at least 8 characters long")
+        @NotBlank(message = "Mật khẩu mới không được để trống")
+        @Size(min = 8, message = "Mật khẩu mới phải có ít nhất 8 ký tự")
         private String newPassword;
     }
 }

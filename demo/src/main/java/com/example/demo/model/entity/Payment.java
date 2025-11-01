@@ -33,19 +33,28 @@ public class Payment {
     private PaymentMethod paymentMethod;
 
     @Column(name = "amount", nullable = false)
-    private Double amount;
+    private Double amount; // Lưu ý: Dùng BigDecimal sẽ chính xác hơn cho tiền tệ
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private PaymentStatus status;
 
+    // --- BỔ SUNG 1: Mã đơn hàng của BẠN ---
+    // Mã này bạn tạo ra để gửi cho PayOS
+    @Column(name = "order_code", length = 100, unique = true, nullable = false)
+    private String orderCode;
+
+    // --- BỔ SUNG 2: Dữ liệu thô từ Webhook ---
+    @Column(name = "raw_response_data", columnDefinition = "NVARCHAR(MAX)")
+    private String rawResponseData;
+
     @Column(name = "transaction_ref", length = 255)
-    private String transactionRef;
+    private String transactionRef; // Đây là mã của PayOS trả về
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)

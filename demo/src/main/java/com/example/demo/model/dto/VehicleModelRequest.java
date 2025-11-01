@@ -9,42 +9,39 @@ public class VehicleModelRequest {
 
     @Data
     public static class CreateModel {
-        @NotBlank(message = "Brand name is required")
-        @Size(max = 100, message = "Brand name must not exceed 100 characters")
+        @NotBlank(message = "Tên hãng xe không được để trống")
+        @Size(max = 100, message = "Tên hãng xe không được vượt quá 100 ký tự")
         private String brandName;
 
-        @NotBlank(message = "Model name is required")
-        @Size(max = 100, message = "Model name must not exceed 100 characters")
+        @NotBlank(message = "Tên mẫu xe không được để trống")
+        @Size(max = 100, message = "Tên mẫu xe không được vượt quá 100 ký tự")
         private String modelName;
 
-        @Size(max = 200, message = "Dimensions must not exceed 200 characters")
+        @Size(max = 200, message = "Kích thước không được vượt quá 200 ký tự")
         private String dimensions;
 
-        @Pattern(regexp = "^\\d{4}$", message = "Year must be a 4-digit number")
-        private String yearIntroduce;
-
-        @Min(value = 1, message = "Seats must be at least 1")
-        @Max(value = 50, message = "Seats must not exceed 50")
+        @Min(value = 1, message = "Số ghế phải ít nhất 1")
+        @Max(value = 50, message = "Số ghế không được vượt quá 50")
         private Integer seats;
 
-        @Positive(message = "Battery capacity must be positive")
-        @DecimalMax(value = "500.0", message = "Battery capacity must not exceed 500 kWh")
+        @Positive(message = "Dung lượng pin phải lớn hơn 0")
+        @DecimalMax(value = "500.0", message = "Dung lượng pin không được vượt quá 500 kWh")
         private Double batteryCapacityKwh;
 
-        @Positive(message = "Range must be positive")
-        @DecimalMax(value = "2000.0", message = "Range must not exceed 2000 km")
+        @Positive(message = "Quãng đường di chuyển phải lớn hơn 0")
+        @DecimalMax(value = "2000.0", message = "Quãng đường di chuyển không được vượt quá 2000 km")
         private Double rangeKm;
 
-        @Positive(message = "Charging time must be positive")
-        @DecimalMax(value = "100.0", message = "Charging time must not exceed 100 hours")
+        @Positive(message = "Thời gian sạc phải lớn hơn 0")
+        @DecimalMax(value = "100.0", message = "Thời gian sạc không được vượt quá 100 giờ")
         private Double chargingTimeHours;
 
-        @Positive(message = "Motor power must be positive")
-        @DecimalMax(value = "2000.0", message = "Motor power must not exceed 2000 kW")
+        @Positive(message = "Công suất động cơ phải lớn hơn 0")
+        @DecimalMax(value = "2000.0", message = "Công suất động cơ không được vượt quá 2000 kW")
         private Double motorPowerKw;
 
-        @Positive(message = "Weight must be positive")
-        @DecimalMax(value = "10000.0", message = "Weight must not exceed 10000 kg")
+        @Positive(message = "Trọng lượng phải lớn hơn 0")
+        @DecimalMax(value = "10000.0", message = "Trọng lượng không được vượt quá 10000 kg")
         private Double weightKg;
 
         @JsonIgnore
@@ -53,45 +50,45 @@ public class VehicleModelRequest {
 
     @Data
     public static class UpdateModel {
-        @NotBlank(message = "Brand name is required")
-        @Size(max = 100, message = "Brand name must not exceed 100 characters")
+        @NotBlank(message = "Tên hãng xe không được để trống")
+        @Size(max = 100, message = "Tên hãng xe không được vượt quá 100 ký tự")
         private String brandName;
 
-        @NotBlank(message = "Model name is required")
-        @Size(max = 100, message = "Model name must not exceed 100 characters")
+        @NotBlank(message = "Tên mẫu xe không được để trống")
+        @Size(max = 100, message = "Tên mẫu xe không được vượt quá 100 ký tự")
         private String modelName;
 
-        @Size(max = 200, message = "Dimensions must not exceed 200 characters")
+        @Size(max = 200, message = "Kích thước không được vượt quá 200 ký tự")
         private String dimensions;
 
-        @Pattern(regexp = "^\\d{4}$", message = "Year must be a 4-digit number")
+        @Pattern(regexp = "^\\d{4}$", message = "Năm sản xuất phải là số gồm 4 chữ số")
         private String yearIntroduce;
 
-        @Min(value = 1, message = "Seats must be at least 1")
-        @Max(value = 50, message = "Seats must not exceed 50")
+        @Min(value = 1, message = "Số ghế phải ít nhất 1")
+        @Max(value = 50, message = "Số ghế không được vượt quá 50")
         private Integer seats;
 
-        @Positive(message = "Battery capacity must be positive")
-        @DecimalMax(value = "500.0", message = "Battery capacity must not exceed 500 kWh")
+        @Positive(message = "Dung lượng pin phải lớn hơn 0")
+        @DecimalMax(value = "500.0", message = "Dung lượng pin không được vượt quá 500 kWh")
         private Double batteryCapacityKwh;
 
-        @Positive(message = "Range must be positive")
-        @DecimalMax(value = "2000.0", message = "Range must not exceed 2000 km")
+        @Positive(message = "Quãng đường di chuyển phải lớn hơn 0")
+        @DecimalMax(value = "2000.0", message = "Quãng đường di chuyển không được vượt quá 2000 km")
         private Double rangeKm;
 
-        @Positive(message = "Charging time must be positive")
-        @DecimalMax(value = "100.0", message = "Charging time must not exceed 100 hours")
+        @Positive(message = "Thời gian sạc phải lớn hơn 0")
+        @DecimalMax(value = "100.0", message = "Thời gian sạc không được vượt quá 100 giờ")
         private Double chargingTimeHours;
 
-        @Positive(message = "Motor power must be positive")
-        @DecimalMax(value = "2000.0", message = "Motor power must not exceed 2000 kW")
+        @Positive(message = "Công suất động cơ phải lớn hơn 0")
+        @DecimalMax(value = "2000.0", message = "Công suất động cơ không được vượt quá 2000 kW")
         private Double motorPowerKw;
 
-        @Positive(message = "Weight must be positive")
-        @DecimalMax(value = "10000.0", message = "Weight must not exceed 10000 kg")
+        @Positive(message = "Trọng lượng phải lớn hơn 0")
+        @DecimalMax(value = "10000.0", message = "Trọng lượng không được vượt quá 10000 kg")
         private Double weightKg;
 
-        @NotNull(message = "Status is required")
+        @NotNull(message = "Trạng thái không được để trống")
         private EntityStatus status;
     }
 }

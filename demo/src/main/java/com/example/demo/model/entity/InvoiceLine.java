@@ -21,7 +21,7 @@ public class InvoiceLine {
     @JoinColumn(name = "invoice_id", nullable = false)
     private Invoice invoice;
 
-    @Column(name = "item_description", nullable = false)
+    @Column(name = "item_description", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String itemDescription;
 
     @Column(name = "item_type", nullable = false)

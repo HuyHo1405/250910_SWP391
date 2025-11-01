@@ -11,11 +11,12 @@ import java.time.LocalDateTime;
 public class PartResponse {
     private Long id;
     private String name;
-    private Integer partNumber;
+    private String partNumber;
     private String manufacturer;
     private String description;
     private Double currentUnitPrice;
     private Integer quantity;
+    private Integer reserved;
     private String status;           // Enum EntityStatus (ACTIVE, INACTIVE, etc.)
     private LocalDateTime createdAt;
 }

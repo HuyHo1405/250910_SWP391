@@ -1,5 +1,6 @@
 package com.example.demo.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BookingResponse {
     private Long id;
     private Long customerId;
@@ -17,11 +19,12 @@ public class BookingResponse {
     private String vehicleModel;
     private ScheduleDateTime scheduleDateTime;
     private String bookingStatus;
-    private String paymentStatus;
-    private Double totalPrice;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
     private List<ServiceDetail> serviceDetails;
+
+    private InvoiceResponse invoice;
 
     @Data
     @Builder
@@ -32,6 +35,5 @@ public class BookingResponse {
         private Long serviceId;
         private String serviceName;
         private String description;
-        private Double servicePrice;
     }
 }

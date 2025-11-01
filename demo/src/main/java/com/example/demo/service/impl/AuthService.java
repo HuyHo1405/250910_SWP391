@@ -237,7 +237,7 @@ public class AuthService implements IAuthService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
-                .expiresIn(jwtUtil.getExpirationInSeconds())
+                .expiresInSec(jwtUtil.getExpirationInSeconds())
                 .user(userInfo)
                 .build();
     }

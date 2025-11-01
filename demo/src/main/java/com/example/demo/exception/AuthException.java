@@ -14,19 +14,19 @@ public class AuthException extends BaseServiceException {
 
     public static class InvalidCredentials extends AuthException {
         public InvalidCredentials() {
-            super("INVALID_CREDENTIALS", "Invalid username or password", HttpStatus.UNAUTHORIZED);
+            super("INVALID_CREDENTIALS", "Tên đăng nhập hoặc mật khẩu không hợp lệ", HttpStatus.UNAUTHORIZED);
         }
     }
 
     public static class InvalidToken extends AuthException {
         public InvalidToken() {
-            super("INVALID_TOKEN", "Token is invalid or expired", HttpStatus.UNAUTHORIZED);
+            super("INVALID_TOKEN", "Token không hợp lệ hoặc đã hết hạn", HttpStatus.UNAUTHORIZED);
         }
     }
 
     public static class TokenExpired extends AuthException {
         public TokenExpired() {
-            super("TOKEN_EXPIRED", "Token has expired", HttpStatus.UNAUTHORIZED);
+            super("TOKEN_EXPIRED", "Token đã hết hạn", HttpStatus.UNAUTHORIZED);
         }
     }
 
@@ -36,19 +36,19 @@ public class AuthException extends BaseServiceException {
 
     public static class CodeExpired extends AuthException {
         public CodeExpired() {
-            super("CODE_EXPIRED", "Verification code has expired", HttpStatus.BAD_REQUEST);
+            super("CODE_EXPIRED", "Mã xác thực đã hết hạn", HttpStatus.BAD_REQUEST);
         }
     }
 
     public static class CodeInvalid extends AuthException {
         public CodeInvalid() {
-            super("CODE_INVALID", "Verification code is invalid", HttpStatus.BAD_REQUEST);
+            super("CODE_INVALID", "Mã xác thực không hợp lệ", HttpStatus.BAD_REQUEST);
         }
     }
 
     public static class CodeGenerationFailed extends AuthException {
         public CodeGenerationFailed() {
-            super("CODE_GENERATION_FAILED", "Failed to generate verification code", HttpStatus.SERVICE_UNAVAILABLE);
+            super("CODE_GENERATION_FAILED", "Tạo mã xác thực thất bại", HttpStatus.SERVICE_UNAVAILABLE);
         }
     }
 
@@ -58,7 +58,7 @@ public class AuthException extends BaseServiceException {
 
     public static class EmailSendFailed extends AuthException {
         public EmailSendFailed() {
-            super("EMAIL_SEND_FAILED", "Failed to send email", HttpStatus.SERVICE_UNAVAILABLE);
+            super("EMAIL_SEND_FAILED", "Gửi email thất bại", HttpStatus.SERVICE_UNAVAILABLE);
         }
     }
 
@@ -68,13 +68,13 @@ public class AuthException extends BaseServiceException {
 
     public static class AccountUnverified extends AuthException {
         public AccountUnverified() {
-            super("ACCOUNT_UNVERIFIED", "Please verify your email", HttpStatus.FORBIDDEN);
+            super("ACCOUNT_UNVERIFIED", "Vui lòng xác thực email để tiếp tục", HttpStatus.FORBIDDEN);
         }
     }
 
     public static class AccountBlocked extends AuthException {
         public AccountBlocked() {
-            super("ACCOUNT_BLOCKED", "Account is blocked", HttpStatus.FORBIDDEN);
+            super("ACCOUNT_BLOCKED", "Tài khoản đã bị khóa", HttpStatus.FORBIDDEN);
         }
     }
 }

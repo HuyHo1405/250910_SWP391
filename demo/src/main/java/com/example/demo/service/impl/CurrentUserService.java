@@ -19,7 +19,7 @@ public class CurrentUserService {
     public User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getPrincipal() == null) {
-            throw new IllegalStateException("No authenticated user found");
+            throw new IllegalStateException("Không tìm thấy user đăng nhập");
         }
 
         String email = auth.getName();

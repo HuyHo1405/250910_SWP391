@@ -19,7 +19,7 @@ public interface VehicleRepo extends JpaRepository<Vehicle, Long> {
 
     List<Vehicle> findAllByEntityStatus(EntityStatus status);
 
-    List<Vehicle> findByUserIdAndEntityStatus(Long userId, EntityStatus status);
+    List<Vehicle> findByCustomerIdAndEntityStatus(Long customerId, EntityStatus status);
 
     boolean existsByPlateNumberAndEntityStatus(String plateNumber, EntityStatus status);
 
@@ -36,6 +36,6 @@ public interface VehicleRepo extends JpaRepository<Vehicle, Long> {
     @Query("SELECT COUNT(v) FROM Vehicle v WHERE v.entityStatus = 'ACTIVE'")
     long countActive();
 
-    @Query("SELECT COUNT(v) FROM Vehicle v WHERE v.user.id = :userId AND v.entityStatus = 'ACTIVE'")
-    long countActiveByUser(@Param("userId") Long userId);
+    @Query("SELECT COUNT(v) FROM Vehicle v WHERE v.customer.id = :customerId AND v.entityStatus = 'ACTIVE'")
+    long countActiveByUser(@Param("customerId") Long customerId);
 }

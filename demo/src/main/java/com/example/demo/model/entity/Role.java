@@ -19,13 +19,13 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, columnDefinition = "NVARCHAR(255)")
     private String name;
 
-    @Column(nullable = false, unique = true, name = "display_name")
+    @Column(nullable = false, unique = true, name = "display_name", columnDefinition = "NVARCHAR(255)")
     private String displayName;
 
-    @Column(length = 500)
+    @Column(length = 500, columnDefinition = "NVARCHAR(255)")
     private String description;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -49,15 +49,4 @@ public class Role {
             inverseJoinColumns = @JoinColumn(name = "editable_id")
     )
     private Set<Role> editableRoles = new HashSet<>();
-
-    //helper methods
-    public void addPermission(Permission permission) {
-        this.permissions.add(permission);
-        permission.getRoles().add(this);
-    }
-
-    public void removePermission(Permission permission) {
-        this.permissions.remove(permission);
-        permission.getRoles().remove(this);
-    }
 }

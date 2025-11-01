@@ -62,7 +62,7 @@ public class UserContextService {
             log.warn("User with roleId {} attempted to edit roleId {} - FORBIDDEN",
                     currentUserRoleId, roleId);
             throw new CommonException.Forbidden(
-                    "You are not authorized to access this resource"
+                    "Bạn không được cấp phép để truy cập tài nguyên này"
             );
         }
 
@@ -88,7 +88,7 @@ public class UserContextService {
         roleRepo.findById(role.getId())
                 .orElseThrow(() -> {
                     log.error("Role not found with id: {}", role.getId());
-                    return new CommonException.NotFound("Role Not Found");
+                    return new CommonException.NotFound("Không tìm thấy role");
                 });
 
         checkRoleEditable(role.getId());

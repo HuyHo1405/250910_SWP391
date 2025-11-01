@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class InvoiceService implements IInvoiceService {
 
+    //TODO: viết invoice + payment exception
     private final BookingRepo bookingRepo;
     private final InvoiceRepo invoiceRepo;
     private final MaintenanceCatalogRepo catalogRepo;
@@ -49,7 +50,7 @@ public class InvoiceService implements IInvoiceService {
 
         // Duyệt toàn bộ bookingDetail (dịch vụ đặt)
         for (BookingDetail detail : booking.getBookingDetails()) {
-            Long catalogId = detail.getService().getId();
+            Long catalogId = detail.getCatalog().getId();
             Long modelId = booking.getVehicle().getModel().getId();
 
             lines.addAll(buildInvoiceLine(catalogId, modelId, invoice));

@@ -23,19 +23,21 @@ public class MaintenanceCatalog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "NVARCHAR(255)")
     private String name;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private MaintenanceCatalogType maintenanceServiceType;
 
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String description;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private EntityStatus status;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "maintenanceCatalog", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -52,13 +54,4 @@ public class MaintenanceCatalog {
         if (status == null) status = EntityStatus.ACTIVE;
     }
 
-    public void addModel(MaintenanceCatalogModel model) {
-        models.add(model);
-        model.setMaintenanceCatalog(this);
-    }
-
-    public void removeModel(MaintenanceCatalogModel model) {
-        models.remove(model);
-        model.setMaintenanceCatalog(null);
-    }
 }

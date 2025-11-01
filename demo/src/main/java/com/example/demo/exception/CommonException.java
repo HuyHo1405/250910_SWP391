@@ -3,6 +3,7 @@ package com.example.demo.exception;
 import org.springframework.http.HttpStatus;
 
 public class CommonException extends BaseServiceException {
+
     public CommonException(String code, String message, HttpStatus httpStatus) {
         super(code, message, httpStatus);
     }
@@ -15,7 +16,7 @@ public class CommonException extends BaseServiceException {
         public NotFound(String resource, Object identifier) {
             super(
                     "NOT_FOUND",
-                    String.format("%s not found: %s", resource, identifier),
+                    String.format("%s không tìm thấy: %s", resource, identifier),
                     HttpStatus.NOT_FOUND
             );
         }
@@ -33,7 +34,7 @@ public class CommonException extends BaseServiceException {
         public AlreadyExists(String resource, String field, Object value) {
             super(
                     "ALREADY_EXISTS",
-                    String.format("%s already exists with %s: %s", resource, field, value),
+                    String.format("%s đã tồn tại với %s: %s", resource, field, value),
                     HttpStatus.CONFLICT
             );
         }
@@ -67,7 +68,7 @@ public class CommonException extends BaseServiceException {
         }
 
         public Forbidden() {
-            super("FORBIDDEN", "You are not authorized to perform this action", HttpStatus.FORBIDDEN);
+            super("FORBIDDEN", "Bạn không được phép thực hiện hành động này", HttpStatus.FORBIDDEN);
         }
     }
 
@@ -98,6 +99,7 @@ public class CommonException extends BaseServiceException {
     // ================================
     // BAD REQUEST - Dùng cho lỗi nhập liệu, validation fail, parse error
     // ================================
+
     public static class BadRequest extends CommonException {
         public BadRequest(String message) {
             super("BAD_REQUEST", message, HttpStatus.BAD_REQUEST);

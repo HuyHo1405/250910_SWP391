@@ -15,15 +15,15 @@ public class PartException extends BaseServiceException {
     public static class PartNotFound extends PartException {
         public PartNotFound(Long id) {
             super("PART_NOT_FOUND",
-                    String.format("Part with ID %d not found", id),
+                    String.format("Phụ tùng với ID %d không tìm thấy", id),
                     HttpStatus.NOT_FOUND);
         }
     }
 
     public static class PartNumberNotFound extends PartException {
-        public PartNumberNotFound(Integer partNumber) {
+        public PartNumberNotFound(String partNumber) {
             super("PART_NUMBER_NOT_FOUND",
-                    String.format("Part with part number %d not found", partNumber),
+                    String.format("Phụ tùng với mã số %s không tìm thấy", partNumber),
                     HttpStatus.NOT_FOUND);
         }
     }
@@ -33,9 +33,9 @@ public class PartException extends BaseServiceException {
     // ================================
 
     public static class PartNumberExists extends PartException {
-        public PartNumberExists(Integer partNumber) {
+        public PartNumberExists(String partNumber) {
             super("PART_NUMBER_EXISTS",
-                    String.format("Part number %d already exists in the system", partNumber),
+                    String.format("Mã số phụ tùng %s đã tồn tại trong hệ thống", partNumber),
                     HttpStatus.CONFLICT);
         }
     }
@@ -47,7 +47,7 @@ public class PartException extends BaseServiceException {
     public static class InvalidPrice extends PartException {
         public InvalidPrice() {
             super("INVALID_PRICE",
-                    "Part price must be greater than or equal to 0",
+                    "Giá phụ tùng phải lớn hơn hoặc bằng 0",
                     HttpStatus.BAD_REQUEST);
         }
     }
@@ -55,7 +55,7 @@ public class PartException extends BaseServiceException {
     public static class InvalidQuantity extends PartException {
         public InvalidQuantity() {
             super("INVALID_QUANTITY",
-                    "Part quantity must be greater than or equal to 0",
+                    "Số lượng phụ tùng phải lớn hơn hoặc bằng 0",
                     HttpStatus.BAD_REQUEST);
         }
     }
@@ -63,7 +63,7 @@ public class PartException extends BaseServiceException {
     public static class InvalidStockAdjustment extends PartException {
         public InvalidStockAdjustment(String reason) {
             super("INVALID_STOCK_ADJUSTMENT",
-                    String.format("Invalid stock adjustment: %s", reason),
+                    String.format("Điều chỉnh kho không hợp lệ: %s", reason),
                     HttpStatus.BAD_REQUEST);
         }
     }
@@ -71,7 +71,7 @@ public class PartException extends BaseServiceException {
     public static class NegativeQuantityResult extends PartException {
         public NegativeQuantityResult(int currentQuantity, int adjustment) {
             super("NEGATIVE_QUANTITY_RESULT",
-                    String.format("Adjustment of %d would result in negative quantity (current: %d)",
+                    String.format("Điều chỉnh %d sẽ dẫn đến số lượng âm (hiện tại: %d)",
                             adjustment, currentQuantity),
                     HttpStatus.BAD_REQUEST);
         }
@@ -80,7 +80,7 @@ public class PartException extends BaseServiceException {
     public static class InvalidAmount extends PartException {
         public InvalidAmount(String operation) {
             super("INVALID_AMOUNT",
-                    String.format("Amount for %s operation must be positive", operation),
+                    String.format("Số tiền cho thao tác %s phải dương", operation),
                     HttpStatus.BAD_REQUEST);
         }
     }
@@ -92,7 +92,7 @@ public class PartException extends BaseServiceException {
     public static class InsufficientStock extends PartException {
         public InsufficientStock(Long partId, int available, int required) {
             super("INSUFFICIENT_STOCK",
-                    String.format("Insufficient stock for part ID %d. Available: %d, Required: %d",
+                    String.format("Không đủ kho cho phụ tùng ID %d. Có sẵn: %d, Cần: %d",
                             partId, available, required),
                     HttpStatus.CONFLICT);
         }
@@ -101,7 +101,7 @@ public class PartException extends BaseServiceException {
     public static class PartOutOfStock extends PartException {
         public PartOutOfStock(Long partId, String partName) {
             super("PART_OUT_OF_STOCK",
-                    String.format("Part '%s' (ID: %d) is out of stock", partName, partId),
+                    String.format("Phụ tùng '%s' (ID: %d) hết hàng", partName, partId),
                     HttpStatus.CONFLICT);
         }
     }
@@ -109,7 +109,7 @@ public class PartException extends BaseServiceException {
     public static class PartInactive extends PartException {
         public PartInactive(Long partId) {
             super("PART_INACTIVE",
-                    String.format("Part with ID %d is inactive and cannot be used", partId),
+                    String.format("Phụ tùng với ID %d không hoạt động và không thể sử dụng", partId),
                     HttpStatus.CONFLICT);
         }
     }
@@ -117,7 +117,7 @@ public class PartException extends BaseServiceException {
     public static class PartUnavailable extends PartException {
         public PartUnavailable(Long partId, String reason) {
             super("PART_UNAVAILABLE",
-                    String.format("Part with ID %d is unavailable: %s", partId, reason),
+                    String.format("Phụ tùng với ID %d không có sẵn: %s", partId, reason),
                     HttpStatus.CONFLICT);
         }
     }
@@ -129,7 +129,7 @@ public class PartException extends BaseServiceException {
     public static class CannotDeletePart extends PartException {
         public CannotDeletePart(Long partId, String reason) {
             super("CANNOT_DELETE_PART",
-                    String.format("Cannot delete part ID %d: %s", partId, reason),
+                    String.format("Không thể xóa phụ tùng ID %d: %s", partId, reason),
                     HttpStatus.CONFLICT);
         }
     }
@@ -137,7 +137,7 @@ public class PartException extends BaseServiceException {
     public static class PartAlreadyInactive extends PartException {
         public PartAlreadyInactive(Long partId) {
             super("PART_ALREADY_INACTIVE",
-                    String.format("Part with ID %d is already inactive", partId),
+                    String.format("Phụ tùng với ID %d đã không hoạt động", partId),
                     HttpStatus.CONFLICT);
         }
     }
@@ -145,7 +145,7 @@ public class PartException extends BaseServiceException {
     public static class PartAlreadyActive extends PartException {
         public PartAlreadyActive(Long partId) {
             super("PART_ALREADY_ACTIVE",
-                    String.format("Part with ID %d is already active", partId),
+                    String.format("Phụ tùng với ID %d đã hoạt động", partId),
                     HttpStatus.CONFLICT);
         }
     }

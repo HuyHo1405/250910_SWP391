@@ -16,7 +16,7 @@ public class VehicleException extends BaseServiceException {
         public ModelInUse(Long modelId) {
             super(
                     "MODEL_IN_USE",
-                    String.format("Cannot delete vehicle model %d - it is in use by vehicles", modelId),
+                    String.format("Không thể xóa mẫu xe %d - đang được sử dụng bởi các xe khác", modelId),
                     HttpStatus.CONFLICT
             );
         }
@@ -26,7 +26,7 @@ public class VehicleException extends BaseServiceException {
         public InvalidOwnership() {
             super(
                     "INVALID_OWNERSHIP",
-                    "You don't own this vehicle",
+                    "Bạn không sở hữu xe này",
                     HttpStatus.FORBIDDEN
             );
         }
@@ -36,7 +36,7 @@ public class VehicleException extends BaseServiceException {
         public InvalidVehicleStatus(String status) {
             super(
                     "INVALID_VEHICLE_STATUS",
-                    String.format("Cannot perform operation on vehicle with status: %s", status),
+                    String.format("Không thể thao tác với xe có trạng thái: %s", status),
                     HttpStatus.BAD_REQUEST
             );
         }

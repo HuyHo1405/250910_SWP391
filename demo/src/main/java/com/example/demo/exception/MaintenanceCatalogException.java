@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
  * Base exception cho Maintenance Catalog domain
  * Bao gồm: MaintenanceCatalog, MaintenanceCatalogModel, MaintenanceCatalogModelPart
  */
+
 public class MaintenanceCatalogException extends BaseServiceException {
 
     protected MaintenanceCatalogException(String code, String message, HttpStatus httpStatus) {
@@ -17,10 +18,11 @@ public class MaintenanceCatalogException extends BaseServiceException {
     /**
      * Catalog không hoạt động
      */
+
     public static class CatalogInactive extends MaintenanceCatalogException {
         public CatalogInactive(String catalogName) {
             super("CATALOG_INACTIVE",
-                    String.format("Maintenance catalog '%s' is not available", catalogName),
+                    String.format("Danh mục bảo trì '%s' không có sẵn", catalogName),
                     HttpStatus.BAD_REQUEST);
         }
     }
@@ -28,10 +30,11 @@ public class MaintenanceCatalogException extends BaseServiceException {
     /**
      * Loại catalog không hợp lệ
      */
+
     public static class InvalidCatalogType extends MaintenanceCatalogException {
         public InvalidCatalogType(String type) {
             super("INVALID_CATALOG_TYPE",
-                    String.format("Invalid maintenance catalog type: %s", type),
+                    String.format("Loại danh mục bảo trì không hợp lệ: %s", type),
                     HttpStatus.BAD_REQUEST);
         }
     }
@@ -41,16 +44,17 @@ public class MaintenanceCatalogException extends BaseServiceException {
     /**
      * Xe không support catalog này
      */
+
     public static class ModelNotSupported extends MaintenanceCatalogException {
         public ModelNotSupported(Long catalogId, Long modelId) {
             super("MODEL_NOT_SUPPORTED",
-                    String.format("Model %d is not supported for catalog %d", modelId, catalogId),
+                    String.format("Mẫu xe %d không được hỗ trợ cho danh mục %d", modelId, catalogId),
                     HttpStatus.BAD_REQUEST);
         }
 
         public ModelNotSupported(String catalogName, String modelName) {
             super("MODEL_NOT_SUPPORTED",
-                    String.format("Model '%s' is not supported for catalog '%s'", modelName, catalogName),
+                    String.format("Mẫu xe '%s' không được hỗ trợ cho danh mục '%s'", modelName, catalogName),
                     HttpStatus.BAD_REQUEST);
         }
     }
@@ -60,28 +64,31 @@ public class MaintenanceCatalogException extends BaseServiceException {
     /**
      * Part không available
      */
+
     public static class PartNotAvailable extends MaintenanceCatalogException {
         public PartNotAvailable(String partName) {
             super("PART_NOT_AVAILABLE",
-                    String.format("Part '%s' is not available", partName),
+                    String.format("Phụ tùng '%s' không có sẵn", partName),
                     HttpStatus.BAD_REQUEST);
         }
     }
 
     // ==================== GENERAL DOMAIN EXCEPTIONS ====================
+
     /**
      * Không có dịch vụ nào available cho xe này
      */
+
     public static class NoServicesAvailable extends MaintenanceCatalogException {
         public NoServicesAvailable(Long modelId) {
             super("NO_SERVICES_AVAILABLE",
-                    String.format("No maintenance services available for model %d", modelId),
+                    String.format("Không có dịch vụ bảo trì nào có sẵn cho mẫu xe %d", modelId),
                     HttpStatus.NOT_FOUND);
         }
 
         public NoServicesAvailable(String modelName) {
             super("NO_SERVICES_AVAILABLE",
-                    String.format("No maintenance services available for model '%s'", modelName),
+                    String.format("Không có dịch vụ bảo trì nào có sẵn cho mẫu xe '%s'", modelName),
                     HttpStatus.NOT_FOUND);
         }
     }
@@ -89,10 +96,11 @@ public class MaintenanceCatalogException extends BaseServiceException {
     /**
      * Batch operation failed
      */
+
     public static class BatchOperationFailed extends MaintenanceCatalogException {
         public BatchOperationFailed(String details) {
             super("BATCH_OPERATION_FAILED",
-                    String.format("Batch operation failed: %s", details),
+                    String.format("Thao tác hàng loạt thất bại: %s", details),
                     HttpStatus.BAD_REQUEST);
         }
     }

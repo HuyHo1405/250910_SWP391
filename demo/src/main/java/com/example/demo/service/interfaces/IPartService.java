@@ -18,7 +18,7 @@ public interface IPartService {
     // ================================
     PartResponse getPartById(Long id);
 
-    PartResponse getPartByPartNumber(Integer partNumber);
+    PartResponse getPartByPartNumber(String partNumber);
 
     List<PartResponse> getAllPartsFiltered(String manufacturer, EntityStatus status, String searchKeyword);
 
@@ -32,6 +32,8 @@ public interface IPartService {
     PartResponse updatePartPrice(Long id, Double newPrice);
 
     PartResponse adjustPartStock(Long id, Integer adjustment); // Tăng/giảm quantity (+/- adjustment)
+
+    PartResponse adjustReservedStock(Long id, Integer adjustment); // Tăng/giảm quantity (+/- adjustment)
 
     PartResponse updatePartStatus(Long id, EntityStatus status);
 

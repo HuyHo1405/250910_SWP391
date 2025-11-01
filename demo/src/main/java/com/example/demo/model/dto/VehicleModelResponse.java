@@ -17,7 +17,6 @@ public class VehicleModelResponse {
     private String brandName;
     private String modelName;
     private String dimensions;
-    private String yearIntroduce;
     private Integer seats;
     private Double batteryCapacityKwh;
     private Double rangeKm;

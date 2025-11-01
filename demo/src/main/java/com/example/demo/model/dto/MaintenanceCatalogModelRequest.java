@@ -11,16 +11,16 @@ import java.util.List;
 @AllArgsConstructor
 public class MaintenanceCatalogModelRequest {
 
-    @NotNull(message = "Model ID is required")
+    @NotNull(message = "mã mẫu xe không được để trống")
     private Long modelId;
 
-    @Positive(message = "Estimated time must be positive")
+    @Positive(message = "Thời gian ước tính phải là số dương")
     private Double estTimeMinutes;
 
-    @PositiveOrZero(message = "Maintenance price must be non-negative")
+    @PositiveOrZero(message = "Giá bảo dưỡng phải là số không âm")
     private Double maintenancePrice;
 
-    @Size(max = 1000, message = "Notes cannot exceed 1000 characters")
+    @Size(max = 500, message = "Ghi chú không được vượt quá 500 ký tự")
     private String notes;
 
 }

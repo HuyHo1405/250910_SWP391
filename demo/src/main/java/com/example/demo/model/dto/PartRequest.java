@@ -9,26 +9,29 @@ import lombok.*;
 @AllArgsConstructor
 public class PartRequest {
 
-    @NotBlank(message = "Part name is required")
-    @Size(max = 255, message = "Part name cannot exceed 255 characters")
+    @NotBlank(message = "Tên phụ tùng không được để trống")
+    @Size(max = 255, message = "Tên phụ tùng không được vượt quá 255 ký tự")
     private String name;
 
-    @NotNull(message = "Part number is required")
-    @Positive(message = "Part number must be positive")
-    private Integer partNumber;
+    @NotNull(message = "Mã phụ tùng không được để trống")
+    private String partNumber;
 
-    @NotBlank(message = "Manufacturer is required")
-    @Size(max = 255, message = "Manufacturer name cannot exceed 255 characters")
+    @NotBlank(message = "Nhà sản xuất không được để trống")
+    @Size(max = 255, message = "Tên nhà sản xuất không được vượt quá 255 ký tự")
     private String manufacturer;
 
-    @Size(max = 1000, message = "Description cannot exceed 1000 characters")
+    @Size(max = 1000, message = "Mô tả không được vượt quá 1000 ký tự")
     private String description;
 
-    @NotNull(message = "Unit price is required")
-    @DecimalMin(value = "0.0", inclusive = true, message = "Unit price must be greater than or equal to 0")
+    @NotNull(message = "Đơn giá không được để trống")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Đơn giá phải lớn hơn hoặc bằng 0")
     private Double currentUnitPrice;
 
-    @NotNull(message = "Quantity is required")
-    @Min(value = 0, message = "Quantity must be greater than or equal to 0")
+    @NotNull(message = "Số lượng không được để trống")
+    @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
     private Integer quantity;
+
+    @NotNull(message = "Số lượng hàng đã đặt không được trống")
+    @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
+    private Integer reserved;
 }

@@ -9,14 +9,14 @@ import jakarta.validation.constraints.*;
 @AllArgsConstructor
 public class MaintenanceCatalogModelPartRequest {
 
-    @NotNull(message = "Part ID is required")
+    @NotNull(message = "Mã phụ tùng không được để trống")
     private Long partId;
 
-    @Positive(message = "Quantity must be positive")
+    @Positive(message = "Số lượng phải lớn hơn 0")
     private Integer quantityRequired;
 
     private Boolean isOptional = false;
 
-    @Size(max = 500, message = "Part notes cannot exceed 500 characters")
+    @Size(max = 500, message = "Ghi chú phụ tùng không được vượt quá 500 ký tự")
     private String notes;
 }

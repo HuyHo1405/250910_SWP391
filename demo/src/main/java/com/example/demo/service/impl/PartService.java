@@ -46,6 +46,7 @@ public class PartService implements IPartService {
                 .description(request.getDescription())
                 .currentUnitPrice(request.getCurrentUnitPrice())
                 .quantity(request.getQuantity())
+                .reserved(request.getReserved())
                 .status(EntityStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -72,7 +73,7 @@ public class PartService implements IPartService {
 
     @Override
     @Transactional(readOnly = true)
-    public PartResponse getPartByPartNumber(Integer partNumber) {
+    public PartResponse getPartByPartNumber(String partNumber) {
         log.info("Fetching part by part number: {}", partNumber);
 
         accessControlService.verifyResourceAccessWithoutOwnership("PART", "read");
@@ -159,6 +160,7 @@ public class PartService implements IPartService {
         part.setDescription(request.getDescription());
         part.setCurrentUnitPrice(request.getCurrentUnitPrice());
         part.setQuantity(request.getQuantity());
+        part.setReserved(request.getReserved());
 
         Part updatedPart = partRepository.save(part);
         log.info("Part updated successfully: {}", id);
@@ -198,6 +200,25 @@ public class PartService implements IPartService {
         }
 
         part.setQuantity(newQuantity);
+        Part updatedPart = partRepository.save(part);
+
+        return mapToResponse(updatedPart);
+    }
+
+    @Override
+    public PartResponse adjustReservedStock(Long id, Integer adjustment) {
+        log.info("Adjusting reserved for part ID: {} by {}", id, adjustment);
+
+        accessControlService.verifyResourceAccessWithoutOwnership("PART", "manage_reserved");
+
+        Part part = findPartById(id);
+
+        int newReserved = part.getReserved() + adjustment;
+        if (newReserved < 0) {
+            throw new PartException.NegativeQuantityResult(part.getQuantity(), adjustment);
+        }
+
+        part.setReserved(newReserved);
         Part updatedPart = partRepository.save(part);
 
         return mapToResponse(updatedPart);
@@ -271,7 +292,7 @@ public class PartService implements IPartService {
         accessControlService.verifyResourceAccessWithoutOwnership("PART", "manage_stock");
 
         if (amount <= 0) {
-            throw new PartException.InvalidAmount("increase stock");
+            throw new PartException.InvalidAmount("thêm số lượng hàng tồn kho");
         }
         return adjustPartStock(id, amount);
     }
@@ -283,7 +304,7 @@ public class PartService implements IPartService {
         accessControlService.verifyResourceAccessWithoutOwnership("PART", "manage_stock");
 
         if (amount <= 0) {
-            throw new PartException.InvalidAmount("decrease stock");
+            throw new PartException.InvalidAmount("giảm số lương hàng tồn kho");
         }
 
         // Additional check for sufficient stock before decreasing

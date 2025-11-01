@@ -11,9 +11,9 @@ import java.util.Optional;
 @Repository
 public interface PartRepo extends JpaRepository<Part, Long> {
 
-    Optional<Part> findByPartNumber(Integer partNumber);
+    Optional<Part> findByPartNumber(String partNumber);
 
-    boolean existsByPartNumber(Integer partNumber);
+    boolean existsByPartNumber(String partNumber);
 
     List<Part> findByManufacturer(String manufacturer);
 

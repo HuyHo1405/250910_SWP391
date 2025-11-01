@@ -37,7 +37,7 @@ public class VehicleModelService implements IVehicleModelService{
 
         // Check if model already exists
         if (vehicleModelRepo.existsByBrandNameAndModelNameAndStatus(request.getBrandName(), request.getModelName(), EntityStatus.ACTIVE)) {
-            throw new CommonException.AlreadyExists("Vehicle Model", "brand and model",
+            throw new CommonException.AlreadyExists("Mẫu xe", "hãng hay mẫu mã",
                     request.getBrandName() + " " + request.getModelName());
         }
 
@@ -45,7 +45,6 @@ public class VehicleModelService implements IVehicleModelService{
                 .brandName(request.getBrandName())
                 .modelName(request.getModelName())
                 .dimensions(request.getDimensions())
-                .yearIntroduce(request.getYearIntroduce())
                 .seats(request.getSeats())
                 .batteryCapacityKwh(request.getBatteryCapacityKwh())
                 .rangeKm(request.getRangeKm())
@@ -68,7 +67,7 @@ public class VehicleModelService implements IVehicleModelService{
         log.info("Fetching vehicle models with status: {}", status);
 
         // Check permission
-        accessControlService.verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", "read-by-status");
+        accessControlService.verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", "read_by_status");
 
         return vehicleModelRepo.findByStatus(status).stream()
                 .map(this::mapToResponse)
@@ -97,7 +96,7 @@ public class VehicleModelService implements IVehicleModelService{
         accessControlService.verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", "read");
 
         VehicleModel vehicleModel = vehicleModelRepo.findByIdAndStatus(id, EntityStatus.ACTIVE)
-                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model", id));
+                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe", id));
 
         return mapToResponse(vehicleModel);
     }
@@ -109,7 +108,7 @@ public class VehicleModelService implements IVehicleModelService{
         return new EnumSchemaResponse(
                 "VehicleModelEnum",          // name
                 modelNames,                  // enumValue
-                "List of car models for sale" // description
+                "Danh sách mẫu xe" // description
         );
     }
 
@@ -136,13 +135,13 @@ public class VehicleModelService implements IVehicleModelService{
         accessControlService.verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", "update");
 
         VehicleModel vehicleModel = vehicleModelRepo.findById(id)
-                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model", id));
+                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe", id));
 
         // Check if updating to a name that already exists (excluding current model)
         vehicleModelRepo.findByBrandNameAndModelNameAndStatus(request.getBrandName(), request.getModelName(), EntityStatus.ACTIVE)
                 .ifPresent(existing -> {
                     if (!existing.getId().equals(id)) {
-                        throw new CommonException.AlreadyExists("Vehicle Model", "brand and model",
+                        throw new CommonException.AlreadyExists("Mẫu xe", "hãng hay mẫu mã",
                                 request.getBrandName() + " " + request.getModelName());
                     }
                 });
@@ -150,7 +149,6 @@ public class VehicleModelService implements IVehicleModelService{
         vehicleModel.setBrandName(request.getBrandName());
         vehicleModel.setModelName(request.getModelName());
         vehicleModel.setDimensions(request.getDimensions());
-        vehicleModel.setYearIntroduce(request.getYearIntroduce());
         vehicleModel.setSeats(request.getSeats());
         vehicleModel.setBatteryCapacityKwh(request.getBatteryCapacityKwh());
         vehicleModel.setRangeKm(request.getRangeKm());
@@ -174,7 +172,7 @@ public class VehicleModelService implements IVehicleModelService{
         accessControlService.verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", "delete");
 
         if (!vehicleModelRepo.existsById(id)) {
-            throw new CommonException.NotFound("Vehicle Model", id);
+            throw new CommonException.NotFound("Mẫu xe", id);
         }
 
         // Optional: Check if model is in use before deletion
@@ -194,7 +192,6 @@ public class VehicleModelService implements IVehicleModelService{
                 .brandName(vehicleModel.getBrandName())
                 .modelName(vehicleModel.getModelName())
                 .dimensions(vehicleModel.getDimensions())
-                .yearIntroduce(vehicleModel.getYearIntroduce())
                 .seats(vehicleModel.getSeats())
                 .batteryCapacityKwh(vehicleModel.getBatteryCapacityKwh())
                 .rangeKm(vehicleModel.getRangeKm())

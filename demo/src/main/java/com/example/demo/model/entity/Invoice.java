@@ -25,8 +25,8 @@ public class Invoice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY) // <-- ĐỔI TỪ ManyToOne sang OneToOne
+    @JoinColumn(name = "booking_id", nullable = false, unique = true) // <-- THÊM unique = true
     private Booking booking;
 
     @Column(name = "invoice_number", nullable = false, unique = true, length = 50)

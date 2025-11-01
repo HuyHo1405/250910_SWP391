@@ -20,13 +20,13 @@ public class Permission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, name = "resource")
+    @Column(nullable = false, name = "resource", columnDefinition = "NVARCHAR(255)")
     private String resource;
 
     @Column(name = "action", nullable = false)
     private String action;
 
-    @Column(name = "description", nullable = false)
+    @Column(name = "description", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String description;
 
     @Column(name = "is_active", nullable = false)

@@ -18,26 +18,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthResponse {
-
-    @NotBlank(message = "Access token cannot be blank")
     private String accessToken;
-
-    @NotBlank(message = "Refresh token cannot be blank")
     private String refreshToken;
-
-    @NotNull(message = "ExpiresIn cannot be null")
-    private Long expiresIn;  // đơn vị: giây
-
-    @NotBlank(message = "Token type cannot be blank")
+    private Long expiresInSec;  // đơn vị: giây
     private String tokenType;
 
-    @NotNull(message = "User info cannot be null")
     private UserProfileResponse user;
 
     @Builder.Default
     private boolean requiresVerification = false;
-    
     private String message;
-
-    // Nested DTO cho user
 }

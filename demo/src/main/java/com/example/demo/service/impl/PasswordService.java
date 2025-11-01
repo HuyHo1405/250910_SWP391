@@ -100,7 +100,7 @@ public class PasswordService implements IPasswordService {
 
         boolean isOldPassword = request.getOldPassword().equals(request.getNewPassword());
         if(isOldPassword) {
-           throw new CommonException.InvalidOperation("New password can not match with old password");
+           throw new CommonException.InvalidOperation("Mật khẩu mới không được trùng với mật khẩu cũ");
         }
 
         User user = userRepo.findById(userId)

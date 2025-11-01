@@ -45,7 +45,7 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
 
         // Validation catalog
         MaintenanceCatalog catalog = catalogRepository.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
 
         // 1. Lấy dữ liệu cũ
         List<MaintenanceCatalogModel> oldList = maintenanceCatalogModelRepo.findByMaintenanceCatalogId(catalogId);
@@ -68,15 +68,15 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
         accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "update");
 
         catalogRepository.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
 
         vehicleModelRepository.findById(modelId)
-                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model with Id", modelId));
+                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", modelId));
 
         MaintenanceCatalogModel entity = maintenanceCatalogModelRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalogId, modelId)
                 .orElseThrow(() -> new CommonException.NotFound(
-                        "Maintenance Catalog with Id " + catalogId +
-                                ", for Vehicle Model with Id " + modelId));
+                        "Dịch vụ với Id" + catalogId +
+                                "cho mẫu xe với Id" + modelId));
 
         updateFields(entity, request);
         return toResponse(maintenanceCatalogModelRepo.save(entity), false);
@@ -88,15 +88,15 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
 
         catalogRepository.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
 
         vehicleModelRepository.findById(modelId)
-                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model with Id", modelId));
+                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", modelId));
 
         MaintenanceCatalogModel entity = maintenanceCatalogModelRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalogId, modelId)
                 .orElseThrow(() -> new CommonException.NotFound(
-                        "Maintenance Catalog with Id " + catalogId +
-                                ", for Vehicle Model with Id " + modelId));
+                        "Dịch vụ với Id: " + catalogId +
+                                "cho mẫu xe với Id" + modelId));
 
         return toResponse(entity, includeParts);
     }
@@ -108,7 +108,7 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
 
         catalogRepository.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Maintenance Catalog with Id", catalogId));
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
 
         return maintenanceCatalogModelRepo.findByMaintenanceCatalogId(catalogId).stream()
                 .map(this::toResponse)
@@ -193,7 +193,7 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
      */
     private MaintenanceCatalogModel createNewEntity(MaintenanceCatalog catalog, MaintenanceCatalogModelRequest dto) {
         VehicleModel vehicleModel = vehicleModelRepository.findById(dto.getModelId())
-                .orElseThrow(() -> new CommonException.NotFound("Vehicle Model with Id", dto.getModelId()));
+                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", dto.getModelId()));
 
         return MaintenanceCatalogModel.builder()
                 .maintenanceCatalog(catalog)
@@ -240,7 +240,6 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
                 .modelId(entity.getVehicleModel().getId())
                 .modelName(entity.getVehicleModel().getModelName())
                 .modelBrand(entity.getVehicleModel().getBrandName())
-                .modelYear(entity.getVehicleModel().getYearIntroduce())
                 .estTimeMinutes(entity.getEstTimeMinutes())
                 .maintenancePrice(entity.getMaintenancePrice())
                 .notes(entity.getNotes())
@@ -248,8 +247,8 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
                 .parts(
                         includeParts ?
                                 maintenanceCatalogModelPartService.getParts(
-                                entity.getMaintenanceCatalog().getId(),
-                                entity.getVehicleModel().getId()):
+                                        entity.getMaintenanceCatalog().getId(),
+                                        entity.getVehicleModel().getId()):
                                 null
                 )
                 .build();
