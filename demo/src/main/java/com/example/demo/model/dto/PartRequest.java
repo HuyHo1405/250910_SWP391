@@ -3,6 +3,8 @@ package com.example.demo.model.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -25,13 +27,13 @@ public class PartRequest {
 
     @NotNull(message = "Đơn giá không được để trống")
     @DecimalMin(value = "0.0", inclusive = true, message = "Đơn giá phải lớn hơn hoặc bằng 0")
-    private Double currentUnitPrice;
+    private BigDecimal currentUnitPrice;
 
     @NotNull(message = "Số lượng không được để trống")
     @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
-    private Integer quantity;
+    private BigDecimal quantity;
 
     @NotNull(message = "Số lượng hàng đã đặt không được trống")
     @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
-    private Integer reserved;
+    private BigDecimal reserved;
 }

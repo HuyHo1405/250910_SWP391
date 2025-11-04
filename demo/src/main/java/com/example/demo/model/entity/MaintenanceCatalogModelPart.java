@@ -3,6 +3,8 @@ package com.example.demo.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "maintenance_catalogs_models_parts")
 @Data
@@ -28,7 +30,7 @@ public class MaintenanceCatalogModelPart {
     private Part part;
 
     @Column(name = "quantity_required")
-    private Integer quantityRequired;
+    private BigDecimal quantityRequired;
 
     @Column(name = "is_optional")
     private Boolean isOptional;

@@ -14,8 +14,8 @@ import java.util.Optional;
 public interface BookingDetailRepo extends JpaRepository<BookingDetail, Long> {
     // Basic finders
     List<BookingDetail> findByBookingId(Long bookingId);
-    List<BookingDetail> findByCatalogId(Long catalogId);
-    Optional<BookingDetail> findByBookingIdAndCatalogId(Long bookingId, Long catalogId);
+    List<BookingDetail> findByCatalogModelId(Long catalogId);
+    Optional<BookingDetail> findByBookingIdAndCatalogModelId(Long bookingId, Long catalogId);
 
     // Delete operations
     @Modifying
@@ -23,10 +23,13 @@ public interface BookingDetailRepo extends JpaRepository<BookingDetail, Long> {
     void deleteByBookingId(@Param("bookingId") Long bookingId);
 
     @Modifying
-    @Query("DELETE FROM BookingDetail bd WHERE bd.booking.id = :bookingId AND bd.catalog.id = :serviceId")
-    void deleteByBookingIdAndServiceId(@Param("bookingId") Long bookingId, @Param("serviceId") Long serviceId);
+    @Query("DELETE FROM BookingDetail bd " +
+            "WHERE bd.booking.id = :bookingId " +
+            "AND bd.catalogModel.maintenanceCatalog.id = :catalogId " +
+            "AND bd.catalogModel.vehicleModel.id = :modelId")
+    void deleteByBookingIdAndServiceId(@Param("bookingId") Long bookingId, @Param("catalogId") Long catalogId, @Param("modelId") Long modelId);
 
     // Statistics queries
-    @Query("SELECT bd.catalog.name, COUNT(bd) FROM BookingDetail bd GROUP BY bd.catalog.name ORDER BY COUNT(bd) DESC")
+    @Query("SELECT bd.catalogModel.maintenanceCatalog.name, COUNT(bd) FROM BookingDetail bd GROUP BY bd.catalogModel.maintenanceCatalog.name ORDER BY COUNT(bd) DESC")
     List<Object[]> getMostPopularServices();
 }

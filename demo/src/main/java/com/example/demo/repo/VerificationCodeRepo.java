@@ -56,4 +56,8 @@ public interface VerificationCodeRepo extends JpaRepository<VerificationCode, Lo
     @Modifying
     @Query("DELETE FROM VerificationCode v WHERE v.expiresAt < :expiryTime")
     int deleteExpiredCodes(@Param("expiryTime") LocalDateTime expiryTime);
+
+    @Query("SELECT vc FROM VerificationCode vc WHERE vc.user = :user AND vc.expiresAt > :now AND vc.used = false ORDER BY vc.createdAt DESC")
+    Optional<VerificationCode> findValidCodeByUser(@Param("user") User user, @Param("now") LocalDateTime now);
+
 }

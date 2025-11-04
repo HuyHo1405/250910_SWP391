@@ -5,10 +5,7 @@ import com.example.demo.model.dto.BookingResponse;
 import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.model.modelEnum.InvoiceStatus;
-import com.example.demo.repo.BookingRepo;
-import com.example.demo.repo.InvoiceRepo;
-import com.example.demo.repo.MaintenanceCatalogModelPartRepo;
-import com.example.demo.repo.PartRepo;
+import com.example.demo.repo.*;
 import com.example.demo.service.interfaces.IBookingStatusService;
 import com.example.demo.service.interfaces.IInvoiceService;
 import com.example.demo.utils.BookingResponseMapper; // <-- THAY ĐỔI IMPORT
@@ -17,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,12 +30,14 @@ public class BookingStatusService implements IBookingStatusService {
     private final BookingRepo bookingRepository;
     private final MaintenanceCatalogModelPartRepo maintenanceCatalogModelPartRepo;
     private final PartRepo partRepo;
+    private final InvoiceRepo invoiceRepo;
 
     // Các trạng thái cho phép cancel
     private final List<BookingStatus> CANCELLABLE_STATUSES = Arrays.asList(
             BookingStatus.PENDING
     );
-    private final InvoiceRepo invoiceRepo;
+    private final JobRepo jobRepo;
+    private final JobService jobService;
 
     @Override
     @Transactional
@@ -133,25 +133,27 @@ public class BookingStatusService implements IBookingStatusService {
 
         // Chuyển sang trạng thái hoàn thành
         booking.setBookingStatus(BookingStatus.MAINTENANCE_COMPLETE);
-        invoiceService.updateStatus(id, InvoiceStatus.UNPAID);
 
-        log.info("Booking {} marked as delivered/completed", id);
+        Invoice invoice = booking.getInvoice();
+        invoice.setStatus(InvoiceStatus.UNPAID);
+        invoiceRepo.save(invoice);
 
+        log.info("Booking {} marked as delivered/completed. Invoice was recalculated and finalized.", id);
         // Trả về DTO đầy đủ (bao gồm cả hóa đơn đã cập nhật trạng thái)
         return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
     }
 
     private boolean checkEnoughPartForBooking(Booking booking) {
         for (BookingDetail detail : booking.getBookingDetails()) {
-            MaintenanceCatalog catalog = detail.getCatalog();
+            MaintenanceCatalog catalog = detail.getCatalogModel().getMaintenanceCatalog();
             VehicleModel model = booking.getVehicle().getModel();
             List<MaintenanceCatalogModelPart> requiredParts =
                     maintenanceCatalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalog.getId(), model.getId());
 
             for (MaintenanceCatalogModelPart mp : requiredParts) {
                 Part part = mp.getPart();
-                int available = part.getQuantity() - part.getReserved();
-                if (available < mp.getQuantityRequired()) {
+                BigDecimal available = part.getQuantity().subtract(part.getReserved());
+                if (available.compareTo(mp.getQuantityRequired()) < 0) {
                     return false; // thiếu part
                 }
             }
@@ -161,7 +163,7 @@ public class BookingStatusService implements IBookingStatusService {
 
     private void updateReservedParts(Booking booking) {
         for (BookingDetail detail : booking.getBookingDetails()) {
-            MaintenanceCatalog catalog = detail.getCatalog();
+            MaintenanceCatalog catalog = detail.getCatalogModel().getMaintenanceCatalog();
             VehicleModel model = booking.getVehicle().getModel();
 
             List<MaintenanceCatalogModelPart> requiredParts =
@@ -169,7 +171,7 @@ public class BookingStatusService implements IBookingStatusService {
 
             for (MaintenanceCatalogModelPart mp : requiredParts) {
                 Part part = mp.getPart();
-                part.setReserved(part.getReserved() + mp.getQuantityRequired());
+                part.setReserved(part.getReserved().add(mp.getQuantityRequired()));
                 partRepo.save(part);
             }
         }
@@ -177,18 +179,19 @@ public class BookingStatusService implements IBookingStatusService {
 
     private void usePartsForMaintenance(Booking booking) {
         for (BookingDetail detail : booking.getBookingDetails()) {
-            MaintenanceCatalog catalog = detail.getCatalog();
+            MaintenanceCatalog catalog = detail.getCatalogModel().getMaintenanceCatalog();
             VehicleModel model = booking.getVehicle().getModel();
             List<MaintenanceCatalogModelPart> requiredParts =
                     maintenanceCatalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalog.getId(), model.getId());
 
             for (MaintenanceCatalogModelPart mp : requiredParts) {
                 Part part = mp.getPart();
-                int qty = mp.getQuantityRequired();
+                BigDecimal qty = mp.getQuantityRequired();
 
-                part.setQuantity(part.getQuantity() - qty);
-                part.setReserved(part.getReserved() - qty);
+                part.setQuantity(part.getQuantity().subtract(qty));
+                part.setReserved(part.getReserved().subtract(qty));
                 partRepo.save(part);
+
             }
         }
     }

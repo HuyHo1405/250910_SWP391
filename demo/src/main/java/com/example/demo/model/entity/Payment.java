@@ -5,6 +5,7 @@ import com.example.demo.model.modelEnum.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal; // <-- THAY ĐỔI 1: Import BigDecimal
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,27 +33,33 @@ public class Payment {
     @Column(name = "payment_method", nullable = false)
     private PaymentMethod paymentMethod;
 
-    @Column(name = "amount", nullable = false)
-    private Double amount; // Lưu ý: Dùng BigDecimal sẽ chính xác hơn cho tiền tệ
+    // --- THAY ĐỔI 2: Dùng BigDecimal cho tiền tệ ---
+    @Column(name = "amount", nullable = false, precision = 19, scale = 2)
+    private BigDecimal amount; // Đã đổi từ Double
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private PaymentStatus status;
 
-    // --- BỔ SUNG 1: Mã đơn hàng của BẠN ---
-    // Mã này bạn tạo ra để gửi cho PayOS
+    // Mã đơn hàng của BẠN (dùng để gửi đi, vd: vnp_TxnRef)
     @Column(name = "order_code", length = 100, unique = true, nullable = false)
     private String orderCode;
 
-    // --- BỔ SUNG 2: Dữ liệu thô từ Webhook ---
-    @Column(name = "raw_response_data", columnDefinition = "NVARCHAR(MAX)")
-    private String rawResponseData;
-
+    // Mã giao dịch của VNPAY (vd: vnp_TransactionNo)
     @Column(name = "transaction_ref", length = 255)
-    private String transactionRef; // Đây là mã của PayOS trả về
+    private String transactionRef;
+
+    // --- THAY ĐỔI 3: Thêm trường lưu mã phản hồi ---
+    // Sẽ lưu '00' (thành công) hoặc '09', '21' (lỗi)
+    @Column(name = "response_code", length = 10)
+    private String responseCode;
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
+
+    // Dữ liệu thô từ IPN (để debug)
+    @Column(name = "raw_response_data", columnDefinition = "NVARCHAR(MAX)")
+    private String rawResponseData;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -73,6 +80,6 @@ public class Payment {
 
     @PreUpdate
     protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt =LocalDateTime.now();
     }
 }

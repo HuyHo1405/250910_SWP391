@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -75,6 +76,19 @@ public class VerificationCodeService implements IVerificationCodeService {
         cleanupExpiredCodes();
 
         log.info("Verification successful for user: {}", user.getEmailAddress());
+    }
+
+    @Override
+    public boolean isExpiredOrMissing(User user) {
+        LocalDateTime now = LocalDateTime.now();
+        // Tìm mã xác thực hợp lệ gần nhất (có thể cần thay đổi repo nếu chưa hỗ trợ sẵn)
+        // Hoặc bạn có thể viết thêm repo: Optional<VerificationCode> findValidCodeByUser(User user, LocalDateTime now);
+
+        Optional<VerificationCode> optCode = verificationCodeRepo
+                .findValidCodeByUser(user, now);
+
+        // Nếu không có mã hoặc đã hết hạn thì trả về true
+        return optCode.isEmpty();
     }
 
     @Transactional

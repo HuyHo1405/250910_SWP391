@@ -1,9 +1,16 @@
 package com.example.demo.service.interfaces;
 
-import com.example.demo.model.dto.BookingResponse;
+import com.example.demo.model.dto.PaymentRequest;
+import com.example.demo.model.dto.PaymentResponse;
+
+import java.util.Map;
 
 public interface IPaymentService {
-    BookingResponse pay(Long bookingId);                              // chuyển AUTHORIZED → PAID
-    BookingResponse refund(Long bookingId, String reason);            // chuyển PAID → REFUNDED
-    BookingResponse cancelPayment(Long bookingId, String reason);     // huỷ thanh toán
+    PaymentResponse.PaymentURL createPayment(PaymentRequest.CreatePayment request);
+
+    PaymentResponse.VnpayIpn handleVnpayIpn(Map<String, String> vnpayParams);
+
+    PaymentResponse.PaymentStatusDetail checkPaymentStatus(String orderCode);
+
+    PaymentResponse.VnpayIpn simulateIpnSuccess(String orderCode);
 }

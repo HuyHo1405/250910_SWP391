@@ -4,6 +4,7 @@ import com.example.demo.model.modelEnum.InvoiceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,7 @@ public class Invoice {
     private LocalDateTime dueDate;
 
     @Column(name = "total_amount")
-    private Double totalAmount;
+    private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)

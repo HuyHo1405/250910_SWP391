@@ -61,6 +61,10 @@ public class BookingRequest {
         @Positive(message = "Mã dịch vụ phải không âm")
         private Long serviceId;
 
+        @NotNull(message = "Mã mẫu xe không được trống")
+        @Positive(message = "Mã mẫu xe phải không âm")
+        private Long modelId;
+
         @Size(max = 500, message = "Mô tả không vượt quá 500 ký tự")
         private String description;
     }

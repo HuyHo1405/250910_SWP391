@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -378,7 +379,7 @@ public class PartController {
             ),
     })
     public ResponseEntity<List<PartResponse>> getLowStockParts(
-            @RequestParam(defaultValue = "10") Integer threshold) {
+            @RequestParam(defaultValue = "10") BigDecimal threshold) {
         List<PartResponse> parts = partService.getLowStockParts(threshold);
         return ResponseEntity.ok(parts);
     }
@@ -634,7 +635,7 @@ public class PartController {
     })
     public ResponseEntity<PartResponse> updatePartPrice(
             @PathVariable Long id,
-            @RequestParam Double newPrice) {
+            @RequestParam BigDecimal newPrice) {
         PartResponse response = partService.updatePartPrice(id, newPrice);
         return ResponseEntity.ok(response);
     }
@@ -751,8 +752,8 @@ public class PartController {
     })
     public ResponseEntity<PartResponse> increaseStock(
             @PathVariable Long id,
-            @RequestParam Integer amount) {
-        PartResponse response = partService.increaseStock(id, amount);
+            @RequestParam BigDecimal amount) {
+        PartResponse response = partService.adjustPartStock(id, amount);
         return ResponseEntity.ok(response);
     }
 
@@ -863,8 +864,8 @@ public class PartController {
     })
     public ResponseEntity<PartResponse> decreaseStock(
             @PathVariable Long id,
-            @RequestParam Integer amount) {
-        PartResponse response = partService.decreaseStock(id, amount);
+            @RequestParam BigDecimal amount) {
+        PartResponse response = partService.adjustPartStock(id, amount.negate());
         return ResponseEntity.ok(response);
     }
 
@@ -981,7 +982,7 @@ public class PartController {
     @GetMapping("/{id}/check-availability")
     public ResponseEntity<Boolean> checkAvailability(
             @PathVariable Long id,
-            @RequestParam Integer requiredQuantity) {
+            @RequestParam BigDecimal requiredQuantity) {
         boolean available = partService.checkAvailability(id, requiredQuantity);
         return ResponseEntity.ok(available);
     }

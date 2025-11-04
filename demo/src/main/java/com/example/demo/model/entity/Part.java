@@ -4,6 +4,7 @@ import com.example.demo.model.modelEnum.EntityStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -36,13 +37,13 @@ public class Part {
     private String description;
 
     @Column(name = "current_unit_price", nullable = false)
-    private Double currentUnitPrice;
+    private BigDecimal currentUnitPrice;
 
     @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    private BigDecimal quantity;
 
     @Column(name = "reserved", nullable = false)
-    private Integer reserved;
+    private BigDecimal reserved;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)

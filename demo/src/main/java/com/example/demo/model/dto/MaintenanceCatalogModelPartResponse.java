@@ -2,6 +2,8 @@ package com.example.demo.model.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -9,7 +11,7 @@ import lombok.*;
 public class MaintenanceCatalogModelPartResponse {
     private Long partId;                  // ID part
     private String partName;              // Tên linh kiện
-    private Integer quantityRequired;     // Số lượng cần dùng
+    private BigDecimal quantityRequired;     // Số lượng cần dùng
     private Boolean isOptional;           // Tuỳ chọn, không bắt buộc
     private String notes;                 // Ghi chú nếu có
 }

@@ -1,12 +1,8 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.model.dto.BookingRequest;
-import com.example.demo.model.entity.Booking;
-import com.example.demo.model.entity.BookingDetail;
-import com.example.demo.model.entity.MaintenanceCatalog;
-import com.example.demo.repo.BookingDetailRepo;
-import com.example.demo.repo.BookingRepo;
-import com.example.demo.repo.MaintenanceCatalogRepo;
+import com.example.demo.model.entity.*;
+import com.example.demo.repo.*;
 import com.example.demo.service.interfaces.IBookingDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +19,9 @@ public class BookingDetailService implements IBookingDetailService {
 
     private final BookingDetailRepo bookingDetailRepository;
     private final BookingRepo bookingRepository;
-    private final MaintenanceCatalogRepo serviceRepository;
+    private final MaintenanceCatalogRepo catalogRepository;
+    private final VehicleModelRepo vehicleModelRepository;
+    private final MaintenanceCatalogModelRepo  maintenanceCatalogModelRepository;
 
     @Override
     public BookingDetail addServiceToBooking(Long bookingId, BookingRequest.ServiceDetail serviceDetail) {
@@ -32,12 +30,19 @@ public class BookingDetailService implements IBookingDetailService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đặt lịch với ID: " + bookingId));
 
-        MaintenanceCatalog service = serviceRepository.findById(serviceDetail.getServiceId())
+        catalogRepository.findById(serviceDetail.getServiceId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy dịch vụ với ID: " + serviceDetail.getServiceId()));
+
+        vehicleModelRepository.findById(serviceDetail.getModelId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy mẫu xe với ID: " + serviceDetail.getModelId()));
+
+        MaintenanceCatalogModel catalogModel = maintenanceCatalogModelRepository
+                .findByMaintenanceCatalogIdAndVehicleModelId(serviceDetail.getServiceId(), serviceDetail.getModelId())
+                .orElseThrow(() -> new RuntimeException("Dịch vụ dành cho xe không tồn tại"));
 
         BookingDetail bookingDetail = BookingDetail.builder()
                 .booking(booking)
-                .catalog(service)
+                .catalogModel(catalogModel)
                 .description(serviceDetail.getDescription())
                 .build();
 
@@ -49,14 +54,13 @@ public class BookingDetailService implements IBookingDetailService {
     }
 
     @Override
-    public void removeServiceFromBooking(Long bookingId, Long serviceId) {
-        log.info("Removing service ID: {} from booking ID: {}", serviceId, bookingId);
+    public void removeServiceFromBooking(Long bookingId, Long bookingDetailId) {
+        log.info("Removing detail ID: {} from booking ID: {}", bookingDetailId, bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đặt lịch với ID: " + bookingId));
 
-        BookingDetail bookingDetail = bookingDetailRepository
-                .findByBookingIdAndCatalogId(bookingId, serviceId)
+        BookingDetail bookingDetail = bookingDetailRepository.findById(bookingDetailId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết đặt lịch"));
 
         booking.removeBookingDetail(bookingDetail);

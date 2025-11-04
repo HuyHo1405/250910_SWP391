@@ -53,9 +53,12 @@ public class AuthService implements IAuthService {
 
         User savedUser = createAndSaveUser(registerRequest);
 
+        String verificationCode = verificationCodeService.addVerificationCode(savedUser);
+        mailService.sendVerificationMail(savedUser.getEmailAddress(), verificationCode);
+
         // Return simple success message
         return MessageResponse.builder()
-                .message("Registration successful.")
+                .message("Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản.")
                 .timestamp(LocalDateTime.now())
                 .path("uri=" + httpServletRequest.getRequestURI())
                 .build();
@@ -77,13 +80,20 @@ public class AuthService implements IAuthService {
 
         if (user.getStatus() == EntityStatus.INACTIVE) {
             // Generate and send verification code
-            String verificationCode = verificationCodeService.addVerificationCode(user);
-            mailService.sendVerificationMail(user.getEmailAddress(), verificationCode);
-
-            return AuthResponse.builder()
-                    .requiresVerification(true)
-                    .message("Your account has not verified yet. Verification code sent to your email")
-                    .build();
+            if (verificationCodeService.isExpiredOrMissing(user)) {
+                // Nếu hết hạn hoặc không có, tạo mã mới và gửi lại
+                String newVerificationCode = verificationCodeService.addVerificationCode(user);
+                mailService.sendVerificationMail(user.getEmailAddress(), newVerificationCode);
+                return AuthResponse.builder()
+                        .requiresVerification(true)
+                        .message("Tài khoản chưa xác thực hoặc mã hết hạn. Đã gửi lại mã xác thực đến email.")
+                        .build();
+            } else {
+                return AuthResponse.builder()
+                        .requiresVerification(true)
+                        .message("Tài khoản chưa xác thực. Vui lòng kiểm tra email để lấy mã xác thực.")
+                        .build();
+            }
         }
 
         updateLoginTimestamp(user);

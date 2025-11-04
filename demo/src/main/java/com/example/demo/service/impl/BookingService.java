@@ -28,7 +28,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class BookingService implements IBookingService {
+public class
+BookingService implements IBookingService {
 
     private final IBookingDetailService bookingDetailService;
     private final AccessControlService accessControlService;
@@ -52,6 +53,8 @@ public class BookingService implements IBookingService {
         accessControlService.verifyResourceAccess(vehicle.getCustomer().getId(), "VEHICLE", "READ");
 
         LocalDateTime scheduleDate = checkFutureScheduleDate(request.getScheduleDateTime());
+
+        checkAvailableSlot(scheduleDate);
 
         Booking booking = Booking.builder()
                 .customer(customer)
@@ -148,8 +151,8 @@ public class BookingService implements IBookingService {
                 .flatMap(booking -> booking.getBookingDetails().stream())
                 .map(detail -> BookingResponse.ServiceDetail.builder()
                         .id(detail.getId())
-                        .serviceId(detail.getCatalog().getId())
-                        .serviceName(detail.getCatalog().getName())
+                        .serviceId(detail.getCatalogModel().getMaintenanceCatalog().getId())
+                        .serviceName(detail.getCatalogModel().getMaintenanceCatalog().getName())
                         .description(detail.getDescription())
                         .build())
                 .distinct() // Remove duplicates based on serviceId
@@ -184,8 +187,8 @@ public class BookingService implements IBookingService {
                 .flatMap(booking -> booking.getBookingDetails().stream())
                 .map(detail -> BookingResponse.ServiceDetail.builder()
                         .id(detail.getId())
-                        .serviceId(detail.getCatalog().getId())
-                        .serviceName(detail.getCatalog().getName())
+                        .serviceId(detail.getCatalogModel().getMaintenanceCatalog().getId())
+                        .serviceName(detail.getCatalogModel().getMaintenanceCatalog().getName())
                         .description(detail.getDescription())
                         .build())
                 .distinct()
@@ -204,10 +207,11 @@ public class BookingService implements IBookingService {
 
         accessControlService.verifyResourceAccess(booking.getCustomer().getId(), "BOOKING", "update");
 
-        // Không cho update nếu đã hoàn thành hoặc đã hủy
+        // Không cho update nếu đã được duyệt, đã hoàn thành hoặc đã hủy
         if (booking.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE
-                || booking.getBookingStatus() == BookingStatus.CANCELLED) {
-            throw new CommonException.InvalidOperation("Không được cập nhật đơn với trangj thái này: " + booking.getBookingStatus());
+                || booking.getBookingStatus() == BookingStatus.CANCELLED
+                || booking.getBookingStatus() == BookingStatus.CONFIRMED) {
+            throw new CommonException.InvalidOperation("Không được cập nhật đơn với trạng thái này: " + booking.getBookingStatus());
         }
 
         if (request.getScheduleDateTime() != null) {
@@ -255,7 +259,22 @@ public class BookingService implements IBookingService {
         if (bookingDate.isBefore(LocalDateTime.now())) {
             throw new CommonException.InvalidOperation("Thời gian đăt đơn phải ở tương lai");
         }
+
+        if(bookingDate.isAfter(LocalDateTime.now().plusDays(7))) {
+            throw new CommonException.InvalidOperation("Thời gian đăt đơn phải cách 1 tuần so với hiện tại");
+        }
+
         return bookingDate;
+    }
+
+    private void checkAvailableSlot(LocalDateTime bookingDate) {
+        if(bookingDate.getHour() < 7 ||  bookingDate.getHour() > 17) {
+            throw new CommonException.InvalidOperation("Thời gian đặt lịch không hỗ trợ");
+        }
+
+        if(bookingRepository.isSlotBooked(bookingDate)) {
+            throw new CommonException.InvalidOperation("Thời gian đặt đơn đã bị trùng");
+        }
     }
 
 }

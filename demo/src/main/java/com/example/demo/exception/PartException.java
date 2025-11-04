@@ -2,6 +2,8 @@ package com.example.demo.exception;
 
 import org.springframework.http.HttpStatus;
 
+import java.math.BigDecimal;
+
 public class PartException extends BaseServiceException {
 
     public PartException(String code, String message, HttpStatus httpStatus) {
@@ -69,10 +71,9 @@ public class PartException extends BaseServiceException {
     }
 
     public static class NegativeQuantityResult extends PartException {
-        public NegativeQuantityResult(int currentQuantity, int adjustment) {
+        public NegativeQuantityResult(BigDecimal currentQuantity, BigDecimal adjustment) {
             super("NEGATIVE_QUANTITY_RESULT",
-                    String.format("Điều chỉnh %d sẽ dẫn đến số lượng âm (hiện tại: %d)",
-                            adjustment, currentQuantity),
+                    String.format("Điều chỉnh " + currentQuantity +" sẽ dẫn đến số lượng âm (hiện tại: " + adjustment + ")"),
                     HttpStatus.BAD_REQUEST);
         }
     }

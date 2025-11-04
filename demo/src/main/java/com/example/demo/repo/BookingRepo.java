@@ -31,6 +31,12 @@ public interface BookingRepo extends JpaRepository<Booking, Long> {
             @Param("bookingStatus") BookingStatus bookingStatus
     );
 
+    @Query("SELECT COUNT(b) > 0 FROM Booking b WHERE " +
+            "CAST(b.scheduleDate AS DATE) = CAST(:scheduleDate AS DATE) AND " +
+            "HOUR(b.scheduleDate) = HOUR(:scheduleDate) AND " +
+            "b.bookingStatus != 'CANCELLED'")
+    boolean isSlotBooked(@Param("scheduleDate") LocalDateTime scheduleDate);
+
     Booking findTopByCustomerIdAndVehicleVinAndBookingStatusOrderByScheduleDateDesc(
             Long customerId, String vin, BookingStatus bookingStatus
     );

@@ -4,6 +4,7 @@ import com.example.demo.model.entity.Invoice;
 import com.example.demo.model.modelEnum.InvoiceStatus;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class InvoiceResponse {
     private String invoiceNumber;
     private LocalDateTime issueDate;
     private LocalDateTime dueDate;
-    private Double totalAmount;
+    private BigDecimal totalAmount;
     private InvoiceStatus status;
     private LocalDateTime createdAt;
     private List<InvoiceLineResponse> invoiceLines;

@@ -70,8 +70,8 @@ public class BookingResponseMapper {
         List<BookingResponse.ServiceDetail> serviceDetails = booking.getBookingDetails().stream()
                 .map(detail -> BookingResponse.ServiceDetail.builder()
                         .id(detail.getId())
-                        .serviceId(detail.getCatalog().getId()) // Giả định: detail.getCatalog()
-                        .serviceName(detail.getCatalog().getName())
+                        .serviceId(detail.getCatalogModel().getMaintenanceCatalog().getId()) // Giả định: detail.getCatalog()
+                        .serviceName(detail.getCatalogModel().getMaintenanceCatalog().getName())
                         .description(detail.getDescription()) // Giả định: detail.getDescription()
                         .build())
                 .collect(Collectors.toList());

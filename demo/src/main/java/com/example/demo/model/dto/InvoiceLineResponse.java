@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -14,6 +16,7 @@ public class InvoiceLineResponse {
     private long id;
     private String itemDescription;
     private InvoiceItemType itemType; // Enum: InvoiceItemType (SERVICE hoặc PART)
-    private Double quantity;
-    private Double unitPrice;
+    private BigDecimal quantity;
+    private BigDecimal unitPrice;
+    private BigDecimal totalPrice;
 }

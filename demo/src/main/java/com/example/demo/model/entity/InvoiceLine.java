@@ -4,6 +4,8 @@ import com.example.demo.model.modelEnum.InvoiceItemType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "invoice_lines")
 @Getter
@@ -29,17 +31,28 @@ public class InvoiceLine {
     private InvoiceItemType itemType; // 'SERVICE' or 'PART'
 
     @Column(name = "quantity", nullable = false)
-    private Double quantity;
+    private BigDecimal quantity;
 
     @Column(name = "unit_price", nullable = false)
-    private Double unitPrice;
+    private BigDecimal unitPrice;
 
     @Column(name = "line_total", nullable = false)
-    private Double lineTotal;
+    private BigDecimal lineTotal;
 
     // Helper method to calculate all amounts
     public void calculateAmounts() {
-        this.lineTotal = this.quantity * this.unitPrice;
+        // --- THAY ĐỔI 2: Dùng .multiply() ---
+
+        // Đảm bảo quantity và unitPrice không bị null
+        if (this.quantity == null) {
+            this.quantity = BigDecimal.ZERO;
+        }
+        if (this.unitPrice == null) {
+            this.unitPrice = BigDecimal.ZERO;
+        }
+
+        // Dùng .multiply() thay vì dấu *
+        this.lineTotal = this.quantity.multiply(this.unitPrice);
     }
 
     @PrePersist

@@ -3,6 +3,8 @@ package com.example.demo.model.dto;
 import lombok.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -18,7 +20,7 @@ public class MaintenanceCatalogModelRequest {
     private Double estTimeMinutes;
 
     @PositiveOrZero(message = "Giá bảo dưỡng phải là số không âm")
-    private Double maintenancePrice;
+    private BigDecimal maintenancePrice;
 
     @Size(max = 500, message = "Ghi chú không được vượt quá 500 ký tự")
     private String notes;

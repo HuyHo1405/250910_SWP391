@@ -1,7 +1,8 @@
-
 -- ================================================================================================================== --
 -- BẢNG MAINTENANCE CATALOG - Định nghĩa các loại dịch vụ bảo dưỡng
 -- ================================================================================================================== --
+IF
+NOT EXISTS (SELECT 1 FROM maintenance_catalogs)
 INSERT INTO maintenance_catalogs
 (name, maintenance_service_type, description, status, created_at)
 VALUES
@@ -25,6 +26,8 @@ VALUES
 -- ================================================================================================================== --
 -- BẢNG VEHICLE MODELS - Định nghĩa các mẫu xe hệ thống hỗ trợ bảo dưỡng
 -- ================================================================================================================== --
+IF
+NOT EXISTS (SELECT 1 FROM vehicle_models)
 INSERT INTO vehicle_models
 (brand_name, model_name, dimensions, seats, battery_capacity_kwh, range_km, charging_time_hours, motor_power_kw, weight_kg, status, created_at)
 VALUES
@@ -40,6 +43,8 @@ VALUES
 -- ================================================================================================================== --
 -- BẢNG PARTS - Định nghĩa các loại linh kiện bảo dưỡng được quản lý trong kho
 -- ================================================================================================================== --
+IF
+NOT EXISTS (SELECT 1 FROM parts)
 INSERT INTO parts
 (part_number, name, manufacturer, description, current_unit_price, quantity, reserved, status, created_at)
 VALUES
@@ -79,6 +84,8 @@ VALUES
 -- BẢNG MAINTENANCE CATALOG MODELS - Mapping các mẫu xe với các dịch vụ
 -- BẢNG MAINTENANCE CATALOG MODEL PARTS - Mapping các linh kiện cho các mẫu xe và các dịch vụ
 -- ================================================================================================================== --
+IF
+NOT EXISTS (SELECT 1 FROM maintenance_catalogs_models)
 INSERT INTO maintenance_catalogs_models
 (maintenance_catalog_id, model_id, est_time_minutes, maintenance_price, notes, created_at)
 VALUES
@@ -216,6 +223,9 @@ VALUES
 (16, 5, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE()),
 (16, 6, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE()),
 (16, 7, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE());
+
+IF
+NOT EXISTS (SELECT 1 FROM maintenance_catalogs_models_parts)
 INSERT INTO maintenance_catalogs_models_parts
 (maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
 VALUES
@@ -280,6 +290,8 @@ VALUES
 -- BẢNG ROLES - Định nghĩa các vai trò trong hệ thống
 -- BẢNG ROLES EDITABLE - Định nghĩa các quyền được chỉnh các vai trò khác
 -- ================================================================================================================== --
+IF
+NOT EXISTS (SELECT 1 FROM roles)
 INSERT INTO roles (name, display_name)
 VALUES
 ('ADMIN', N'Quản trị viên'),
@@ -287,6 +299,8 @@ VALUES
 ('TECHNICIAN', N'Kỹ thuật viên'),
 ('CUSTOMER', N'Khách hàng');
 
+   IF
+NOT EXISTS (SELECT 1 FROM role_editable)
 INSERT INTO role_editable (role_id, editable_id)
 VALUES
 -- Admin được chỉnh tất cả
@@ -303,6 +317,8 @@ VALUES
 -- BẢNG PERMISSIONS - Định nghĩa các phân quyền truy cập và chỉnh sửa với tài nguyên
 -- BẢNG ROLE PERMISSION - Mapping các role với các phân quyền
 -- ================================================================================================================== --
+IF
+NOT EXISTS (SELECT 1 FROM permissions)
 INSERT INTO permissions
 (resource, action, is_active, description)
 VALUES
@@ -353,109 +369,97 @@ VALUES
 ('PAYMENT', 'cancel', 1, 'Cancel payment'),
 ('PAYMENT', 'pay', 1, 'Pay booking'),
 ('PAYMENT', 'refund', 1, 'Refund payment'),
-('PAYMENT', 'void', 1, 'Void payment');
+('PAYMENT', 'void', 1, 'Void payment'),
+-- JOB
+('JOB', 'READ', 1, 'Read job'),
+('JOB', 'CREATE', 1, 'Assign job for technician'),
+('JOB', 'UPDATE', 1, 'Update job'),
+('JOB', 'DELETE', 1, 'Delete job'),
+('JOB', 'START', 1, 'Start doing job'),
+('JOB', 'COMPLETE', 1, 'Complete jpb');
 
 -- 1) ADMIN: Có tất cả các quyền
+IF
+NOT EXISTS (SELECT 1 FROM role_permissions rp WHERE rp.role_id = 1)
 INSERT INTO role_permissions
 (role_id, permission_id)
-SELECT 1, p.id FROM permissions p;
+SELECT 1, p.id
+FROM permissions p;
 
 -- 2) STAFF:
--- Quyền hệ thống (bỏ qua check ownership)
+IF
+NOT EXISTS (SELECT 1 FROM role_permissions rp WHERE rp.role_id = 2)
 INSERT INTO role_permissions
 (role_id, permission_id)
-SELECT 2, p.id FROM permissions p
+SELECT 2, p.id
+FROM permissions p
 WHERE
-    p.resource = 'SYSTEM' AND p.action = 'bypass_ownership';
-
--- Toàn quyền trên các miền nghiệp vụ chính
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT 2, p.id FROM permissions p
-WHERE
-    p.resource IN (
-                   'USER',
-                   'VEHICLE',
-                   'VEHICLE_MODEL',
-                   'BOOKING',
-                   'PAYMENT',
-                   'MAINTENANCE_SERVICE',
-                   'PART'
-        );
+-- Quyền hệ thống (bỏ qua check ownership)
+    (p.resource = 'SYSTEM' AND p.action = 'bypass_ownership')
+   OR
+-- Quyền được chỉnh sửa các tài nguyên
+    (p.resource IN (
+                    'USER',
+                    'VEHICLE',
+                    'VEHICLE_MODEL',
+                    'BOOKING',
+                    'PAYMENT',
+                    'MAINTENANCE_SERVICE',
+                    'PART',
+                    'JOB'
+        ));
 
 -- 3) TECHNICIAN:
--- Quyền đọc thông tin chung (xe, mẫu xe, dịch vụ, booking)
+IF
+NOT EXISTS (SELECT 1 FROM role_permissions rp WHERE rp.role_id = 3)
 INSERT INTO role_permissions
 (role_id, permission_id)
-SELECT 3, p.id FROM permissions p
+SELECT 3, p.id
+FROM permissions p
 WHERE
-    p.resource IN ('VEHICLE', 'VEHICLE_MODEL', 'MAINTENANCE_SERVICE', 'BOOKING')
-  AND p.action = 'read';
-
+-- Quyền đọc thông tin chung (xe, mẫu xe, dịch vụ, booking)
+    (p.resource IN ('VEHICLE', 'VEHICLE_MODEL', 'MAINTENANCE_SERVICE', 'BOOKING') AND p.action = 'read')
+   OR
 -- Quyền kỹ thuật trên quy trình (Ánh xạ sang BOOKING)
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT 3, p.id FROM permissions p
-WHERE
-    p.resource = 'BOOKING'
-  AND p.action IN ('start-maintenance', 'complete');
-
+    (p.resource = 'BOOKING' AND p.action IN ('start-maintenance', 'complete'))
+   OR
 -- Quyền thao tác kho (chỉ đọc và xem cảnh báo)
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT 3, p.id FROM permissions p
-WHERE
-    p.resource = 'PART'
-  AND p.action IN ('read', 'view_low_stock');
-
+    (p.resource = 'PART' AND p.action IN ('read', 'view_low_stock'))
+   OR
 -- Quyền tự xem và cập nhật thông tin cá nhân
-INSERT INTO role_permissions (role_id, permission_id)
-SELECT 3, p.id FROM permissions p
-WHERE
-    p.resource = 'USER'
-  AND p.action IN ('read', 'update');
+    (p.resource = 'USER' AND p.action IN ('read', 'update'))
+   OR
+-- Quyền tự xem và làm những công việc được phân công
+    (p.resource = 'JOB' AND p.action IN ('read', 'start', 'complete'));
 
 -- 4) CUSTOMER:
+IF
+NOT EXISTS (SELECT 1 FROM role_permissions rp WHERE rp.role_id = 4)
+INSERT INTO role_permissions
+(role_id, permission_id)
+SELECT 4, p.id
+FROM permissions p
+WHERE
 -- Quyền quản lý xe của mình
-INSERT INTO role_permissions
-(role_id, permission_id)
-SELECT 4, p.id FROM permissions p
-WHERE
-    p.resource = 'VEHICLE';
-
+    (p.resource = 'VEHICLE')
+   OR
 -- Quyền xem thông tin chung (mẫu xe, dịch vụ)
-INSERT INTO role_permissions
-(role_id, permission_id)
-SELECT 4, p.id FROM permissions p
-WHERE
-    p.resource IN ('VEHICLE_MODEL', 'MAINTENANCE_SERVICE')
-  AND p.action = 'read';
-
+    (p.resource IN ('VEHICLE_MODEL', 'MAINTENANCE_SERVICE') AND p.action = 'read')
+   OR
 -- Quyền thao tác booking
-INSERT INTO role_permissions
-(role_id, permission_id)
-SELECT 4, p.id FROM permissions p
-WHERE
-    p.resource = 'BOOKING'
-  AND p.action IN ('create', 'read', 'cancel');
-
+    (p.resource = 'BOOKING' AND p.action IN ('create', 'read', 'cancel'))
+   OR
 -- Quyền thanh toán
-INSERT INTO role_permissions
-(role_id, permission_id)
-SELECT 4, p.id FROM permissions p
-WHERE
-    p.resource = 'PAYMENT'
-  AND p.action = 'pay';
-
+    (p.resource = 'PAYMENT' AND p.action = 'pay')
+   OR
 -- Quyền quản lý tài khoản cá nhân
-INSERT INTO role_permissions
-(role_id, permission_id)
-SELECT 4, p.id FROM permissions p
-WHERE
-    p.resource = 'USER'
-  AND p.action IN ('read', 'update', 'disable');
-
+    (p.resource = 'USER' AND p.action IN ('read', 'update', 'disable'));
 
 -- ================================================================================================================== --
 -- BẢNG USERS - Định nghĩa các người dùng trong hệ thống
 -- ================================================================================================================== --
+IF
+NOT EXISTS (SELECT 1 FROM users)
 INSERT INTO users
 (full_name, email_address, phone_number, hashed_password, role_id, status, created_at, update_at)
 VALUES
@@ -508,6 +512,8 @@ VALUES
 -- ================================================================================================================== --
 -- BẢNG VEHICLES - Định nghĩa các dữ liệu xe hệ của khách hàng
 -- ================================================================================================================== --
+IF
+NOT EXISTS (SELECT 1 FROM vehicles)
 INSERT INTO vehicles
 (plate_number, color, vin, customer_id, vehicle_model_id, entity_status, purchased_at, distance_traveled_km, battery_degradation, created_at)
 VALUES
@@ -549,6 +555,8 @@ VALUES
 -- BẢNG BOOKINGS - Định nghĩa các đơn bảo dưỡng xe của khách hàng
 -- BẢNG BOOKING DETAILS - Định nghĩa dịch vụ được khách hàng đặt trong đơn
 -- ================================================================================================================== --
+IF
+NOT EXISTS (SELECT 1 FROM bookings)
 INSERT INTO bookings
 (customer_id, vin, schedule_date, booking_status, created_at, updated_at)
 VALUES
@@ -587,103 +595,132 @@ VALUES
 (25, 'VFVF93EF3PA000702', DATEADD(DAY, -1, DATEADD(HOUR, 14, DATEDIFF(DAY, 0, GETDATE()))), 'CANCELLED', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -1, GETDATE())), -- Lẽ ra là hôm qua
 (26, 'VFVF62KL3PA000801', DATEADD(DAY, -10, GETDATE()), 'CANCELLED', DATEADD(DAY, -15, GETDATE()), DATEADD(DAY, -11, GETDATE())); -- Hủy từ lâu
 
+IF
+NOT EXISTS (SELECT 1 FROM booking_details)
 INSERT INTO booking_details
-(booking_id, maintenance_catalog_id, description)
+(booking_id, maintenance_catalog_model_id, description)
 VALUES
 -- === 1. Đã hoàn thành (MAINTENANCE_COMPLETE) ===
-(1, 1, N'Kiểm tra pin'),
-(1, 2, N'Đảo lốp'),
-(1, 5, N'Thay lọc gió cabin'),
-(1, 16, N'Bổ sung nước rửa kính'),
+-- Booking 1 (VF 8, model_id=5)
+(1, 5, N'Kiểm tra pin'),
+(1, 12, N'Đảo lốp'),
+(1, 33, N'Thay lọc gió cabin'),
+(1, 103, N'Bổ sung nước rửa kính'),
 
-(2, 2, N'Đảo lốp'),
-(2, 3, N'Kiểm tra hệ thống phanh'),
+-- Booking 2 (VF 5 Plus, model_id=2)
+(2, 9, N'Đảo lốp'),
+(2, 16, N'Kiểm tra hệ thống phanh'),
 
-(3, 6, N'Dịch vụ hệ thống làm mát'),
-(3, 8, N'Cân chỉnh bánh xe'),
-(3, 11, N'Thay dầu phanh'),
+-- Booking 3 (VF e34, model_id=7)
+(3, 42, N'Dịch vụ hệ thống làm mát'),
+(3, 56, N'Cân chỉnh bánh xe'),
+(3, 70, N'Thay dầu phanh'),
 
-(4, 7, N'Kiểm tra hệ thống treo'),
-(4, 12, N'Kiểm tra ắc quy 12V'),
+-- Booking 4 (VF 9, model_id=6)
+(4, 48, N'Kiểm tra hệ thống treo'),
+(4, 76, N'Kiểm tra ắc quy 12V'),
 
-(5, 3, N'Kiểm tra hệ thống phanh'),
-(5, 15, N'Thay gạt mưa'),
+-- Booking 5 (VF 7, model_id=4)
+(5, 18, N'Kiểm tra hệ thống phanh'),
+(5, 95, N'Thay gạt mưa'),
 
-(6, 2, N'Đảo lốp'),
-(6, 16, N'Bổ sung nước rửa kính'),
-(6, 12, N'Kiểm tra ắc quy 12V'),
+-- Booking 6 (VF 3, model_id=1)
+(6, 8, N'Đảo lốp'),
+(6, 99, N'Bổ sung nước rửa kính'),
+(6, 71, N'Kiểm tra ắc quy 12V'),
 
-(7, 14, N'Bảo dưỡng hệ thống điều hòa'),
-(7, 5, N'Thay lọc gió cabin'),
+-- Booking 7 (VF 6, model_id=3)
+(7, 87, N'Bảo dưỡng hệ thống điều hòa'),
+(7, 31, N'Thay lọc gió cabin'),
 
-(8, 13, N'Thay thế ắc quy 12V'),
-(8, 4, N'Cập nhật phần mềm'),
+-- Booking 8 (VF e34, model_id=7)
+(8, 84, N'Thay thế ắc quy 12V'),
+(8, 28, N'Cập nhật phần mềm'),
 
-(9, 11, N'Thay dầu phanh'),
-(9, 5, N'Thay lọc gió cabin'),
-(9, 7, N'Kiểm tra hệ thống treo'),
+-- Booking 9 (VF 8, model_id=5)
+(9, 68, N'Thay dầu phanh'),
+(9, 33, N'Thay lọc gió cabin'),
+(9, 47, N'Kiểm tra hệ thống treo'),
 
-(10, 3, N'Kiểm tra hệ thống phanh'),
-(10, 16, N'Bổ sung nước rửa kính'),
+-- Booking 10 (VF 5 Plus, model_id=2)
+(10, 16, N'Kiểm tra hệ thống phanh'),
+(10, 100, N'Bổ sung nước rửa kính'),
 
 -- === 2. Đang thực hiện (IN_PROGRESS) ===
-(11, 9, N'Chẩn đoán tổng thể xe'),
-(11, 4, N'Cập nhật phần mềm'),
-(11, 12, N'Kiểm tra ắc quy 12V'),
-(11, 15, N'Thay gạt mưa'),
+-- Booking 11 (VF 8, model_id=5)
+(11, 61, N'Chẩn đoán tổng thể xe'),
+(11, 26, N'Cập nhật phần mềm'),
+(11, 75, N'Kiểm tra ắc quy 12V'),
+(11, 96, N'Thay gạt mưa'),
 
-(12, 1, N'Kiểm tra pin điện áp cao'),
-(12, 5, N'Thay lọc gió cabin'),
+-- Booking 12 (VF e34, model_id=7)
+(12, 7, N'Kiểm tra pin điện áp cao'),
+(12, 35, N'Thay lọc gió cabin'),
 
-(13, 15, N'Thay gạt mưa'),
-(13, 16, N'Bổ sung nước rửa kính'),
-(13, 2, N'Đảo lốp'),
+-- Booking 13 (VF 7, model_id=4)
+(13, 95, N'Thay gạt mưa'),
+(13, 102, N'Bổ sung nước rửa kính'),
+(13, 11, N'Đảo lốp'),
 
 -- === 3. Đã xác nhận (CONFIRMED) ===
-(14, 5, N'Thay lọc gió cabin'),
-(14, 12, N'Kiểm tra ắc quy 12V'),
-(14, 2, N'Đảo lốp'),
-(14, 7, N'Kiểm tra hệ thống treo'),
+-- Booking 14 (VF 9, model_id=6)
+(14, 34, N'Thay lọc gió cabin'),
+(14, 76, N'Kiểm tra ắc quy 12V'),
+(14, 13, N'Đảo lốp'),
+(14, 48, N'Kiểm tra hệ thống treo'),
 
-(15, 2, N'Đảo lốp'),
-(15, 3, N'Kiểm tra hệ thống phanh'),
+-- Booking 15 (VF 5 Plus, model_id=2)
+(15, 9, N'Đảo lốp'),
+(15, 16, N'Kiểm tra hệ thống phanh'),
 
-(16, 7, N'Kiểm tra hệ thống treo'),
-(16, 16, N'Bổ sung nước rửa kính'),
+-- Booking 16 (VF 8, model_id=5)
+(16, 47, N'Kiểm tra hệ thống treo'),
+(16, 103, N'Bổ sung nước rửa kính'),
 
-(17, 8, N'Cân chỉnh góc đặt bánh xe'),
-(17, 5, N'Thay lọc gió cabin'),
+-- Booking 17 (VF 5 Plus, model_id=2)
+(17, 51, N'Cân chỉnh góc đặt bánh xe'),
+(17, 30, N'Thay lọc gió cabin'),
 
-(18, 14, N'Bảo dưỡng hệ thống điều hòa'),
-(18, 11, N'Thay dầu phanh'),
+-- Booking 18 (VF 6, model_id=3)
+(18, 87, N'Bảo dưỡng hệ thống điều hòa'),
+(18, 66, N'Thay dầu phanh'),
 
 -- === 4. Đang chờ (PENDING) ===
-(19, 11, N'Thay dầu phanh'),
-(19, 3, N'Kiểm tra hệ thống phanh'),
+-- Booking 19 (VF 6, model_id=3)
+(19, 66, N'Thay dầu phanh'),
+(19, 17, N'Kiểm tra hệ thống phanh'),
 
-(20, 1, N'Kiểm tra pin điện áp cao'),
-(20, 16, N'Bổ sung nước rửa kính'),
-(20, 12, N'Kiểm tra ắc quy 12V'),
+-- Booking 20 (VF e34, model_id=7)
+(20, 7, N'Kiểm tra pin điện áp cao'),
+(20, 105, N'Bổ sung nước rửa kính'),
+(20, 77, N'Kiểm tra ắc quy 12V'),
 
-(21, 2, N'Đảo lốp'),
-(21, 1, N'Kiểm tra pin điện áp cao'),
+-- Booking 21 (VF 5 Plus, model_id=2)
+(21, 9, N'Đảo lốp'),
+(21, 2, N'Kiểm tra pin điện áp cao'),
 
-(22, 13, N'Thay thế ắc quy 12V'),
-(22, 9, N'Chẩn đoán tổng thể xe'),
+-- Booking 22 (VF e34, model_id=7)
+(22, 84, N'Thay thế ắc quy 12V'),
+(22, 63, N'Chẩn đoán tổng thể xe'),
 
 -- === 5. Đã hủy (CANCELLED) ===
-(23, 1, N'Kiểm tra pin'),
-(23, 12, N'Kiểm tra ắc quy 12V'), -- (Hủy gói 2 dịch vụ)
+-- Booking 23 (VF e34, model_id=7)
+(23, 7, N'Kiểm tra pin'),
+(23, 77, N'Kiểm tra ắc quy 12V'), -- (Hủy gói 2 dịch vụ)
 
-(24, 8, N'Cân chỉnh góc đặt bánh xe'),
+-- Booking 24 (VF 9, model_id=6)
+(24, 55, N'Cân chỉnh góc đặt bánh xe'),
 
-(25, 3, N'Kiểm tra hệ thống phanh'),
-(25, 2, N'Đảo lốp');
+-- Booking 25 (VF 6, model_id=3)
+(25, 17, N'Kiểm tra hệ thống phanh'),
+(25, 10, N'Đảo lốp');
 
 -- ================================================================================================================== --
 -- BẢNG INVOICES - Định nghĩa các hoá đơn của đơn bảo dưỡng
 -- BẢNG INVOICE LINES - Định nghĩa chi tiết các dịch vụ + linh kiện dùng trong đơn
 -- ================================================================================================================== --
+IF
+NOT EXISTS (SELECT 1 FROM invoices)
 INSERT INTO invoices
 (booking_id, invoice_number, issue_date, due_date, total_amount, status, created_at, updated_at)
 VALUES
@@ -724,6 +761,8 @@ VALUES
 (24, 'INV-2025-00024', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE()), 0, 'CANCELLED', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -1, GETDATE())), -- Giữ nguyên 0
 (25, 'INV-2025-00025', DATEADD(DAY, -11, GETDATE()), DATEADD(DAY, -11, GETDATE()), 0, 'CANCELLED', DATEADD(DAY, -15, GETDATE()), DATEADD(DAY, -11, GETDATE())); -- Giữ nguyên 0
 
+IF
+NOT EXISTS (SELECT 1 FROM invoice_lines)
 INSERT INTO invoice_lines
 (invoice_id, item_description, item_type, quantity, unit_price, line_total)
 VALUES

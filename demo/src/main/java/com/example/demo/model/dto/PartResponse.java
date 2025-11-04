@@ -2,6 +2,7 @@ package com.example.demo.model.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -14,9 +15,9 @@ public class PartResponse {
     private String partNumber;
     private String manufacturer;
     private String description;
-    private Double currentUnitPrice;
-    private Integer quantity;
-    private Integer reserved;
+    private BigDecimal currentUnitPrice;
+    private BigDecimal quantity;
+    private BigDecimal reserved;
     private String status;           // Enum EntityStatus (ACTIVE, INACTIVE, etc.)
     private LocalDateTime createdAt;
 }

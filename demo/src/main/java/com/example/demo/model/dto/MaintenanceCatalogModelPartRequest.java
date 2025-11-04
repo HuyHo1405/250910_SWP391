@@ -3,6 +3,8 @@ package com.example.demo.model.dto;
 import lombok.*;
 import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -13,7 +15,7 @@ public class MaintenanceCatalogModelPartRequest {
     private Long partId;
 
     @Positive(message = "Số lượng phải lớn hơn 0")
-    private Integer quantityRequired;
+    private BigDecimal quantityRequired;
 
     private Boolean isOptional = false;
 

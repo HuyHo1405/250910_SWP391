@@ -3,6 +3,7 @@ package com.example.demo.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,7 +30,7 @@ public class MaintenanceCatalogModel {
     private Double estTimeMinutes;
 
     @Column(name = "maintenance_price")
-    private Double maintenancePrice;
+    private BigDecimal maintenancePrice;
 
     @Column(name = "notes", columnDefinition = "NVARCHAR(255)")
     private String notes;

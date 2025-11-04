@@ -1,6 +1,8 @@
 package com.example.demo.model.dto;
 
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,7 +16,7 @@ public class MaintenanceCatalogModelResponse {
     private String modelBrand;
     private String modelYear;
     private Double estTimeMinutes;
-    private Double maintenancePrice;
+    private BigDecimal maintenancePrice;
     private String notes;
     private LocalDateTime createdAt;
 

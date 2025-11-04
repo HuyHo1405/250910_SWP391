@@ -9,5 +9,6 @@ public enum PaymentMethod {
     QR_CODE,
     PAYPAL,
     MOMO,
-    ZALOPAY
+    ZALOPAY,
+    VNPAY
 }
