@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaintenanceCatalogModelPartRequest {
+public class CatalogModelPartRequest {
 
     @NotNull(message = "Mã phụ tùng không được để trống")
     private Long partId;

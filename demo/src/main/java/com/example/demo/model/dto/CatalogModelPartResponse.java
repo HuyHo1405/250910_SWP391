@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaintenanceCatalogModelPartResponse {
+public class CatalogModelPartResponse {
     private Long partId;                  // ID part
     private String partName;              // Tên linh kiện
     private BigDecimal quantityRequired;     // Số lượng cần dùng

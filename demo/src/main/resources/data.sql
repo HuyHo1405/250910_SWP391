@@ -87,204 +87,299 @@ VALUES
 IF
 NOT EXISTS (SELECT 1 FROM maintenance_catalogs_models)
 INSERT INTO maintenance_catalogs_models
-(maintenance_catalog_id, model_id, est_time_minutes, maintenance_price, notes, created_at)
+(maintenance_catalog_id, model_id, est_time_minutes, maintenance_price, notes, created_at, status) -- Thêm 'status'
 VALUES
 -- === ID 1: BATTERY_INSPECTION (Kiểm tra pin) ===
-(1, 1, 45, 250000, NULL, GETDATE()),
-(1, 2, 60, 300000, NULL, GETDATE()),
-(1, 3, 60, 350000, NULL, GETDATE()),
-(1, 4, 60, 400000, NULL, GETDATE()),
-(1, 5, 60, 450000, NULL, GETDATE()),
-(1, 6, 75, 500000, NULL, GETDATE()),
-(1, 7, 60, 300000, NULL, GETDATE()),
+(1, 1, 45, 250000, NULL, GETDATE(), 'ACTIVE'), -- Thêm 'ACTIVE'
+(1, 2, 60, 300000, NULL, GETDATE(), 'ACTIVE'),
+(1, 3, 60, 350000, NULL, GETDATE(), 'ACTIVE'),
+(1, 4, 60, 400000, NULL, GETDATE(), 'ACTIVE'),
+(1, 5, 60, 450000, NULL, GETDATE(), 'ACTIVE'),
+(1, 6, 75, 500000, NULL, GETDATE(), 'ACTIVE'),
+(1, 7, 60, 300000, NULL, GETDATE(), 'ACTIVE'),
 
 -- === ID 2: TIRE_ROTATION (Đảo lốp) ===
-(2, 1, 30, 150000, NULL, GETDATE()),
-(2, 2, 30, 150000, NULL, GETDATE()),
-(2, 3, 30, 180000, NULL, GETDATE()),
-(2, 4, 30, 180000, NULL, GETDATE()),
-(2, 5, 45, 200000, NULL, GETDATE()),
-(2, 6, 45, 250000, NULL, GETDATE()),
-(2, 7, 30, 150000, NULL, GETDATE()),
+(2, 1, 30, 150000, NULL, GETDATE(), 'ACTIVE'),
+(2, 2, 30, 150000, NULL, GETDATE(), 'ACTIVE'),
+(2, 3, 30, 180000, NULL, GETDATE(), 'ACTIVE'),
+(2, 4, 30, 180000, NULL, GETDATE(), 'ACTIVE'),
+(2, 5, 45, 200000, NULL, GETDATE(), 'ACTIVE'),
+(2, 6, 45, 250000, NULL, GETDATE(), 'ACTIVE'),
+(2, 7, 30, 150000, NULL, GETDATE(), 'ACTIVE'),
 
 -- === ID 3: BRAKE_SYSTEM_CHECK (Kiểm tra phanh) ===
-(3, 1, 30, 150000, NULL, GETDATE()),
-(3, 2, 30, 150000, NULL, GETDATE()),
-(3, 3, 30, 180000, NULL, GETDATE()),
-(3, 4, 30, 180000, NULL, GETDATE()),
-(3, 5, 45, 200000, NULL, GETDATE()),
-(3, 6, 45, 250000, NULL, GETDATE()),
-(3, 7, 30, 150000, NULL, GETDATE()),
+(3, 1, 30, 150000, NULL, GETDATE(), 'ACTIVE'),
+(3, 2, 30, 150000, NULL, GETDATE(), 'ACTIVE'),
+(3, 3, 30, 180000, NULL, GETDATE(), 'ACTIVE'),
+(3, 4, 30, 180000, NULL, GETDATE(), 'ACTIVE'),
+(3, 5, 45, 200000, NULL, GETDATE(), 'ACTIVE'),
+(3, 6, 45, 250000, NULL, GETDATE(), 'ACTIVE'),
+(3, 7, 30, 150000, NULL, GETDATE(), 'ACTIVE'),
 
 -- === ID 4: SOFTWARE_UPDATE (Cập nhật phần mềm) ===
-(4, 1, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE()),
-(4, 2, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE()),
-(4, 3, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE()),
-(4, 4, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE()),
-(4, 5, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE()),
-(4, 6, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE()),
-(4, 7, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE()),
+(4, 1, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE(), 'ACTIVE'),
+(4, 2, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE(), 'ACTIVE'),
+(4, 3, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE(), 'ACTIVE'),
+(4, 4, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE(), 'ACTIVE'),
+(4, 5, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE(), 'ACTIVE'),
+(4, 6, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE(), 'ACTIVE'),
+(4, 7, 30, 0, N'Miễn phí (nếu có bản cập nhật)', GETDATE(), 'ACTIVE'),
 
 -- === ID 5: AIR_FILTER_REPLACEMENT (Thay lọc gió cabin) ===
-(5, 1, 15, 50000, N'Giá công, chưa bao gồm linh kiện', GETDATE()),
-(5, 2, 15, 50000, N'Giá công, chưa bao gồm linh kiện', GETDATE()),
-(5, 3, 15, 50000, N'Giá công, chưa bao gồm linh kiện', GETDATE()),
-(5, 4, 15, 70000, N'Giá công, chưa bao gồm linh kiện', GETDATE()),
-(5, 5, 20, 80000, N'Giá công, chưa bao gồm linh kiện', GETDATE()),
-(5, 6, 20, 80000, N'Giá công, chưa bao gồm linh kiện', GETDATE()),
-(5, 7, 15, 50000, N'Giá công, chưa bao gồm linh kiện', GETDATE()),
+(5, 1, 15, 50000, N'Giá công, chưa bao gồm linh kiện', GETDATE(), 'ACTIVE'),
+(5, 2, 15, 50000, N'Giá công, chưa bao gồm linh kiện', GETDATE(), 'ACTIVE'),
+(5, 3, 15, 50000, N'Giá công, chưa bao gồm linh kiện', GETDATE(), 'ACTIVE'),
+(5, 4, 15, 70000, N'Giá công, chưa bao gồm linh kiện', GETDATE(), 'ACTIVE'),
+(5, 5, 20, 80000, N'Giá công, chưa bao gồm linh kiện', GETDATE(), 'ACTIVE'),
+(5, 6, 20, 80000, N'Giá công, chưa bao gồm linh kiện', GETDATE(), 'ACTIVE'),
+(5, 7, 15, 50000, N'Giá công, chưa bao gồm linh kiện', GETDATE(), 'ACTIVE'),
 
 -- === ID 6: COOLANT_SYSTEM_SERVICE (Dịch vụ hệ thống làm mát pin) ===
-(6, 1, 60, 300000, N'Giá công, chưa bao gồm dung dịch', GETDATE()),
-(6, 2, 60, 350000, N'Giá công, chưa bao gồm dung dịch', GETDATE()),
-(6, 3, 60, 400000, N'Giá công, chưa bao gồm dung dịch', GETDATE()),
-(6, 4, 75, 450000, N'Giá công, chưa bao gồm dung dịch', GETDATE()),
-(6, 5, 90, 500000, N'Giá công, chưa bao gồm dung dịch', GETDATE()),
-(6, 6, 90, 550000, N'Giá công, chưa bao gồm dung dịch', GETDATE()),
-(6, 7, 60, 350000, N'Giá công, chưa bao gồm dung dịch', GETDATE()),
+(6, 1, 60, 300000, N'Giá công, chưa bao gồm dung dịch', GETDATE(), 'ACTIVE'),
+(6, 2, 60, 350000, N'Giá công, chưa bao gồm dung dịch', GETDATE(), 'ACTIVE'),
+(6, 3, 60, 400000, N'Giá công, chưa bao gồm dung dịch', GETDATE(), 'ACTIVE'),
+(6, 4, 75, 450000, N'Giá công, chưa bao gồm dung dịch', GETDATE(), 'ACTIVE'),
+(6, 5, 90, 500000, N'Giá công, chưa bao gồm dung dịch', GETDATE(), 'ACTIVE'),
+(6, 6, 90, 550000, N'Giá công, chưa bao gồm dung dịch', GETDATE(), 'ACTIVE'),
+(6, 7, 60, 350000, N'Giá công, chưa bao gồm dung dịch', GETDATE(), 'ACTIVE'),
 
 -- === ID 7: SUSPENSION_INSPECTION (Kiểm tra hệ thống treo) ===
-(7, 1, 45, 200000, NULL, GETDATE()),
-(7, 2, 45, 200000, NULL, GETDATE()),
-(7, 3, 45, 250000, NULL, GETDATE()),
-(7, 4, 45, 250000, NULL, GETDATE()),
-(7, 5, 60, 300000, NULL, GETDATE()),
-(7, 6, 60, 350000, NULL, GETDATE()),
-(7, 7, 45, 200000, NULL, GETDATE()),
+(7, 1, 45, 200000, NULL, GETDATE(), 'ACTIVE'),
+(7, 2, 45, 200000, NULL, GETDATE(), 'ACTIVE'),
+(7, 3, 45, 250000, NULL, GETDATE(), 'ACTIVE'),
+(7, 4, 45, 250000, NULL, GETDATE(), 'ACTIVE'),
+(7, 5, 60, 300000, NULL, GETDATE(), 'ACTIVE'),
+(7, 6, 60, 350000, NULL, GETDATE(), 'ACTIVE'),
+(7, 7, 45, 200000, NULL, GETDATE(), 'ACTIVE'),
 
 -- === ID 8: WHEEL_ALIGNMENT (Cân chỉnh góc đặt bánh xe) ===
-(8, 1, 60, 350000, NULL, GETDATE()),
-(8, 2, 60, 400000, NULL, GETDATE()),
-(8, 3, 75, 450000, NULL, GETDATE()),
-(8, 4, 75, 500000, NULL, GETDATE()),
-(8, 5, 90, 600000, NULL, GETDATE()),
-(8, 6, 90, 700000, NULL, GETDATE()),
-(8, 7, 60, 400000, NULL, GETDATE()),
+(8, 1, 60, 350000, NULL, GETDATE(), 'ACTIVE'),
+(8, 2, 60, 400000, NULL, GETDATE(), 'ACTIVE'),
+(8, 3, 75, 450000, NULL, GETDATE(), 'ACTIVE'),
+(8, 4, 75, 500000, NULL, GETDATE(), 'ACTIVE'),
+(8, 5, 90, 600000, NULL, GETDATE(), 'ACTIVE'),
+(8, 6, 90, 700000, NULL, GETDATE(), 'ACTIVE'),
+(8, 7, 60, 400000, NULL, GETDATE(), 'ACTIVE'),
 
 -- === ID 9: FULL_VEHICLE_DIAGNOSTIC (Chẩn đoán tổng thể xe) ===
-(9, 1, 60, 300000, NULL, GETDATE()),
-(9, 2, 60, 300000, NULL, GETDATE()),
-(9, 3, 60, 400000, NULL, GETDATE()),
-(9, 4, 60, 400000, NULL, GETDATE()),
-(9, 5, 75, 500000, NULL, GETDATE()),
-(9, 6, 75, 500000, NULL, GETDATE()),
-(9, 7, 60, 300000, NULL, GETDATE()),
+(9, 1, 60, 300000, NULL, GETDATE(), 'ACTIVE'),
+(9, 2, 60, 300000, NULL, GETDATE(), 'ACTIVE'),
+(9, 3, 60, 400000, NULL, GETDATE(), 'ACTIVE'),
+(9, 4, 60, 400000, NULL, GETDATE(), 'ACTIVE'),
+(9, 5, 75, 500000, NULL, GETDATE(), 'ACTIVE'),
+(9, 6, 75, 500000, NULL, GETDATE(), 'ACTIVE'),
+(9, 7, 60, 300000, NULL, GETDATE(), 'ACTIVE'),
 
 -- === ID 11: BRAKE_FLUID_REPLACEMENT (Thay dầu phanh) ===
-(11, 1, 45, 200000, N'Giá công, chưa bao gồm dầu phanh', GETDATE()),
-(11, 2, 45, 200000, N'Giá công, chưa bao gồm dầu phanh', GETDATE()),
-(11, 3, 60, 250000, N'Giá công, chưa bao gồm dầu phanh', GETDATE()),
-(11, 4, 60, 250000, N'Giá công, chưa bao gồm dầu phanh', GETDATE()),
-(11, 5, 60, 300000, N'Giá công, chưa bao gồm dầu phanh', GETDATE()),
-(11, 6, 60, 300000, N'Giá công, chưa bao gồm dầu phanh', GETDATE()),
-(11, 7, 45, 200000, N'Giá công, chưa bao gồm dầu phanh', GETDATE()),
+(11, 1, 45, 200000, N'Giá công, chưa bao gồm dầu phanh', GETDATE(), 'ACTIVE'),
+(11, 2, 45, 200000, N'Giá công, chưa bao gồm dầu phanh', GETDATE(), 'ACTIVE'),
+(11, 3, 60, 250000, N'Giá công, chưa bao gồm dầu phanh', GETDATE(), 'ACTIVE'),
+(11, 4, 60, 250000, N'Giá công, chưa bao gồm dầu phanh', GETDATE(), 'ACTIVE'),
+(11, 5, 60, 300000, N'Giá công, chưa bao gồm dầu phanh', GETDATE(), 'ACTIVE'),
+(11, 6, 60, 300000, N'Giá công, chưa bao gồm dầu phanh', GETDATE(), 'ACTIVE'),
+(11, 7, 45, 200000, N'Giá công, chưa bao gồm dầu phanh', GETDATE(), 'ACTIVE'),
 
 -- === ID 12: AUX_BATTERY_CHECK (Kiểm tra ắc quy 12V) ===
-(12, 1, 15, 100000, NULL, GETDATE()),
-(12, 2, 15, 100000, NULL, GETDATE()),
-(12, 3, 15, 100000, NULL, GETDATE()),
-(12, 4, 15, 100000, NULL, GETDATE()),
-(12, 5, 15, 100000, NULL, GETDATE()),
-(12, 6, 15, 100000, NULL, GETDATE()),
-(12, 7, 15, 100000, NULL, GETDATE()),
+(12, 1, 15, 100000, NULL, GETDATE(), 'ACTIVE'),
+(12, 2, 15, 100000, NULL, GETDATE(), 'ACTIVE'),
+(12, 3, 15, 100000, NULL, GETDATE(), 'ACTIVE'),
+(12, 4, 15, 100000, NULL, GETDATE(), 'ACTIVE'),
+(12, 5, 15, 100000, NULL, GETDATE(), 'ACTIVE'),
+(12, 6, 15, 100000, NULL, GETDATE(), 'ACTIVE'),
+(12, 7, 15, 100000, NULL, GETDATE(), 'ACTIVE'),
 
 -- === ID 13: AUX_BATTERY_REPLACEMENT (Thay thế ắc quy 12V) ===
-(13, 1, 30, 100000, N'Giá công, chưa bao gồm ắc quy', GETDATE()),
-(13, 2, 30, 100000, N'Giá công, chưa bao gồm ắc quy', GETDATE()),
-(13, 3, 30, 100000, N'Giá công, chưa bao gồm ắc quy', GETDATE()),
-(13, 4, 30, 120000, N'Giá công, chưa bao gồm ắc quy', GETDATE()),
-(13, 5, 45, 150000, N'Giá công, chưa bao gồm ắc quy', GETDATE()),
-(13, 6, 45, 150000, N'Giá công, chưa bao gồm ắc quy', GETDATE()),
-(13, 7, 30, 100000, N'Giá công, chưa bao gồm ắc quy', GETDATE()),
+(13, 1, 30, 100000, N'Giá công, chưa bao gồm ắc quy', GETDATE(), 'ACTIVE'),
+(13, 2, 30, 100000, N'Giá công, chưa bao gồm ắc quy', GETDATE(), 'ACTIVE'),
+(13, 3, 30, 100000, N'Giá công, chưa bao gồm ắc quy', GETDATE(), 'ACTIVE'),
+(13, 4, 30, 120000, N'Giá công, chưa bao gồm ắc quy', GETDATE(), 'ACTIVE'),
+(13, 5, 45, 150000, N'Giá công, chưa bao gồm ắc quy', GETDATE(), 'ACTIVE'),
+(13, 6, 45, 150000, N'Giá công, chưa bao gồm ắc quy', GETDATE(), 'ACTIVE'),
+(13, 7, 30, 100000, N'Giá công, chưa bao gồm ắc quy', GETDATE(), 'ACTIVE'),
 
 -- === ID 14: AC_SYSTEM_SERVICE (Bảo dưỡng hệ thống điều hòa) ===
-(14, 1, 60, 400000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE()),
-(14, 2, 60, 400000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE()),
-(14, 3, 60, 450000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE()),
-(14, 4, 60, 450000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE()),
-(14, 5, 75, 500000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE()),
-(14, 6, 75, 550000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE()),
-(14, 7, 60, 400000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE()),
+(14, 1, 60, 400000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE(), 'ACTIVE'),
+(14, 2, 60, 400000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE(), 'ACTIVE'),
+(14, 3, 60, 450000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE(), 'ACTIVE'),
+(14, 4, 60, 450000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE(), 'ACTIVE'),
+(14, 5, 75, 500000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE(), 'ACTIVE'),
+(14, 6, 75, 550000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE(), 'ACTIVE'),
+(14, 7, 60, 400000, N'Giá công, chưa bao gồm vật tư (ga, dầu)', GETDATE(), 'ACTIVE'),
 
 -- === ID 15: WIPER_BLADE_REPLACEMENT (Thay gạt mưa) ===
-(15, 1, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE()),
-(15, 2, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE()),
-(15, 3, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE()),
-(15, 4, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE()),
-(15, 5, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE()),
-(15, 6, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE()),
-(15, 7, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE()),
+(15, 1, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE(), 'ACTIVE'),
+(15, 2, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE(), 'ACTIVE'),
+(15, 3, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE(), 'ACTIVE'),
+(15, 4, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE(), 'ACTIVE'),
+(15, 5, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE(), 'ACTIVE'),
+(15, 6, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE(), 'ACTIVE'),
+(15, 7, 10, 50000, N'Giá công, chưa bao gồm gạt mưa', GETDATE(), 'ACTIVE'),
 
 -- === ID 16: WASHER_FLUID_TOPUP (Bổ sung nước rửa kính) ===
-(16, 1, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE()),
-(16, 2, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE()),
-(16, 3, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE()),
-(16, 4, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE()),
-(16, 5, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE()),
-(16, 6, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE()),
-(16, 7, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE());
+(16, 1, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE(), 'ACTIVE'),
+(16, 2, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE(), 'ACTIVE'),
+(16, 3, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE(), 'ACTIVE'),
+(16, 4, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE(), 'ACTIVE'),
+(16, 5, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE(), 'ACTIVE'),
+(16, 6, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE(), 'ACTIVE'),
+(16, 7, 5, 0, N'Miễn phí (tối đa 1L)', GETDATE(), 'ACTIVE');
 
 IF
 NOT EXISTS (SELECT 1 FROM maintenance_catalogs_models_parts)
 INSERT INTO maintenance_catalogs_models_parts
-(maintenance_catalog_id, model_id, part_id, quantity_required, is_optional, notes)
+(maintenance_catalog_model_id, part_id, quantity_required, is_optional, notes)
 VALUES
 -- === ID 5: AIR_FILTER_REPLACEMENT (Thay lọc gió cabin) ===
--- (Dùng linh kiện ID 1, 2, 3 dựa trên mô tả)
-(5, 1, 1, 1, 0, N'Dùng Lọc gió S'), (5, 2, 1, 1, 0, N'Dùng Lọc gió S'), (5, 7, 1, 1, 0, N'Dùng Lọc gió S'),
-(5, 3, 2, 1, 0, N'Dùng Lọc gió M'), (5, 4, 2, 1, 0, N'Dùng Lọc gió M'),
-(5, 5, 3, 1, 0, N'Dùng Lọc gió L'), (5, 6, 3, 1, 0, N'Dùng Lọc gió L'),
+-- (Catalog 5, Model 1) -> ID 29
+(29, 1, 1, 0, N'Dùng Lọc gió S'),
+-- (Catalog 5, Model 2) -> ID 30
+(30, 1, 1, 0, N'Dùng Lọc gió S'),
+-- (Catalog 5, Model 7) -> ID 35
+(35, 1, 1, 0, N'Dùng Lọc gió S'),
+-- (Catalog 5, Model 3) -> ID 31
+(31, 2, 1, 0, N'Dùng Lọc gió M'),
+-- (Catalog 5, Model 4) -> ID 32
+(32, 2, 1, 0, N'Dùng Lọc gió M'),
+-- (Catalog 5, Model 5) -> ID 33
+(33, 3, 1, 0, N'Dùng Lọc gió L'),
+-- (Catalog 5, Model 6) -> ID 34
+(34, 3, 1, 0, N'Dùng Lọc gió L'),
 
 -- === ID 6: COOLANT_SYSTEM_SERVICE (Dịch vụ hệ thống làm mát pin) ===
--- (Dùng linh kiện ID 5 cho tất cả xe, số lượng khác nhau)
-(6, 1, 5, 1, 0, N'Cần 1 bình 5L'),
-(6, 2, 5, 1, 0, N'Cần 1 bình 5L'),
-(6, 3, 5, 2, 0, N'Cần 2 bình 5L (hệ thống lớn)'),
-(6, 4, 5, 2, 0, N'Cần 2 bình 5L'),
-(6, 5, 5, 2, 0, N'Cần 2 bình 5L'),
-(6, 6, 5, 3, 0, N'Cần 3 bình 5L (hệ thống rất lớn)'),
-(6, 7, 5, 1, 0, N'Cần 1 bình 5L'),
+-- (Catalog 6, Model 1) -> ID 36
+(36, 5, 1, 0, N'Cần 1 bình 5L'),
+-- (Catalog 6, Model 2) -> ID 37
+(37, 5, 1, 0, N'Cần 1 bình 5L'),
+-- (Catalog 6, Model 3) -> ID 38
+(38, 5, 2, 0, N'Cần 2 bình 5L (hệ thống lớn)'),
+-- (Catalog 6, Model 4) -> ID 39
+(39, 5, 2, 0, N'Cần 2 bình 5L'),
+-- (Catalog 6, Model 5) -> ID 40
+(40, 5, 2, 0, N'Cần 2 bình 5L'),
+-- (Catalog 6, Model 6) -> ID 41
+(41, 5, 3, 0, N'Cần 3 bình 5L (hệ thống rất lớn)'),
+-- (Catalog 6, Model 7) -> ID 42
+(42, 5, 1, 0, N'Cần 1 bình 5L'),
 
 -- === ID 11: BRAKE_FLUID_REPLACEMENT (Thay dầu phanh) ===
--- (Dùng linh kiện ID 4 cho tất cả xe)
-(11, 1, 4, 1, 0, N'Cần 1-2L'), (11, 2, 4, 1, 0, N'Cần 1-2L'), (11, 3, 4, 1, 0, N'Cần 1-2L'),
-(11, 4, 4, 2, 0, N'Cần 2L'), (11, 5, 4, 2, 0, N'Cần 2L'), (11, 6, 4, 2, 0, N'Cần 2L'),
-(11, 7, 4, 1, 0, N'Cần 1-2L'),
+-- (Catalog 11, Model 1) -> ID 64
+(64, 4, 1, 0, N'Cần 1-2L'),
+-- (Catalog 11, Model 2) -> ID 65
+(65, 4, 1, 0, N'Cần 1-2L'),
+-- (Catalog 11, Model 3) -> ID 66
+(66, 4, 1, 0, N'Cần 1-2L'),
+-- (Catalog 11, Model 4) -> ID 67
+(67, 4, 2, 0, N'Cần 2L'),
+-- (Catalog 11, Model 5) -> ID 68
+(68, 4, 2, 0, N'Cần 2L'),
+-- (Catalog 11, Model 6) -> ID 69
+(69, 4, 2, 0, N'Cần 2L'),
+-- (Catalog 11, Model 7) -> ID 70
+(70, 4, 1, 0, N'Cần 1-2L'),
 
 -- === ID 13: AUX_BATTERY_REPLACEMENT (Thay thế ắc quy 12V) ===
--- (Dùng linh kiện ID 9, 10 dựa trên mô tả)
-(13, 1, 9, 1, 0, N'Dùng Ắc quy 45Ah'), (13, 2, 9, 1, 0, N'Dùng Ắc quy 45Ah'), (13, 7, 9, 1, 0, N'Dùng Ắc quy 45Ah'), (13, 3, 9, 1, 0, N'Dùng Ắc quy 45Ah'),
-(13, 4, 10, 1, 0, N'Dùng Ắc quy 60Ah'), (13, 5, 10, 1, 0, N'Dùng Ắc quy 60Ah'), (13, 6, 10, 1, 0, N'Dùng Ắc quy 60Ah'),
+-- (Catalog 13, Model 1) -> ID 78
+(78, 9, 1, 0, N'Dùng Ắc quy 45Ah'),
+-- (Catalog 13, Model 2) -> ID 79
+(79, 9, 1, 0, N'Dùng Ắc quy 45Ah'),
+-- (Catalog 13, Model 7) -> ID 84
+(84, 9, 1, 0, N'Dùng Ắc quy 45Ah'),
+-- (Catalog 13, Model 3) -> ID 80
+(80, 9, 1, 0, N'Dùng Ắc quy 45Ah'),
+-- (Catalog 13, Model 4) -> ID 81
+(81, 10, 1, 0, N'Dùng Ắc quy 60Ah'),
+-- (Catalog 13, Model 5) -> ID 82
+(82, 10, 1, 0, N'Dùng Ắc quy 60Ah'),
+-- (Catalog 13, Model 6) -> ID 83
+(83, 10, 1, 0, N'Dùng Ắc quy 60Ah'),
 
 -- === ID 14: AC_SYSTEM_SERVICE (Bảo dưỡng hệ thống điều hòa) ===
--- (Dùng linh kiện ID 7 (Gas), ID 8 (Dầu) - Tùy chọn)
-(14, 1, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'), (14, 1, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
-(14, 2, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'), (14, 2, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
-(14, 3, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'), (14, 3, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
-(14, 4, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'), (14, 4, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
-(14, 5, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'), (14, 5, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
-(14, 6, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'), (14, 6, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
-(14, 7, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'), (14, 7, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
+-- (Catalog 14, Model 1) -> ID 85
+(85, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'),
+-- (Catalog 14, Model 1) -> ID 85
+(85, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
+-- (Catalog 14, Model 2) -> ID 86
+(86, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'),
+-- (Catalog 14, Model 2) -> ID 86
+(86, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
+-- (Catalog 14, Model 3) -> ID 87
+(87, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'),
+-- (Catalog 14, Model 3) -> ID 87
+(87, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
+-- (Catalog 14, Model 4) -> ID 88
+(88, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'),
+-- (Catalog 14, Model 4) -> ID 88
+(88, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
+-- (Catalog 14, Model 5) -> ID 89
+(89, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'),
+-- (Catalog 14, Model 5) -> ID 89
+(89, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
+-- (Catalog 14, Model 6) -> ID 90
+(90, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'),
+-- (Catalog 14, Model 6) -> ID 90
+(90, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
+-- (Catalog 14, Model 7) -> ID 91
+(91, 7, 1, 1, N'Tùy chọn nếu nạp bổ sung gas'),
+-- (Catalog 14, Model 7) -> ID 91
+(91, 8, 1, 1, N'Tùy chọn nếu nạp bổ sung dầu'),
 
 -- === ID 15: WIPER_BLADE_REPLACEMENT (Thay gạt mưa) ===
--- (Dùng ID 11, 12, 13 - Gạt mưa các cỡ, 2 gạt/xe)
-(15, 1, 11, 1, 0, N'Gạt mưa bên phụ 16"'), (15, 1, 12, 1, 0, N'Gạt mưa bên lái 24"'),
-(15, 2, 11, 1, 0, N'Gạt mưa bên phụ 16"'), (15, 2, 12, 1, 0, N'Gạt mưa bên lái 24"'),
-(15, 7, 11, 1, 0, N'Gạt mưa bên phụ 16"'), (15, 7, 12, 1, 0, N'Gạt mưa bên lái 24"'),
-(15, 3, 12, 1, 0, N'Gạt mưa bên phụ 24"'), (15, 3, 13, 1, 0, N'Gạt mưa bên lái 26"'),
-(15, 4, 12, 1, 0, N'Gạt mưa bên phụ 24"'), (15, 4, 13, 1, 0, N'Gạt mưa bên lái 26"'),
-(15, 5, 12, 1, 0, N'Gạt mưa bên phụ 24"'), (15, 5, 13, 1, 0, N'Gạt mưa bên lái 26"'),
-(15, 6, 12, 1, 0, N'Gạt mưa bên phụ 24"'), (15, 6, 13, 1, 0, N'Gạt mưa bên lái 26"'),
+-- (Catalog 15, Model 1) -> ID 92
+(92, 11, 1, 0, N'Gạt mưa bên phụ 16"'),
+-- (Catalog 15, Model 1) -> ID 92
+(92, 12, 1, 0, N'Gạt mưa bên lái 24"'),
+-- (Catalog 15, Model 2) -> ID 93
+(93, 11, 1, 0, N'Gạt mưa bên phụ 16"'),
+-- (Catalog 15, Model 2) -> ID 93
+(93, 12, 1, 0, N'Gạt mưa bên lái 24"'),
+-- (Catalog 15, Model 7) -> ID 98
+(98, 11, 1, 0, N'Gạt mưa bên phụ 16"'),
+-- (Catalog 15, Model 7) -> ID 98
+(98, 12, 1, 0, N'Gạt mưa bên lái 24"'),
+-- (Catalog 15, Model 3) -> ID 94
+(94, 12, 1, 0, N'Gạt mưa bên phụ 24"'),
+-- (Catalog 15, Model 3) -> ID 94
+(94, 13, 1, 0, N'Gạt mưa bên lái 26"'),
+-- (Catalog 15, Model 4) -> ID 95
+(95, 12, 1, 0, N'Gạt mưa bên phụ 24"'),
+-- (Catalog 15, Model 4) -> ID 95
+(95, 13, 1, 0, N'Gạt mưa bên lái 26"'),
+-- (Catalog 15, Model 5) -> ID 96
+(96, 12, 1, 0, N'Gạt mưa bên phụ 24"'),
+-- (Catalog 15, Model 5) -> ID 96
+(96, 13, 1, 0, N'Gạt mưa bên lái 26"'),
+-- (Catalog 15, Model 6) -> ID 97
+(97, 12, 1, 0, N'Gạt mưa bên phụ 24"'),
+-- (Catalog 15, Model 6) -> ID 97
+(97, 13, 1, 0, N'Gạt mưa bên lái 26"'),
 
 -- === ID 16: WASHER_FLUID_TOPUP (Bổ sung nước rửa kính) ===
--- (Dùng linh kiện ID 6 cho tất cả xe)
-(16, 1, 6, 1, 0, NULL), (16, 2, 6, 1, 0, NULL), (16, 3, 6, 1, 0, NULL), (16, 4, 6, 1, 0, NULL),
-(16, 5, 6, 1, 0, NULL), (16, 6, 6, 1, 0, NULL), (16, 7, 6, 1, 0, NULL),
+-- (Catalog 16, Model 1) -> ID 99
+(99, 6, 1, 0, NULL),
+-- (Catalog 16, Model 2) -> ID 100
+(100, 6, 1, 0, NULL),
+-- (Catalog 16, Model 3) -> ID 101
+(101, 6, 1, 0, NULL),
+-- (Catalog 16, Model 4) -> ID 102
+(102, 6, 1, 0, NULL),
+-- (Catalog 16, Model 5) -> ID 103
+(103, 6, 1, 0, NULL),
+-- (Catalog 16, Model 6) -> ID 104
+(104, 6, 1, 0, NULL),
+-- (Catalog 16, Model 7) -> ID 105
+(105, 6, 1, 0, NULL),
 
 -- === ID 3: BRAKE_SYSTEM_CHECK (Kiểm tra phanh) ===
--- (Linh kiện TÙY CHỌN ID 19, 20 nếu cần thay)
-(3, 2, 19, 2, 1, N'Tùy chọn nếu má phanh mòn (Loại S)'), (3, 7, 19, 2, 1, N'Tùy chọn nếu má phanh mòn (Loại S)'), (3, 3, 19, 2, 1, N'Tùy chọn nếu má phanh mòn (Loại S)'),
-(3, 5, 20, 2, 1, N'Tùy chọn nếu má phanh mòn (Loại L)'), (3, 6, 20, 2, 1, N'Tùy chọn nếu má phanh mòn (Loại L)');
+-- (Catalog 3, Model 2) -> ID 16
+(16, 19, 2, 1, N'Tùy chọn nếu má phanh mòn (Loại S)'),
+-- (Catalog 3, Model 7) -> ID 21
+(21, 19, 2, 1, N'Tùy chọn nếu má phanh mòn (Loại S)'),
+-- (Catalog 3, Model 3) -> ID 17
+(17, 19, 2, 1, N'Tùy chọn nếu má phanh mòn (Loại S)'),
+-- (Catalog 3, Model 5) -> ID 19
+(19, 20, 2, 1, N'Tùy chọn nếu má phanh mòn (Loại L)'),
+-- (Catalog 3, Model 6) -> ID 20
+(20, 20, 2, 1, N'Tùy chọn nếu má phanh mòn (Loại L)');
 
 -- ================================================================================================================== --
 -- BẢNG ROLES - Định nghĩa các vai trò trong hệ thống
@@ -364,6 +459,11 @@ VALUES
 ('BOOKING', 'read', 1, 'Read booking'),
 ('BOOKING', 'start-maintenance', 1, 'Start maintenance for a booking'),
 ('BOOKING', 'update', 1, 'Update booking'),
+-- INVOICE
+('INVOICE', 'create', 1, 'Create invoice'),
+('INVOICE', 'update', 1, 'Update invoice'),
+('INVOICE', 'read', 1, 'Read invoice'),
+('INVOICE', 'delete', 1, 'Delete invoice'),
 -- PAYMENT
 ('PAYMENT', 'authorize', 1, 'Authorize payment'),
 ('PAYMENT', 'cancel', 1, 'Cancel payment'),
@@ -403,6 +503,7 @@ WHERE
                     'VEHICLE',
                     'VEHICLE_MODEL',
                     'BOOKING',
+                    'INVOICE',
                     'PAYMENT',
                     'MAINTENANCE_SERVICE',
                     'PART',
@@ -448,6 +549,9 @@ WHERE
    OR
 -- Quyền thao tác booking
     (p.resource = 'BOOKING' AND p.action IN ('create', 'read', 'cancel'))
+   OR
+-- Quyền coi hóa đơn
+    (p.resource = 'INVOICE' AND p.action = 'read')
    OR
 -- Quyền thanh toán
     (p.resource = 'PAYMENT' AND p.action = 'pay')

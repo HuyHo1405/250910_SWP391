@@ -87,7 +87,7 @@ public class JobService implements IJobService {
         if (request.getTechnicianId() != null) {
             User technician = userRepo.findById(request.getTechnicianId())
                     .orElseThrow(() -> new CommonException.NotFound("Technician (User)", request.getTechnicianId())); // ✅ Sửa
-            if(!technician.getRole().getName().equals("TECHINICIAN"))
+            if(!technician.getRole().getName().equals("TECHNICIAN"))
                 throw new CommonException.InvalidOperation("INVALID_ROLE", "Người dùng được gán phải có vai trò là kỹ thuật viên");
             job.setTechnician(technician);
         }

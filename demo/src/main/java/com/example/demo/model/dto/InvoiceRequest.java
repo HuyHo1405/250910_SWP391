@@ -27,7 +27,7 @@ public class InvoiceRequest {
 
     @Data
     @AllArgsConstructor
-    public static class Update {
+    public static class UpdateInvoice {
 
         private LocalDateTime dueDate;
 

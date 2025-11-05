@@ -30,8 +30,6 @@ public interface IPartService {
     // ================================
     PartResponse updatePart(Long id, PartRequest request);
 
-    PartResponse updatePartPrice(Long id, BigDecimal newPrice);
-
     PartResponse updatePartStatus(Long id, EntityStatus status);
 
     // ================================

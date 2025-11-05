@@ -2,7 +2,9 @@ package com.example.demo.controller;
 
 import com.example.demo.model.dto.BookingRequest;
 import com.example.demo.model.dto.BookingResponse;
+import com.example.demo.model.dto.DailyBookedSlot;
 import com.example.demo.model.modelEnum.BookingStatus;
+import com.example.demo.service.impl.BookingSlotService;
 import com.example.demo.service.interfaces.IBookingService;
 import com.example.demo.service.interfaces.IBookingStatusService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -20,6 +23,7 @@ import java.util.List;
 public class BookingController {
     private final IBookingService bookingService;
     private final IBookingStatusService bookingStatusService;
+    private final BookingSlotService bookingSlotService;
 
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingRequest request) {
@@ -94,5 +98,19 @@ public class BookingController {
     public ResponseEntity<BookingResponse> completeBooking(@PathVariable Long id) {
         BookingResponse resp = bookingStatusService.completeMaintenance(id);
         return ResponseEntity.ok(resp);
+    }
+
+    @GetMapping("/slots")
+    public ResponseEntity<List<DailyBookedSlot>> getBookedSlots() {
+        List<DailyBookedSlot> slots = bookingSlotService.getBookedSlot();
+        return ResponseEntity.ok(slots);
+    }
+
+    @GetMapping("/{id}/check-parts")
+    public ResponseEntity<Boolean> checkAvailablePart(
+            @PathVariable("id") Long bookingId
+    ) {
+        boolean isSufficient = bookingStatusService.checkEnoughPartForBooking(bookingId);
+        return ResponseEntity.ok(isSufficient);
     }
 }

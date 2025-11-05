@@ -37,7 +37,25 @@ public interface BookingRepo extends JpaRepository<Booking, Long> {
             "b.bookingStatus != 'CANCELLED'")
     boolean isSlotBooked(@Param("scheduleDate") LocalDateTime scheduleDate);
 
+    @Query("SELECT DISTINCT b.scheduleDate " +
+            "FROM Booking b " +
+            "WHERE b.scheduleDate >= :startTime " +
+            "AND b.scheduleDate < :endTime " +
+            "AND b.bookingStatus IN :statuses " +
+            "AND EXTRACT(HOUR FROM b.scheduleDate) >= :startHour " +
+            "AND EXTRACT(HOUR FROM b.scheduleDate) <= :endHour " +
+            "ORDER BY b.scheduleDate ASC")// Sắp xếp để kết quả gọn gàng
+    List<LocalDateTime> findBookedDateTimesInWorkingHours(
+            @Param("startTime") LocalDateTime startTime,
+            @Param("endTime") LocalDateTime endTime,
+            @Param("statuses") List<BookingStatus> statuses,
+            @Param("startHour") int startHour,
+            @Param("endHour") int endHour
+    );
+
     Booking findTopByCustomerIdAndVehicleVinAndBookingStatusOrderByScheduleDateDesc(
             Long customerId, String vin, BookingStatus bookingStatus
     );
+
+
 }

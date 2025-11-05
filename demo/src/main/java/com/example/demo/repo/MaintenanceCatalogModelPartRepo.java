@@ -10,14 +10,13 @@ import java.util.Optional;
 @Repository
 public interface MaintenanceCatalogModelPartRepo extends JpaRepository<MaintenanceCatalogModelPart, Long> {
 
-    boolean existsByMaintenanceCatalogIdAndVehicleModelIdAndPartId(
-            Long catalogId, Long modelId, Long partId);
+    Optional<MaintenanceCatalogModelPart> findByMaintenanceCatalogModelIdAndPartId(
+            Long catalogModelId, Long partId);
 
-    Optional<MaintenanceCatalogModelPart> findByMaintenanceCatalogIdAndVehicleModelIdAndPartId(
-            Long catalogId, Long modelId, Long partId);
+    List<MaintenanceCatalogModelPart> findByMaintenanceCatalogModelId(
+            Long catalogModelId);
 
-    List<MaintenanceCatalogModelPart> findByMaintenanceCatalogIdAndVehicleModelId(
-            Long catalogId, Long modelId);
+    void deleteAllByMaintenanceCatalogModelId(Long catalogModelId);
 
-    void deleteAllByMaintenanceCatalogId(Long catalogId);
+    void deleteAllByMaintenanceCatalogModelIdIn(List<Long> toDeleteIds);
 }

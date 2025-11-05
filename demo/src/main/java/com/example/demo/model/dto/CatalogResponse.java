@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaintenanceCatalogResponse {
+public class CatalogResponse {
 
     private Long id;
     private String name;
@@ -22,5 +22,5 @@ public class MaintenanceCatalogResponse {
     private EntityStatus status;
     private LocalDateTime createdAt;
 
-    private List<MaintenanceCatalogModelResponse> models;
+    private List<CatalogModelResponse> models;
 }

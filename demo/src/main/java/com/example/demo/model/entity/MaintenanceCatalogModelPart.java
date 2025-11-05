@@ -18,12 +18,8 @@ public class MaintenanceCatalogModelPart {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "maintenance_catalog_id", nullable = false)
-    private MaintenanceCatalog maintenanceCatalog;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "model_id", nullable = false)
-    private VehicleModel vehicleModel;
+    @JoinColumn(name = "maintenance_catalog_model_id", nullable = false)
+    private MaintenanceCatalogModel maintenanceCatalogModel;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "part_id", nullable = false)

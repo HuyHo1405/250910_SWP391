@@ -44,14 +44,20 @@ public class MaintenanceCatalog {
     @Builder.Default
     private List<MaintenanceCatalogModel> models = new ArrayList<>();
 
-    @OneToMany(mappedBy = "maintenanceCatalog", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<MaintenanceCatalogModelPart> parts = new ArrayList<>();
-
     @PrePersist
     void prePersist() {
         createdAt = LocalDateTime.now();
         if (status == null) status = EntityStatus.ACTIVE;
+    }
+
+    public void addModel(MaintenanceCatalogModel model) {
+        this.models.add(model);
+        model.setMaintenanceCatalog(this);
+    }
+
+    public void removeModel(MaintenanceCatalogModel model) {
+        this.models.remove(model);
+        model.setMaintenanceCatalog(null);
     }
 
 }

@@ -1,7 +1,7 @@
 package com.example.demo.service.interfaces;
 
-import com.example.demo.model.dto.MaintenanceCatalogRequest;
-import com.example.demo.model.dto.MaintenanceCatalogResponse;
+import com.example.demo.model.dto.CatalogRequest;
+import com.example.demo.model.dto.CatalogResponse;
 import com.example.demo.model.modelEnum.MaintenanceCatalogType;
 import io.micrometer.common.lang.Nullable;
 
@@ -9,13 +9,13 @@ import java.util.List;
 
 public interface IMaintenanceCatalogService {
 
-    MaintenanceCatalogResponse create(MaintenanceCatalogRequest request);
+    CatalogResponse create(CatalogRequest request);
 
-    MaintenanceCatalogResponse update(Long id, MaintenanceCatalogRequest request);
+    CatalogResponse update(Long id, CatalogRequest request);
 
-    MaintenanceCatalogResponse findById(Long id, boolean includeModels);
+    CatalogResponse findById(Long id);
 
-    List<MaintenanceCatalogResponse> findAll(
+    List<CatalogResponse> findAll(
             @Nullable MaintenanceCatalogType type,
             @Nullable String vin,
             boolean includeModels

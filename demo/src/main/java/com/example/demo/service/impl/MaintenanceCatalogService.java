@@ -1,14 +1,14 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.CommonException;
-import com.example.demo.exception.MaintenanceCatalogException;
-import com.example.demo.model.dto.MaintenanceCatalogRequest;
-import com.example.demo.model.dto.MaintenanceCatalogResponse;
-import com.example.demo.model.dto.MaintenanceCatalogModelResponse;
-import com.example.demo.model.entity.MaintenanceCatalog;
+import com.example.demo.exception.CatalogException;
+import com.example.demo.model.dto.*;
+import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.modelEnum.MaintenanceCatalogType;
 import com.example.demo.repo.MaintenanceCatalogRepo;
+import com.example.demo.repo.PartRepo;
+import com.example.demo.repo.VehicleModelRepo;
 import com.example.demo.repo.VehicleRepo;
 import com.example.demo.service.interfaces.IMaintenanceCatalogModelPartService;
 import com.example.demo.service.interfaces.IMaintenanceCatalogService;
@@ -35,10 +35,12 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
     private final MaintenanceCatalogRepo catalogRepository;
     private final VehicleRepo vehicleRepository;
+    private final VehicleModelRepo vehicleModelRepository;
+    private final PartRepo  partRepository;
 
     @Override
     @Transactional
-    public MaintenanceCatalogResponse create(MaintenanceCatalogRequest request) {
+    public CatalogResponse create(CatalogRequest request) {
         // ✅ Phân quyền: Chỉ ADMIN/STAFF có quyền create catalog
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "create");
 
@@ -55,15 +57,17 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
+        processNestedModels(catalog, request.getModels());
+
         MaintenanceCatalog saved = catalogRepository.save(catalog);
         log.info("Created new maintenance catalog: id={}, name={}", saved.getId(), saved.getName());
 
-        return mapToResponse(saved, false);
+        return mapToResponse(saved);
     }
 
     @Override
     @Transactional
-    public MaintenanceCatalogResponse update(Long id, MaintenanceCatalogRequest request) {
+    public CatalogResponse update(Long id, CatalogRequest request) {
         // ✅ Phân quyền: Chỉ ADMIN/STAFF có quyền update catalog
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "update");
 
@@ -84,12 +88,13 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
         MaintenanceCatalog updated = catalogRepository.save(catalog);
         log.info("Updated maintenance catalog: id={}, name={}", updated.getId(), updated.getName());
 
-        return mapToResponse(updated, false);
+        catalogModelService.syncBatch(catalog.getId(), request.getModels());
+        return mapToResponse(updated);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public MaintenanceCatalogResponse findById(Long id, boolean includeModels) {
+    public CatalogResponse findById(Long id) {
         // ✅ Phân quyền: Tất cả user có quyền đọc catalog (theo data.sql)
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
 
@@ -99,15 +104,15 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
         // ✅ Kiểm tra catalog có active không
         if (catalog.getStatus() != EntityStatus.ACTIVE) {
-            throw new MaintenanceCatalogException.CatalogInactive(catalog.getName());
+            throw new CatalogException.CatalogInactive(catalog.getName());
         }
 
-        return mapToResponse(catalog, includeModels);
+        return mapToResponse(catalog);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MaintenanceCatalogResponse> findAll(
+    public List<CatalogResponse> findAll(
             @Nullable MaintenanceCatalogType type,
             @Nullable String vin,
             boolean includeModels
@@ -126,12 +131,12 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
         // ✅ Nếu không có catalog nào, throw NoServicesAvailable
         if (catalogs.isEmpty() && vin != null) {
-            throw new MaintenanceCatalogException.NoServicesAvailable("VIN: " + vin);
+            throw new CatalogException.NoServicesAvailable("VIN: " + vin);
         }
 
         return catalogs.stream()
                 .filter(c -> c.getStatus() == EntityStatus.ACTIVE) // Chỉ lấy catalog ACTIVE
-                .map(catalog -> mapToResponse(catalog, includeModels))
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
@@ -151,23 +156,59 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
             log.info("Deleted vehicle models mapping with maintenance catalog: id={}", id);
             catalogModelService.syncBatch(id, new ArrayList<>());
             log.info("Disable maintenance catalog: id={}", id);
-            entity.setStatus(EntityStatus.INACTIVE);
+            entity.setStatus(EntityStatus.ARCHIVED);
             catalogRepository.save(entity);
         } catch (Exception e) {
             log.error("Failed to delete catalog id={}: {}", id, e.getMessage());
-            throw new MaintenanceCatalogException.BatchOperationFailed(
+            throw new CatalogException.BatchOperationFailed(
                     "Không thể xóa dịch vụ: " + e.getMessage()
             );
         }
     }
 
-    private MaintenanceCatalogResponse mapToResponse(MaintenanceCatalog catalog, boolean includeModels) {
-        List<MaintenanceCatalogModelResponse> models = null;
-        if (includeModels) {
-            models = catalogModelService.getModels(catalog.getId());
-        }
+    private void processNestedModels(MaintenanceCatalog catalog, List<CatalogModelRequest> modelRequests) {
 
-        return MaintenanceCatalogResponse.builder()
+        for (CatalogModelRequest modelDto : modelRequests) {
+            // A. Tìm VehicleModel
+            VehicleModel vehicleModel = vehicleModelRepository.findById(modelDto.getModelId())
+                    .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", modelDto.getModelId()));
+
+            // B. Tạo thằng con (CatalogModel)
+            MaintenanceCatalogModel catalogModel = MaintenanceCatalogModel.builder()
+                    .vehicleModel(vehicleModel)
+                    .estTimeMinutes(modelDto.getEstTimeMinutes())
+                    .maintenancePrice(modelDto.getMaintenancePrice())
+                    .notes(modelDto.getNotes())
+                    .status(EntityStatus.ACTIVE)
+                    .build();
+
+            // C. Xử lý thằng cháu (Parts)
+            if (modelDto.getParts() != null && !modelDto.getParts().isEmpty()) {
+                for (CatalogModelPartRequest partDto : modelDto.getParts()) {
+
+                    Part part = partRepository.findById(partDto.getPartId())
+                            .orElseThrow(() -> new CommonException.NotFound("Phụ tùng với Id", partDto.getPartId()));
+
+                    MaintenanceCatalogModelPart catalogPart = MaintenanceCatalogModelPart.builder()
+                            .part(part)
+                            .quantityRequired(partDto.getQuantityRequired())
+                            .isOptional(partDto.getIsOptional())
+                            .notes(partDto.getNotes())
+                            .build();
+
+                    // Liên kết Cháu -> Con
+                    catalogModel.addPart(catalogPart);
+                }
+            }
+            // Liên kết Con -> Cha
+            catalog.addModel(catalogModel);
+        }
+    }
+
+    private CatalogResponse mapToResponse(MaintenanceCatalog catalog) {
+        List<CatalogModelResponse> models = catalogModelService.getModels(catalog.getId());
+
+        return CatalogResponse.builder()
                 .id(catalog.getId())
                 .name(catalog.getName())
                 .description(catalog.getDescription())

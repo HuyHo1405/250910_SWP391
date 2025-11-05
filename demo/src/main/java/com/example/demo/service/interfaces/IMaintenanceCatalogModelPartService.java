@@ -1,19 +1,19 @@
 package com.example.demo.service.interfaces;
 
-import com.example.demo.model.dto.MaintenanceCatalogModelPartRequest;
-import com.example.demo.model.dto.MaintenanceCatalogModelPartResponse;
+import com.example.demo.model.dto.CatalogModelPartRequest;
+import com.example.demo.model.dto.CatalogModelPartResponse;
 
 import java.util.List;
 
 public interface IMaintenanceCatalogModelPartService {
 
-    List<MaintenanceCatalogModelPartResponse> syncBatch(Long catalogId, Long modelId, List<MaintenanceCatalogModelPartRequest> requests);
+    List<CatalogModelPartResponse> syncBatch(Long catalogModelId, List<CatalogModelPartRequest> requests);
 
     void deleteBatch(Long catalogId);
 
-    MaintenanceCatalogModelPartResponse updateByIds(Long catalogId, Long modelId, Long partId, MaintenanceCatalogModelPartRequest request);
+    CatalogModelPartResponse updateByIds(Long catalogModelId, Long partId, CatalogModelPartRequest request);
 
-    MaintenanceCatalogModelPartResponse findByIds(Long catalogId, Long modelId, Long partId);
+    CatalogModelPartResponse findByIds(Long catalogModelId, Long partId);
 
-    List<MaintenanceCatalogModelPartResponse> getParts(Long catalogId, Long modelId);
+    List<CatalogModelPartResponse> getParts(Long catalogModelId);
 }

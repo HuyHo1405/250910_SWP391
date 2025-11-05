@@ -25,15 +25,15 @@ public class InvoiceController {
     @PutMapping("/{invoiceId}")
     public ResponseEntity<InvoiceResponse> updateInvoice(
             @PathVariable Long invoiceId,
-            @RequestBody InvoiceRequest.Update updateRequest
+            @RequestBody InvoiceRequest.UpdateInvoice updateRequest
     ) {
-        InvoiceResponse response = invoiceService.update(invoiceId, updateRequest);
+        InvoiceResponse response = invoiceService.updateById(invoiceId, updateRequest);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{invoiceId}")
     public ResponseEntity<InvoiceResponse> getInvoice(@PathVariable Long invoiceId) {
-        InvoiceResponse response = invoiceService.findByBookingId(invoiceId);
+        InvoiceResponse response = invoiceService.findById(invoiceId);
         return ResponseEntity.ok(response);
     }
 

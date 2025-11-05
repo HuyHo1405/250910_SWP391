@@ -1,7 +1,7 @@
 package com.example.demo.model.dto;
 
-import lombok.*;
 import jakarta.validation.Valid;
+import lombok.*;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaintenanceCatalogModelRequest {
+public class CatalogModelRequest {
 
     @NotNull(message = "mã mẫu xe không được để trống")
     private Long modelId;
@@ -24,5 +24,8 @@ public class MaintenanceCatalogModelRequest {
 
     @Size(max = 500, message = "Ghi chú không được vượt quá 500 ký tự")
     private String notes;
+
+    @Valid
+    private List<CatalogModelPartRequest> parts;
 
 }

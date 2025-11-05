@@ -1,11 +1,13 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.CommonException;
-import com.example.demo.model.dto.MaintenanceCatalogModelRequest;
-import com.example.demo.model.dto.MaintenanceCatalogModelResponse;
+import com.example.demo.model.dto.CatalogModelRequest;
+import com.example.demo.model.dto.CatalogModelResponse;
 import com.example.demo.model.entity.MaintenanceCatalog;
 import com.example.demo.model.entity.MaintenanceCatalogModel;
 import com.example.demo.model.entity.VehicleModel;
+import com.example.demo.model.modelEnum.EntityStatus;
+import com.example.demo.repo.MaintenanceCatalogModelPartRepo;
 import com.example.demo.repo.MaintenanceCatalogModelRepo;
 import com.example.demo.repo.MaintenanceCatalogRepo;
 import com.example.demo.repo.VehicleModelRepo;
@@ -34,16 +36,14 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
     private final MaintenanceCatalogModelRepo maintenanceCatalogModelRepo;
     private final VehicleModelRepo vehicleModelRepository;
     private final MaintenanceCatalogRepo catalogRepository;
+    private final MaintenanceCatalogModelPartRepo  catalogModelPartRepo;
 
     @Override
     @Transactional
-    public List<MaintenanceCatalogModelResponse> syncBatch(
+    public List<CatalogModelResponse> syncBatch(
             Long catalogId,
-            List<MaintenanceCatalogModelRequest> requests) {
+            List<CatalogModelRequest> requests) {
 
-        accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "update");
-
-        // Validation catalog
         MaintenanceCatalog catalog = catalogRepository.findById(catalogId)
                 .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
 
@@ -54,7 +54,7 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
         SyncDelta delta = calculateDelta(catalog, oldList, requests);
 
         // 3. Thực thi batch operations
-        executeBatchOperations(delta);
+        executeBatchOperations(delta, requests);
 
         // 4. Trả về kết quả
         return maintenanceCatalogModelRepo.findByMaintenanceCatalogId(catalogId).stream()
@@ -63,7 +63,7 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
     }
 
     @Override
-    public MaintenanceCatalogModelResponse updateByIds(Long catalogId, Long modelId, MaintenanceCatalogModelRequest request) {
+    public CatalogModelResponse updateByIds(Long catalogId, Long modelId, CatalogModelRequest request) {
 
         accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "update");
 
@@ -83,7 +83,7 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
     }
 
     @Override
-    public MaintenanceCatalogModelResponse findByIds(Long catalogId, Long modelId, boolean includeParts) {
+    public CatalogModelResponse findByIds(Long catalogId, Long modelId, boolean includeParts) {
 
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
 
@@ -103,7 +103,7 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
 
     @Override
     @Transactional(readOnly = true)
-    public List<MaintenanceCatalogModelResponse> getModels(Long catalogId) {
+    public List<CatalogModelResponse> getModels(Long catalogId) {
 
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
 
@@ -115,15 +115,10 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
                 .collect(Collectors.toList());
     }
 
-    /**
-     * UNIT 1: Tính toán Delta
-     * Input: list cũ + list mới
-     * Output: SyncDelta chứa 3 danh sách (toAdd, toUpdate, toDelete)
-     */
     private SyncDelta calculateDelta(
             MaintenanceCatalog catalog,
             List<MaintenanceCatalogModel> oldList,
-            List<MaintenanceCatalogModelRequest> requests) {
+            List<CatalogModelRequest> requests) {
 
         // Chuyển sang Map để tra cứu O(1)
         Map<Long, MaintenanceCatalogModel> oldMap = oldList.stream()
@@ -132,9 +127,9 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
                         item -> item
                 ));
 
-        Map<Long, MaintenanceCatalogModelRequest> newMap = requests.stream()
+        Map<Long, CatalogModelRequest> newMap = requests.stream()
                 .collect(Collectors.toMap(
-                        MaintenanceCatalogModelRequest::getModelId,
+                        CatalogModelRequest::getModelId,
                         item -> item
                 ));
 
@@ -145,23 +140,28 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
         // Vòng 1: Duyệt list CŨ → xử lý UPDATE và DELETE
         for (MaintenanceCatalogModel oldItem : oldList) {
             Long modelId = oldItem.getVehicleModel().getId();
-            MaintenanceCatalogModelRequest newItem = newMap.get(modelId);
+            CatalogModelRequest newItem = newMap.get(modelId);
 
             if (newItem == null) {
                 // Không có trong list mới → DELETE
                 toDeleteIds.add(oldItem.getId()); // Xóa theo PK
             } else {
                 // Có trong cả 2 → kiểm tra UPDATE
-                if (hasChanges(oldItem, newItem)) {
-                    updateFields(oldItem, newItem);
-                    toUpdate.add(oldItem);
+                boolean fieldsChanged = hasChanges(oldItem, newItem);
+                boolean partsNeedSync = newItem.getParts() != null;
+
+                if (fieldsChanged || partsNeedSync) { // 👈 Thêm điều kiện `partsNeedSync`
+                    if (fieldsChanged) {
+                        updateFields(oldItem, newItem); // Chỉ update field nếu thật sự thay đổi
+                    }
+                    toUpdate.add(oldItem); // Thêm vào list update để trigger part-sync
                 }
                 newMap.remove(modelId); // Đã xử lý xong
             }
         }
 
         // Vòng 2: Những gì còn lại trong newMap → ADD
-        for (MaintenanceCatalogModelRequest dto : newMap.values()) {
+        for (CatalogModelRequest dto : newMap.values()) {
             MaintenanceCatalogModel newEntity = createNewEntity(catalog, dto);
             toAdd.add(newEntity);
         }
@@ -169,29 +169,19 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
         return new SyncDelta(toAdd, toUpdate, toDeleteIds);
     }
 
-    /**
-     * UNIT 2: Kiểm tra có thay đổi không
-     * So sánh từng field để quyết định UPDATE
-     */
-    private boolean hasChanges(MaintenanceCatalogModel oldItem, MaintenanceCatalogModelRequest newItem) {
+    private boolean hasChanges(MaintenanceCatalogModel oldItem, CatalogModelRequest newItem) {
         return !Objects.equals(oldItem.getEstTimeMinutes(), newItem.getEstTimeMinutes())
                 || !Objects.equals(oldItem.getMaintenancePrice(), newItem.getMaintenancePrice())
                 || !Objects.equals(oldItem.getNotes(), newItem.getNotes());
     }
 
-    /**
-     * UNIT 2.1: Cập nhật fields
-     */
-    private void updateFields(MaintenanceCatalogModel entity, MaintenanceCatalogModelRequest dto) {
+    private void updateFields(MaintenanceCatalogModel entity, CatalogModelRequest dto) {
         entity.setEstTimeMinutes(dto.getEstTimeMinutes());
         entity.setMaintenancePrice(dto.getMaintenancePrice());
         entity.setNotes(dto.getNotes());
     }
 
-    /**
-     * UNIT 2.2: Tạo entity mới từ DTO
-     */
-    private MaintenanceCatalogModel createNewEntity(MaintenanceCatalog catalog, MaintenanceCatalogModelRequest dto) {
+    private MaintenanceCatalogModel createNewEntity(MaintenanceCatalog catalog, CatalogModelRequest dto) {
         VehicleModel vehicleModel = vehicleModelRepository.findById(dto.getModelId())
                 .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", dto.getModelId()));
 
@@ -201,30 +191,64 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
                 .estTimeMinutes(dto.getEstTimeMinutes())
                 .maintenancePrice(dto.getMaintenancePrice())
                 .notes(dto.getNotes())
+                .status(EntityStatus.ACTIVE)
                 .build();
     }
 
-    /**
-     * UNIT 3: Thực thi batch operations
-     * Xử lý 3 danh sách: INSERT, UPDATE, DELETE
-     */
-    private void executeBatchOperations(SyncDelta delta) {
-        if (!delta.toAdd.isEmpty()) {
-            maintenanceCatalogModelRepo.saveAll(delta.toAdd);
-        }
+    private void executeBatchOperations(SyncDelta delta, List<CatalogModelRequest> originalRequests) {
+        // Tạo map để tra cứu request DTO gốc O(1)
+        Map<Long, CatalogModelRequest> requestMap = originalRequests.stream()
+                .collect(Collectors.toMap(
+                        CatalogModelRequest::getModelId,
+                        r -> r,
+                        (r1, r2) -> r1 // Xử lý nếu có modelId trùng (lấy cái đầu)
+                ));
 
-        if (!delta.toUpdate.isEmpty()) {
-            maintenanceCatalogModelRepo.saveAll(delta.toUpdate);
-        }
-
+        // === 1. XỬ LÝ DELETE ===
+        // Phải xóa PART (con) trước khi xóa MODEL (cha)
         if (!delta.toDeleteIds.isEmpty()) {
+            // `toDeleteIds` là List<Long> các PK của MaintenanceCatalogModel
+            // Bạn cần thêm method này vào MaintenanceCatalogModelPartRepo
+            catalogModelPartRepo.deleteAllByMaintenanceCatalogModelIdIn(delta.toDeleteIds);
+
+            // Xóa MODEL (cha) sau
             maintenanceCatalogModelRepo.deleteAllByIdInBatch(delta.toDeleteIds);
+        }
+
+        // === 2. XỬ LÝ ADD ===
+        if (!delta.toAdd.isEmpty()) {
+            // Lưu MODEL (cha) trước để lấy ID
+            List<MaintenanceCatalogModel> addedEntities = maintenanceCatalogModelRepo.saveAll(delta.toAdd);
+
+            // Giờ lặp qua các entity đã lưu để sync PART (con)
+            for (MaintenanceCatalogModel entity : addedEntities) {
+                CatalogModelRequest req = requestMap.get(entity.getVehicleModel().getId());
+
+                // Kiểm tra xem request gốc có 'parts' không
+                if (req != null && req.getParts() != null) {
+                    maintenanceCatalogModelPartService.syncBatch(entity.getId(), req.getParts());
+                }
+            }
+        }
+
+        // === 3. XỬ LÝ UPDATE ===
+        if (!delta.toUpdate.isEmpty()) {
+            // Lưu MODEL (cha)
+            List<MaintenanceCatalogModel> updatedEntities = maintenanceCatalogModelRepo.saveAll(delta.toUpdate);
+
+            // Giờ lặp qua các entity đã lưu để sync PART (con)
+            for (MaintenanceCatalogModel entity : updatedEntities) {
+                CatalogModelRequest req = requestMap.get(entity.getVehicleModel().getId());
+
+                // Chỉ sync part nếu client *thực sự* gửi 'parts' trong request
+                // Nếu req.getParts() == null, nghĩa là client không muốn đụng đến parts
+                if (req != null && req.getParts() != null) {
+                    maintenanceCatalogModelPartService.syncBatch(entity.getId(), req.getParts());
+                }
+            }
         }
     }
 
-    /**
-     * Helper class chứa kết quả tính Delta
-     */
     @Value
     private static class SyncDelta {
         List<MaintenanceCatalogModel> toAdd;
@@ -232,11 +256,8 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
         List<Long> toDeleteIds; // DELETE theo PK
     }
 
-    /**
-     * Chuyển Entity → Response DTO
-     */
-    private MaintenanceCatalogModelResponse toResponse(MaintenanceCatalogModel entity, boolean includeParts) {
-        return MaintenanceCatalogModelResponse.builder()
+    private CatalogModelResponse toResponse(MaintenanceCatalogModel entity, boolean includeParts) {
+        return CatalogModelResponse.builder()
                 .modelId(entity.getVehicleModel().getId())
                 .modelName(entity.getVehicleModel().getModelName())
                 .modelBrand(entity.getVehicleModel().getBrandName())
@@ -244,17 +265,11 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
                 .maintenancePrice(entity.getMaintenancePrice())
                 .notes(entity.getNotes())
                 .createdAt(entity.getCreatedAt())
-                .parts(
-                        includeParts ?
-                                maintenanceCatalogModelPartService.getParts(
-                                        entity.getMaintenanceCatalog().getId(),
-                                        entity.getVehicleModel().getId()):
-                                null
-                )
+                .parts(maintenanceCatalogModelPartService.getParts(entity.getId()))
                 .build();
     }
 
-    private MaintenanceCatalogModelResponse toResponse(MaintenanceCatalogModel entity) {
+    private CatalogModelResponse toResponse(MaintenanceCatalogModel entity) {
         return toResponse(entity, false);
     }
 }

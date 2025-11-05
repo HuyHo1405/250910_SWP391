@@ -1,12 +1,9 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.CommonException;
-import com.example.demo.model.dto.MaintenanceCatalogModelPartRequest;
-import com.example.demo.model.dto.MaintenanceCatalogModelPartResponse;
-import com.example.demo.model.entity.MaintenanceCatalog;
-import com.example.demo.model.entity.MaintenanceCatalogModelPart;
-import com.example.demo.model.entity.Part;
-import com.example.demo.model.entity.VehicleModel;
+import com.example.demo.model.dto.CatalogModelPartRequest;
+import com.example.demo.model.dto.CatalogModelPartResponse;
+import com.example.demo.model.entity.*;
 import com.example.demo.repo.*;
 import com.example.demo.service.interfaces.IMaintenanceCatalogModelPartService;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogModelPartService {
 
-    private final AccessControlService accessControlService;
-
+    private final MaintenanceCatalogModelRepo catalogModelRepo;
     private final MaintenanceCatalogModelPartRepo catalogModelPartRepo;
     private final MaintenanceCatalogRepo catalogRepo;
     private final VehicleModelRepo vehicleModelRepo;
@@ -36,27 +32,23 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
 
     @Override
     @Transactional
-    public List<MaintenanceCatalogModelPartResponse> syncBatch(Long catalogId, Long modelId, List<MaintenanceCatalogModelPartRequest> requests) {
+    public List<CatalogModelPartResponse> syncBatch(Long catalogModelId, List<CatalogModelPartRequest> requests) {
         // Validate catalog & model tồn tại
-        MaintenanceCatalog catalog = catalogRepo.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
-        VehicleModel model = vehicleModelRepo.findById(modelId)
-                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", modelId));
-
-        accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "update");
+        MaintenanceCatalogModel catalogModel = catalogModelRepo.findById(catalogModelId)
+                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ cho xe ", catalogModelId));
 
         // Lấy oldList các part hiện tại
         List<MaintenanceCatalogModelPart> oldList =
-                catalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalogId, modelId);
+                catalogModelPartRepo.findByMaintenanceCatalogModelId(catalogModelId);
 
         // Tính delta add/update/delete
-        SyncDelta delta = calculateDelta(catalog, model, oldList, requests);
+        SyncDelta delta = calculateDelta(catalogModel, oldList, requests);
 
         // Thực thi batch add/update/delete
         executeBatchOperations(delta);
 
         // Return danh sách part mới
-        return catalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalogId, modelId)
+        return catalogModelPartRepo.findByMaintenanceCatalogModelId(catalogModelId)
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
@@ -64,70 +56,65 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
     public void deleteBatch(Long catalogId) {
         catalogRepo.findById(catalogId)
                 .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
+        List<MaintenanceCatalogModel> models = catalogModelRepo.findByMaintenanceCatalogId(catalogId);
 
-        accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "delete");
-        catalogModelPartRepo.deleteAllByMaintenanceCatalogId(catalogId);
+        for (MaintenanceCatalogModel model : models) {
+            catalogModelPartRepo.deleteAllByMaintenanceCatalogModelId(model.getId());
+        }
     }
 
     @Override
-    public MaintenanceCatalogModelPartResponse updateByIds(Long catalogId, Long modelId, Long partId, MaintenanceCatalogModelPartRequest request) {
-        catalogRepo.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
-        vehicleModelRepo.findById(modelId)
-                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", modelId));
+    public CatalogModelPartResponse updateByIds(Long catalogModelId, Long partId, CatalogModelPartRequest request) {
+        catalogModelRepo.findById(catalogModelId)
+                .orElseThrow(() -> new CommonException.NotFound("Catalog Model với Id", catalogModelId));
         partRepo.findById(partId)
                 .orElseThrow(() -> new CommonException.NotFound("Linh kiện với Id", partId));
 
-        accessControlService.verifyCanAccessAllResources("MAINTENANCE_SERVICE", "update");
 
         MaintenanceCatalogModelPart entity = catalogModelPartRepo
-                .findByMaintenanceCatalogIdAndVehicleModelIdAndPartId(catalogId, modelId, partId)
+                .findByMaintenanceCatalogModelIdAndPartId(catalogModelId, partId)
                 .orElseThrow(() -> new CommonException.NotFound(
-                        "Dịch vụ với Id: " + catalogId +
-                                " cho mẫu xe Id: " + partId +
-                                " với linh kiện Id: " + partId));
+                        "Catalog Model với Id: " + catalogModelId +
+                                " với linh kiện Id: " + partId
+                ));
         updateFields(entity, request);
         return toResponse(catalogModelPartRepo.save(entity));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public MaintenanceCatalogModelPartResponse findByIds(Long catalogId, Long modelId, Long partId) {
-        catalogRepo.findById(catalogId)
-                .orElseThrow(() -> new CommonException.NotFound("Dịch vụ với Id", catalogId));
-        vehicleModelRepo.findById(modelId)
-                .orElseThrow(() -> new CommonException.NotFound("Mẫu xe với Id", modelId));
+    public CatalogModelPartResponse findByIds(Long catalogModelId, Long partId) {
+        catalogModelRepo.findById(catalogModelId)
+                .orElseThrow(() -> new CommonException.NotFound("Catalog Model với Id", catalogModelId));
         partRepo.findById(partId)
                 .orElseThrow(() -> new CommonException.NotFound("Linh kiện với Id", partId));
 
-        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
 
         MaintenanceCatalogModelPart entity = catalogModelPartRepo
-                .findByMaintenanceCatalogIdAndVehicleModelIdAndPartId(catalogId, modelId, partId)
+                .findByMaintenanceCatalogModelIdAndPartId(catalogModelId, partId)
                 .orElseThrow(() -> new CommonException.NotFound(
-                        "Dịch vụ với Id: " + catalogId +
-                                " cho mẫu xe Id: " + partId +
-                                " với linh kiện Id: " + partId));
+                        "Catalog Model với Id: " + catalogModelId +
+                                " với linh kiện Id: " + partId
+                ));
 
         return toResponse(entity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MaintenanceCatalogModelPartResponse> getParts(Long catalogId, Long modelId) {
-        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
-        return catalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalogId, modelId)
+    public List<CatalogModelPartResponse> getParts(Long catalogModelId) {
+        return catalogModelPartRepo.findByMaintenanceCatalogModelId(catalogModelId)
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
     // -------- Helper methods & DTO transformation --------
-    private SyncDelta calculateDelta(MaintenanceCatalog catalog, VehicleModel model,
+    private SyncDelta calculateDelta(MaintenanceCatalogModel catalogModel,
                                      List<MaintenanceCatalogModelPart> oldList,
-                                     List<MaintenanceCatalogModelPartRequest> requests) {
+                                     List<CatalogModelPartRequest> requests) {
         Map<Long, MaintenanceCatalogModelPart> oldMap = oldList.stream()
                 .collect(Collectors.toMap(e -> e.getPart().getId(), e -> e));
-        Map<Long, MaintenanceCatalogModelPartRequest> newMap = requests.stream()
-                .collect(Collectors.toMap(MaintenanceCatalogModelPartRequest::getPartId, r -> r));
+        Map<Long, CatalogModelPartRequest> newMap = requests.stream()
+                .collect(Collectors.toMap(CatalogModelPartRequest::getPartId, r -> r));
 
         List<MaintenanceCatalogModelPart> toAdd = new ArrayList<>();
         List<MaintenanceCatalogModelPart> toUpdate = new ArrayList<>();
@@ -135,7 +122,7 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
 
         for (MaintenanceCatalogModelPart oldItem : oldList) {
             Long partId = oldItem.getPart().getId();
-            MaintenanceCatalogModelPartRequest newItem = newMap.get(partId);
+            CatalogModelPartRequest newItem = newMap.get(partId);
             if (newItem == null) {
                 toDeleteIds.add(oldItem.getId());
             } else {
@@ -146,30 +133,29 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
                 newMap.remove(partId);
             }
         }
-        for (MaintenanceCatalogModelPartRequest dto : newMap.values()) {
-            toAdd.add(createNewEntity(catalog, model, dto));
+        for (CatalogModelPartRequest dto : newMap.values()) {
+            toAdd.add(createNewEntity(catalogModel , dto));
         }
         return new SyncDelta(toAdd, toUpdate, toDeleteIds);
     }
 
-    private boolean hasChanges(MaintenanceCatalogModelPart oldItem, MaintenanceCatalogModelPartRequest newItem) {
+    private boolean hasChanges(MaintenanceCatalogModelPart oldItem, CatalogModelPartRequest newItem) {
         return !Objects.equals(oldItem.getQuantityRequired(), newItem.getQuantityRequired())
                 || !Objects.equals(oldItem.getIsOptional(), newItem.getIsOptional())
                 || !Objects.equals(oldItem.getNotes(), newItem.getNotes());
     }
 
-    private void updateFields(MaintenanceCatalogModelPart entity, MaintenanceCatalogModelPartRequest dto) {
+    private void updateFields(MaintenanceCatalogModelPart entity, CatalogModelPartRequest dto) {
         entity.setQuantityRequired(dto.getQuantityRequired());
         entity.setIsOptional(dto.getIsOptional());
         entity.setNotes(dto.getNotes());
     }
 
-    private MaintenanceCatalogModelPart createNewEntity(MaintenanceCatalog catalog, VehicleModel model, MaintenanceCatalogModelPartRequest dto) {
+    private MaintenanceCatalogModelPart createNewEntity(MaintenanceCatalogModel catalog, CatalogModelPartRequest dto) {
         Part part = partRepo.findById(dto.getPartId())
                 .orElseThrow(() -> new CommonException.NotFound("Part with Id", dto.getPartId()));
         return MaintenanceCatalogModelPart.builder()
-                .maintenanceCatalog(catalog)
-                .vehicleModel(model)
+                .maintenanceCatalogModel(catalog)
                 .part(part)
                 .quantityRequired(dto.getQuantityRequired())
                 .isOptional(dto.getIsOptional())
@@ -190,8 +176,8 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
         List<Long> toDeleteIds;
     }
 
-    private MaintenanceCatalogModelPartResponse toResponse(MaintenanceCatalogModelPart entity) {
-        return MaintenanceCatalogModelPartResponse.builder()
+    private CatalogModelPartResponse toResponse(MaintenanceCatalogModelPart entity) {
+        return CatalogModelPartResponse.builder()
                 .partId(entity.getPart().getId())
                 .partName(entity.getPart().getName())
                 .quantityRequired(entity.getQuantityRequired())

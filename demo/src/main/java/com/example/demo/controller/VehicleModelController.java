@@ -44,16 +44,6 @@
             return ResponseEntity.ok(vehicleModelService.getById(id));
         }
 
-        @GetMapping("/brand/{brandName}")
-        public ResponseEntity<List<VehicleModelResponse>> getVehicleModelsByBrand(@PathVariable String brandName) {
-            return ResponseEntity.ok(vehicleModelService.getByBrandName(brandName));
-        }
-
-        @GetMapping("/status/{status}")
-        public ResponseEntity<List<VehicleModelResponse>> getVehicleModelsByStatus(@PathVariable EntityStatus status) {
-            return ResponseEntity.ok(vehicleModelService.getByStatus(status));
-        }
-
         @PostMapping
         public ResponseEntity<VehicleModelResponse> createVehicleModel(@Valid @RequestBody VehicleModelRequest.CreateModel request) {
             return new ResponseEntity<>(vehicleModelService.create(request), HttpStatus.CREATED);

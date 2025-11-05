@@ -47,7 +47,7 @@ public class BookingStatusService implements IBookingStatusService {
 
         accessControlService.verifyCanAccessAllResources( "BOOKING", "confirm");
 
-        if(!checkEnoughPartForBooking(booking)) {
+        if(!checkEnoughPartForBooking(booking.getId())) {
             throw new CommonException.InvalidOperation("Không đủ số lượng linh kiện cần thiết để thực hiện đơn");
         }
 
@@ -143,12 +143,25 @@ public class BookingStatusService implements IBookingStatusService {
         return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
     }
 
-    private boolean checkEnoughPartForBooking(Booking booking) {
+    @Override
+    public boolean checkEnoughPartForBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId));
+
+        if(booking.getBookingStatus() != BookingStatus.PENDING) {
+            throw new CommonException.InvalidOperation(
+                    "Đơn đã được xác nhận không cần kiểm tra số lượng"
+            );
+        }
+
         for (BookingDetail detail : booking.getBookingDetails()) {
-            MaintenanceCatalog catalog = detail.getCatalogModel().getMaintenanceCatalog();
-            VehicleModel model = booking.getVehicle().getModel();
+
+            // 1. Lấy catalogModelId trực tiếp từ booking detail
+            Long catalogModelId = detail.getCatalogModel().getId();
+
+            // 2. Lấy danh sách part (cháu) từ catalogModelId (con)
             List<MaintenanceCatalogModelPart> requiredParts =
-                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalog.getId(), model.getId());
+                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogModelId(catalogModelId);
 
             for (MaintenanceCatalogModelPart mp : requiredParts) {
                 Part part = mp.getPart();
@@ -163,11 +176,13 @@ public class BookingStatusService implements IBookingStatusService {
 
     private void updateReservedParts(Booking booking) {
         for (BookingDetail detail : booking.getBookingDetails()) {
-            MaintenanceCatalog catalog = detail.getCatalogModel().getMaintenanceCatalog();
-            VehicleModel model = booking.getVehicle().getModel();
 
+            // 1. Lấy catalogModelId trực tiếp từ booking detail
+            Long catalogModelId = detail.getCatalogModel().getId();
+
+            // 2. Lấy danh sách part (cháu) từ catalogModelId (con)
             List<MaintenanceCatalogModelPart> requiredParts =
-                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalog.getId(), model.getId());
+                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogModelId(catalogModelId);
 
             for (MaintenanceCatalogModelPart mp : requiredParts) {
                 Part part = mp.getPart();
@@ -179,10 +194,13 @@ public class BookingStatusService implements IBookingStatusService {
 
     private void usePartsForMaintenance(Booking booking) {
         for (BookingDetail detail : booking.getBookingDetails()) {
-            MaintenanceCatalog catalog = detail.getCatalogModel().getMaintenanceCatalog();
-            VehicleModel model = booking.getVehicle().getModel();
+
+            // 1. Lấy catalogModelId trực tiếp từ booking detail
+            Long catalogModelId = detail.getCatalogModel().getId();
+
+            // 2. Lấy danh sách part (cháu) từ catalogModelId (con)
             List<MaintenanceCatalogModelPart> requiredParts =
-                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogIdAndVehicleModelId(catalog.getId(), model.getId());
+                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogModelId(catalogModelId);
 
             for (MaintenanceCatalogModelPart mp : requiredParts) {
                 Part part = mp.getPart();

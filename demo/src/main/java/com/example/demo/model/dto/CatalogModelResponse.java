@@ -10,7 +10,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MaintenanceCatalogModelResponse {
+public class CatalogModelResponse {
     private Long modelId;
     private String modelName;
     private String modelBrand;
@@ -20,5 +20,5 @@ public class MaintenanceCatalogModelResponse {
     private String notes;
     private LocalDateTime createdAt;
 
-    private List<MaintenanceCatalogModelPartResponse> parts;
+    private List<CatalogModelPartResponse> parts;
 }

@@ -142,20 +142,6 @@ public class PartService implements IPartService {
     }
 
     @Override
-    public PartResponse updatePartPrice(Long id, BigDecimal newPrice) {
-        log.info("Updating price for part ID: {} to {}", id, newPrice);
-        accessControlService.verifyResourceAccessWithoutOwnership("PART", "update");
-        Part part = findPartById(id);
-
-        if (newPrice == null || newPrice.compareTo(BigDecimal.ZERO) < 0) {
-            throw new PartException.InvalidPrice();
-        }
-        part.setCurrentUnitPrice(newPrice);
-        Part updatedPart = partRepository.save(part);
-        return mapToResponse(updatedPart);
-    }
-
-    @Override
     public PartResponse updatePartStatus(Long id, EntityStatus status) {
         log.info("Updating status for part ID: {} to {}", id, status);
         accessControlService.verifyResourceAccessWithoutOwnership("PART", "update");

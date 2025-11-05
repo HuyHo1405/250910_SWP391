@@ -7,9 +7,9 @@ import org.springframework.http.HttpStatus;
  * Bao gồm: MaintenanceCatalog, MaintenanceCatalogModel, MaintenanceCatalogModelPart
  */
 
-public class MaintenanceCatalogException extends BaseServiceException {
+public class CatalogException extends BaseServiceException {
 
-    protected MaintenanceCatalogException(String code, String message, HttpStatus httpStatus) {
+    protected CatalogException(String code, String message, HttpStatus httpStatus) {
         super(code, message, httpStatus);
     }
 
@@ -19,7 +19,7 @@ public class MaintenanceCatalogException extends BaseServiceException {
      * Catalog không hoạt động
      */
 
-    public static class CatalogInactive extends MaintenanceCatalogException {
+    public static class CatalogInactive extends CatalogException {
         public CatalogInactive(String catalogName) {
             super("CATALOG_INACTIVE",
                     String.format("Danh mục bảo trì '%s' không có sẵn", catalogName),
@@ -31,7 +31,7 @@ public class MaintenanceCatalogException extends BaseServiceException {
      * Loại catalog không hợp lệ
      */
 
-    public static class InvalidCatalogType extends MaintenanceCatalogException {
+    public static class InvalidCatalogType extends CatalogException {
         public InvalidCatalogType(String type) {
             super("INVALID_CATALOG_TYPE",
                     String.format("Loại danh mục bảo trì không hợp lệ: %s", type),
@@ -45,7 +45,7 @@ public class MaintenanceCatalogException extends BaseServiceException {
      * Xe không support catalog này
      */
 
-    public static class ModelNotSupported extends MaintenanceCatalogException {
+    public static class ModelNotSupported extends CatalogException {
         public ModelNotSupported(Long catalogId, Long modelId) {
             super("MODEL_NOT_SUPPORTED",
                     String.format("Mẫu xe %d không được hỗ trợ cho danh mục %d", modelId, catalogId),
@@ -65,7 +65,7 @@ public class MaintenanceCatalogException extends BaseServiceException {
      * Part không available
      */
 
-    public static class PartNotAvailable extends MaintenanceCatalogException {
+    public static class PartNotAvailable extends CatalogException {
         public PartNotAvailable(String partName) {
             super("PART_NOT_AVAILABLE",
                     String.format("Phụ tùng '%s' không có sẵn", partName),
@@ -79,7 +79,7 @@ public class MaintenanceCatalogException extends BaseServiceException {
      * Không có dịch vụ nào available cho xe này
      */
 
-    public static class NoServicesAvailable extends MaintenanceCatalogException {
+    public static class NoServicesAvailable extends CatalogException {
         public NoServicesAvailable(Long modelId) {
             super("NO_SERVICES_AVAILABLE",
                     String.format("Không có dịch vụ bảo trì nào có sẵn cho mẫu xe %d", modelId),
@@ -97,7 +97,7 @@ public class MaintenanceCatalogException extends BaseServiceException {
      * Batch operation failed
      */
 
-    public static class BatchOperationFailed extends MaintenanceCatalogException {
+    public static class BatchOperationFailed extends CatalogException {
         public BatchOperationFailed(String details) {
             super("BATCH_OPERATION_FAILED",
                     String.format("Thao tác hàng loạt thất bại: %s", details),

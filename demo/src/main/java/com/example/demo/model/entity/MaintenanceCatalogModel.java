@@ -1,10 +1,13 @@
 package com.example.demo.model.entity;
 
+import com.example.demo.model.modelEnum.EntityStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "maintenance_catalogs_models")
@@ -38,8 +41,27 @@ public class MaintenanceCatalogModel {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private EntityStatus status;
+
+    @OneToMany(mappedBy = "maintenanceCatalogModel", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<MaintenanceCatalogModelPart> parts = new ArrayList<>();
+
+
     @PrePersist
     void prePersist() {
         createdAt = LocalDateTime.now();
+    }
+
+    public void addPart(MaintenanceCatalogModelPart part) {
+        this.parts.add(part);
+        part.setMaintenanceCatalogModel(this);
+    }
+
+    public void removePart(MaintenanceCatalogModelPart part) {
+        this.parts.remove(part);
+        part.setMaintenanceCatalogModel(null);
     }
 }
