@@ -576,7 +576,7 @@ VALUES
 (N'Phạm Văn Hùng', 'hung.pv@autocare.vn', '0912345678', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 2, 'ACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
 (N'Hoàng Bích Thủy', 'thuy.hb@autocare.vn', '0902222333', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 2, 'ACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
 (N'Vũ Đức Anh', 'anh.vd@autocare.vn', '0905111222', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 2, 'ACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
-(N'Đỗ Ngọc Linh', 'linh.dn.inactive@autocare.vn', '0902000006', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 2, 'INACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
+(N'Đỗ Ngọc Linh', 'linh.dn.inactive@autocare.vn', '0902000006', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 2, 'ACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
 (N'Nguyễn Bảo An', 'an.nb.archived@autocare.vn', '0902000007', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 2, 'ARCHIVED', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
 
 -- 10 Technician (role_id = 3)
@@ -587,8 +587,8 @@ VALUES
 (N'Đặng Hữu Phước', 'phuoc.dh@autocare.vn', '0933111666', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'ACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
 (N'Ngô Gia Huy', 'huy.ng@autocare.vn', '0933111777', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'ACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
 (N'Bùi Tuấn Kiệt', 'kiet.bt@autocare.vn', '0933111888', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'ACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
-(N'Hồ Minh Đăng', 'dang.hm.inactive@autocare.vn', '0933000008', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'INACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
-(N'Lý Cẩm Ly', 'ly.lc.inactive@autocare.vn', '0933000009', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'INACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
+(N'Hồ Minh Đăng', 'dang.hm.inactive@autocare.vn', '0933000008', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'ACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
+(N'Lý Cẩm Ly', 'ly.lc.inactive@autocare.vn', '0933000009', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'ACTIVE', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
 (N'Mai Văn Sơn', 'son.mv.archived@autocare.vn', '0933000010', '$2a$10$t1Vgn3jF1I.iIoa.iBIGLe5KVG1mVrIl0zTfs.t6.fVqs32/e3Ute', 3, 'ARCHIVED', '2025-10-01 08:00:00', '2025-10-01 08:00:00'),
 
 -- 20 Customer (role_id = 4)

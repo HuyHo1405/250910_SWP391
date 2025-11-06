@@ -25,7 +25,7 @@ public class UserProfileController {
     @PostMapping
     @Operation(summary = "Create new user")
     public ResponseEntity<UserProfileResponse> create(
-            @RequestBody UserProfileRequest.Profile request
+            @RequestBody UserProfileRequest.CreateProfile request
     ) {
         return ResponseEntity.ok(userProfileService.create(request));
     }

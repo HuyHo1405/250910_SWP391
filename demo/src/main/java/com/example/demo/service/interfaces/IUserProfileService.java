@@ -8,7 +8,7 @@ import com.example.demo.model.modelEnum.EntityStatus;
 import java.util.List;
 
 public interface IUserProfileService {
-    UserProfileResponse create(UserProfileRequest.Profile request);
+    UserProfileResponse create(UserProfileRequest.CreateProfile request);
 
     UserProfileResponse getById(Long id);
 

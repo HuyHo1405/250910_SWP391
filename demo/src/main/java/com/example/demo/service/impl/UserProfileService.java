@@ -39,7 +39,7 @@ public class UserProfileService implements IUserProfileService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserProfileResponse create(UserProfileRequest.Profile request) {
+    public UserProfileResponse create(UserProfileRequest.CreateProfile request) {
 
         accessControlService.verifyResourceAccessWithoutOwnership("USER", "CREATE");
 
@@ -52,9 +52,7 @@ public class UserProfileService implements IUserProfileService {
         user.setStatus(EntityStatus.ACTIVE);
 
         // Gen password and send mail
-        String genPassword = passwordService.generatePassword();
-        user.setHashedPassword(passwordEncoder.encode(genPassword));
-        mailService.sendGeneratedPassword(request.getEmail(), genPassword);
+        user.setHashedPassword(passwordEncoder.encode(request.getPassword()));
 
         // Xử lý role: nullable, mặc định CUSTOMER
         String roleDisplayName = (request.getRoleDisplayName() != null) ? request.getRoleDisplayName() : "Customer";
