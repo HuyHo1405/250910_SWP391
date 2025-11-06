@@ -56,10 +56,6 @@ public class UserProfileRequest {
         @Pattern(regexp = "^(\\+84|0)[0-9]{9}$", message = "Số điện thoại phải là định dạng Việt Nam hợp lệ")
         private String phoneNumber;
 
-//        @Pattern(regexp = "^(Quản trị viên|Nhân viên|Technician Employee|Customer)$",
-//                message = "Vai trò phải là Admin, Staff Employee, Customer, hoặc Technician Employee")
-        private String roleDisplayName;
-
     }
 
     @Data

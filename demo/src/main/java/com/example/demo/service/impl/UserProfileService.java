@@ -133,17 +133,6 @@ public class UserProfileService implements IUserProfileService {
             user.setFullName(request.getFullName());
         }
 
-        // Xử lý role nếu truyền lên, nếu không thì giữ nguyên
-        if(request.getRoleDisplayName() != null) {
-            String roleDisplayName = request.getRoleDisplayName();
-
-            Role role = roleRepo.findByDisplayName(roleDisplayName)
-                    .orElseThrow(() -> new UserException.InvalidRoleTransition("CURRENT", roleDisplayName));
-
-            userContextService.checkRoleEditable(role.getId());
-            user.setRole(role);
-        }
-
         user = userRepo.save(user);
         return toDto(user);
     }
