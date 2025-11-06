@@ -174,34 +174,12 @@ public class VehicleService implements IVehicleService {
     }
 
     private void updateVehicleFields(Vehicle vehicle, VehicleRequest.Update request) {
-        if (request.getName() != null) {
-            vehicle.setName(request.getName());
-        }
-
-        if (request.getPlateNumber() != null && !request.getPlateNumber().equals(vehicle.getPlateNumber())) {
-            validatePlateNumberUniqueness(request.getPlateNumber());
-            vehicle.setPlateNumber(request.getPlateNumber());
-        }
-
-        if (request.getColor() != null) {
-            vehicle.setColor(request.getColor());
-        }
-
         if (request.getDistanceTraveledKm() != null) {
             vehicle.setDistanceTraveledKm(request.getDistanceTraveledKm());
         }
 
         if (request.getBatteryDegradation() != null) {
             vehicle.setBatteryDegration(request.getBatteryDegradation());
-        }
-
-        if (request.getPurchasedAt() != null) {
-            vehicle.setPurchasedAt(request.getPurchasedAt());
-        }
-
-        if (request.getVehicleModelId() != null) {
-            VehicleModel newModel = getVehicleModelOrThrow(request.getVehicleModelId());
-            vehicle.setModel(newModel);
         }
     }
 

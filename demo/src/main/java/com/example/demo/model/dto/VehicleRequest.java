@@ -45,25 +45,11 @@ public class VehicleRequest {
 
     @Data
     public static class Update {
-        private String name;
-
-        @Pattern(regexp = PLATE_NUMBER_REGEX, message = "Biến số xe không đúng định dạng")
-        private String plateNumber;
-
-//        @NotBlank(message = "Màu sắc không được để trống")
-        private String color;
-
         @PositiveOrZero(message = "Quãng đường di chuyển phải lớn hơn hoặc bằng 0")
         private Double distanceTraveledKm;
 
         @Max(100) @Min(0)
         private Double batteryDegradation;
-
-//        @NotNull(message = "Ngày mua xe không được để trống")
-        private LocalDateTime purchasedAt;
-
-//        @NotNull(message = "Mã mẫu xe không được để trống")
-        private Long vehicleModelId;
     }
 
 }
