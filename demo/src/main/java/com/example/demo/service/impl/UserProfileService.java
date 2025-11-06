@@ -118,9 +118,9 @@ public class UserProfileService implements IUserProfileService {
         accessControlService.verifyResourceAccess(user.getId(), "USER", "update");
 
         // Kiểm tra xem email có thay đổi không
-        boolean emailChanged = !user.getEmailAddress().equals(request.getEmail());
 
-        if (emailChanged) {
+
+        if (request.getEmail() != null && !user.getEmailAddress().equals(request.getEmail())) {
             throw new CommonException.InvalidOperation("Không được phép thay đổi địa chỉ mail.");
         }
 
