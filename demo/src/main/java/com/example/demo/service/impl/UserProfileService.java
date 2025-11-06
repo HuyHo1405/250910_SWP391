@@ -12,6 +12,7 @@ import com.example.demo.repo.UserRepo;
 import com.example.demo.service.interfaces.IMailService;
 import com.example.demo.service.interfaces.IPasswordService;
 import com.example.demo.service.interfaces.IUserProfileService;
+import com.example.demo.service.interfaces.IVerificationCodeService;
 import com.example.demo.exception.CommonException;
 import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class UserProfileService implements IUserProfileService {
     private final AccessControlService accessControlService;
     private final IPasswordService passwordService;
     private final IMailService mailService;
+    private final IVerificationCodeService verificationCodeService;
 
     private final UserRepo userRepo;
     private final RoleRepo roleRepo;
@@ -115,9 +117,21 @@ public class UserProfileService implements IUserProfileService {
 
         accessControlService.verifyResourceAccess(user.getId(), "USER", "update");
 
-        user.setEmailAddress(request.getEmail());
-        user.setFullName(request.getFullName());
-        user.setPhoneNumber(request.getPhoneNumber());
+        // Kiểm tra xem email có thay đổi không
+        boolean emailChanged = !user.getEmailAddress().equals(request.getEmail());
+
+        if (emailChanged) {
+            throw new CommonException.InvalidOperation("Không được phép thay đổi địa chỉ mail.");
+        }
+
+        if(request.getPhoneNumber() != null && !user.getPhoneNumber().equals(request.getPhoneNumber())) {
+            userValidationService.checkPhoneAvailability( request.getPhoneNumber());
+            user.setPhoneNumber(request.getPhoneNumber());
+        }
+
+        if(request.getFullName() != null && !user.getFullName().equals(request.getFullName())){
+            user.setFullName(request.getFullName());
+        }
 
         // Xử lý role nếu truyền lên, nếu không thì giữ nguyên
         if(request.getRoleDisplayName() != null) {

@@ -32,8 +32,8 @@ public class UserProfileRequest {
         private String phoneNumber;
 
         @NotBlank(message = "Vai trò không được để trống")
-        @Pattern(regexp = "^(Admin|Staff Employee|Technician Employee|Customer)$",
-                message = "Vai trò phải là Admin, Staff Employee, Customer, hoặc Technician Employee")
+//        @Pattern(regexp = "^(Admin|Staff Employee|Technician Employee|Customer)$",
+//                message = "Vai trò phải là Admin, Staff Employee, Customer, hoặc Technician Employee")
         private String roleDisplayName;
 
         @NotBlank(message = "Mật khẩu không được để trống")
@@ -47,21 +47,17 @@ public class UserProfileRequest {
     @NoArgsConstructor
     public static class Profile {
 
-        @NotBlank(message = "Địa chỉ email không được để trống")
         @Email(message = "Email phải hợp lệ")
         private String email;
 
-        @NotBlank(message = "Họ tên không được để trống")
         @Size(min = 2, max = 100, message = "Họ tên phải từ 2 đến 100 ký tự")
         private String fullName;
 
-        @NotBlank(message = "Số điện thoại không được để trống")
         @Pattern(regexp = "^(\\+84|0)[0-9]{9}$", message = "Số điện thoại phải là định dạng Việt Nam hợp lệ")
         private String phoneNumber;
 
-        @NotBlank(message = "Vai trò không được để trống")
-        @Pattern(regexp = "^(Admin|Staff Employee|Technician Employee|Customer)$",
-                message = "Vai trò phải là Admin, Staff Employee, Customer, hoặc Technician Employee")
+//        @Pattern(regexp = "^(Quản trị viên|Nhân viên|Technician Employee|Customer)$",
+//                message = "Vai trò phải là Admin, Staff Employee, Customer, hoặc Technician Employee")
         private String roleDisplayName;
 
     }
