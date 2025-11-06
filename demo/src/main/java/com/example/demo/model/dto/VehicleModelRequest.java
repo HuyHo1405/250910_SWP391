@@ -50,11 +50,9 @@ public class VehicleModelRequest {
 
     @Data
     public static class UpdateModel {
-        @NotBlank(message = "Tên hãng xe không được để trống")
         @Size(max = 100, message = "Tên hãng xe không được vượt quá 100 ký tự")
         private String brandName;
 
-        @NotBlank(message = "Tên mẫu xe không được để trống")
         @Size(max = 100, message = "Tên mẫu xe không được vượt quá 100 ký tự")
         private String modelName;
 
@@ -88,7 +86,6 @@ public class VehicleModelRequest {
         @DecimalMax(value = "10000.0", message = "Trọng lượng không được vượt quá 10000 kg")
         private Double weightKg;
 
-        @NotNull(message = "Trạng thái không được để trống")
         private EntityStatus status;
     }
 }

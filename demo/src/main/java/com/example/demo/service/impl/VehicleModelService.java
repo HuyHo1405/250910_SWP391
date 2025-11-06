@@ -146,16 +146,45 @@ public class VehicleModelService implements IVehicleModelService{
                     }
                 });
 
-        vehicleModel.setBrandName(request.getBrandName());
-        vehicleModel.setModelName(request.getModelName());
-        vehicleModel.setDimensions(request.getDimensions());
-        vehicleModel.setSeats(request.getSeats());
-        vehicleModel.setBatteryCapacityKwh(request.getBatteryCapacityKwh());
-        vehicleModel.setRangeKm(request.getRangeKm());
-        vehicleModel.setChargingTimeHours(request.getChargingTimeHours());
-        vehicleModel.setMotorPowerKw(request.getMotorPowerKw());
-        vehicleModel.setWeightKg(request.getWeightKg());
-        vehicleModel.setStatus(request.getStatus());
+        if (request.getBrandName() != null && !request.getBrandName().equals(vehicleModel.getBrandName())) {
+            vehicleModel.setBrandName(request.getBrandName());
+        }
+
+        if (request.getModelName() != null && !request.getModelName().equals(vehicleModel.getModelName())) {
+            vehicleModel.setModelName(request.getModelName());
+        }
+
+        if (request.getDimensions() != null && !request.getDimensions().equals(vehicleModel.getDimensions())) {
+            vehicleModel.setDimensions(request.getDimensions());
+        }
+
+        if (request.getSeats() != null && !request.getSeats().equals(vehicleModel.getSeats())) {
+            vehicleModel.setSeats(request.getSeats());
+        }
+
+        if (request.getBatteryCapacityKwh() != null && !request.getBatteryCapacityKwh().equals(vehicleModel.getBatteryCapacityKwh())) {
+            vehicleModel.setBatteryCapacityKwh(request.getBatteryCapacityKwh());
+        }
+
+        if (request.getRangeKm() != null && !request.getRangeKm().equals(vehicleModel.getRangeKm())) {
+            vehicleModel.setRangeKm(request.getRangeKm());
+        }
+
+        if (request.getChargingTimeHours() != null && !request.getChargingTimeHours().equals(vehicleModel.getChargingTimeHours())) {
+            vehicleModel.setChargingTimeHours(request.getChargingTimeHours());
+        }
+
+        if (request.getMotorPowerKw() != null && !request.getMotorPowerKw().equals(vehicleModel.getMotorPowerKw())) {
+            vehicleModel.setMotorPowerKw(request.getMotorPowerKw());
+        }
+
+        if (request.getWeightKg() != null && !request.getWeightKg().equals(vehicleModel.getWeightKg())) {
+            vehicleModel.setWeightKg(request.getWeightKg());
+        }
+
+        if (request.getStatus() != null && !request.getStatus().equals(vehicleModel.getStatus())) {
+            vehicleModel.setStatus(request.getStatus());
+        }
 
         VehicleModel updated = vehicleModelRepo.save(vehicleModel);
         log.info("Vehicle model updated successfully with ID: {}", id);
