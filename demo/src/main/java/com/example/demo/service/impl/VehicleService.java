@@ -174,6 +174,22 @@ public class VehicleService implements IVehicleService {
     }
 
     private void updateVehicleFields(Vehicle vehicle, VehicleRequest.Update request) {
+        if(request.getName() != null && !request.getName().equals(vehicle.getName())) {
+            throw new CommonException.InvalidOperation("Trường tên xe không được phép thay đổi");
+        }
+
+        if(request.getColor() != null && !request.getColor().equals(vehicle.getColor())) {
+            throw new CommonException.InvalidOperation("Màu xe không được phép thay đổi");
+        }
+
+        if(request.getPlateNumber() != null && !request.getPlateNumber().equals(vehicle.getName())) {
+            throw new CommonException.InvalidOperation("Trường tên xe không được phép thay đổi");
+        }
+
+        if(request.getPurchasedAt() != null && !request.getPurchasedAt().isEqual(vehicle.getPurchasedAt())) {
+            throw new CommonException.InvalidOperation("Ngày mua xe không được phép thay đổi");
+        }
+
         if (request.getDistanceTraveledKm() != null) {
             vehicle.setDistanceTraveledKm(request.getDistanceTraveledKm());
         }

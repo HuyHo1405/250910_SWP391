@@ -45,11 +45,21 @@ public class VehicleRequest {
 
     @Data
     public static class Update {
+        private String name;
+
+        @Pattern(regexp = PLATE_NUMBER_REGEX, message = "Biến số xe không đúng định dạng")
+        private String plateNumber;
+
+        private String color;
+
         @PositiveOrZero(message = "Quãng đường di chuyển phải lớn hơn hoặc bằng 0")
         private Double distanceTraveledKm;
 
         @Max(100) @Min(0)
         private Double batteryDegradation;
+
+        private LocalDateTime purchasedAt;
+
     }
 
 }
