@@ -45,13 +45,12 @@ public class VehicleRequest {
 
     @Data
     public static class Update {
-        @NotBlank(message = "Tên xe không được để trống")
         private String name;
 
-        @NotBlank(message = "Biển số xe không được để trống")
+        @Pattern(regexp = PLATE_NUMBER_REGEX, message = "Biến số xe không đúng định dạng")
         private String plateNumber;
 
-        @NotBlank(message = "Màu sắc không được để trống")
+//        @NotBlank(message = "Màu sắc không được để trống")
         private String color;
 
         @PositiveOrZero(message = "Quãng đường di chuyển phải lớn hơn hoặc bằng 0")
@@ -60,10 +59,10 @@ public class VehicleRequest {
         @Max(100) @Min(0)
         private Double batteryDegradation;
 
-        @NotNull(message = "Ngày mua xe không được để trống")
+//        @NotNull(message = "Ngày mua xe không được để trống")
         private LocalDateTime purchasedAt;
 
-        @NotNull(message = "Mã mẫu xe không được để trống")
+//        @NotNull(message = "Mã mẫu xe không được để trống")
         private Long vehicleModelId;
     }
 

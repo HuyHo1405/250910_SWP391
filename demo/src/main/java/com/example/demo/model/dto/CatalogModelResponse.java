@@ -14,7 +14,6 @@ public class CatalogModelResponse {
     private Long modelId;
     private String modelName;
     private String modelBrand;
-    private String modelYear;
     private Double estTimeMinutes;
     private BigDecimal maintenancePrice;
     private String notes;
