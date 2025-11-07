@@ -41,6 +41,8 @@ public class VehicleService implements IVehicleService {
         // 2. Validate business rules
         validateVehicleUniqueness(request.getVin(), request.getPlateNumber());
 
+        validateNotFutureDate(request.getPurchasedAt());
+
         // 3. Fetch and validate related entities
         VehicleModel vehicleModel = getVehicleModelOrThrow(request.getVehicleModelId());
         User user = getUserOrThrow(request.getUserId());
@@ -63,6 +65,7 @@ public class VehicleService implements IVehicleService {
 
         // 2. Check access permission (ownership-based for customers)
         accessControlService.verifyResourceAccess(vehicle.getCustomer().getId(), "VEHICLE", "update");
+
 
         // 3. Update fields
         updateVehicleFields(vehicle, request);
@@ -202,6 +205,12 @@ public class VehicleService implements IVehicleService {
     private void validatePlateNumberUniqueness(String plateNumber) {
         if (vehicleRepo.existsByPlateNumberAndEntityStatus(plateNumber, EntityStatus.ACTIVE)) {
             throw new CommonException.AlreadyExists("Xe", "Biển số xe", plateNumber);
+        }
+    }
+
+    private void validateNotFutureDate(LocalDateTime date) {
+        if (date != null && date.isAfter(LocalDateTime.now())) {
+            throw new CommonException.InvalidOperation("Ngày mua" + " không được là ngày trong tương lai");
         }
     }
 }
