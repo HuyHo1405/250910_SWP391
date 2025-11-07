@@ -1,6 +1,7 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.UserException;
+import com.example.demo.model.dto.EnumSchemaResponse;
 import com.example.demo.model.dto.MessageResponse;
 import com.example.demo.model.dto.UserProfileRequest;
 import com.example.demo.model.dto.UserProfileResponse;
@@ -169,6 +170,29 @@ public class UserProfileService implements IUserProfileService {
         accessControlService.verifyResourceAccess(user.getId(), "USER", "delete");
         userContextService.checkRoleEditable(user.getRole());
         userRepo.delete(user);
+    }
+
+    @Override
+    public EnumSchemaResponse getAllRoles() {
+        accessControlService.verifyCanAccessAllResources("ROLE", "read");
+
+        if (userContextService.isAdmin()) {
+            List<String> editableRoleDisplayNames = roleRepo.findAdminEditableRoleDisplayNames();
+            return new EnumSchemaResponse(
+                    "RoleEnum",
+                    editableRoleDisplayNames,
+                    "Danh sách vai trò có thể chỉnh sửa (Admin)"
+            );
+        } else if (userContextService.isStaff()) {
+            List<String> editableRoleDisplayNames = roleRepo.findStaffEditableRoleDisplayNames();
+            return new EnumSchemaResponse(
+                    "RoleEnum",
+                    editableRoleDisplayNames,
+                    "Danh sách vai trò có thể chỉnh sửa (Staff)"
+            );
+        } else {
+            throw new CommonException.InvalidOperation("Bạn không có quyền truy cập danh sách vai trò.");
+        }
     }
 
     private UserProfileResponse toDto(User user) {

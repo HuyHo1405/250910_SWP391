@@ -1,5 +1,6 @@
 package com.example.demo.service.interfaces;
 
+import com.example.demo.model.dto.EnumSchemaResponse;
 import com.example.demo.model.dto.MessageResponse;
 import com.example.demo.model.dto.UserProfileRequest;
 import com.example.demo.model.dto.UserProfileResponse;
@@ -29,4 +30,6 @@ public interface IUserProfileService {
     void reactive(Long id);
 
     void delete(Long id);
+
+    EnumSchemaResponse getAllRoles();
 }

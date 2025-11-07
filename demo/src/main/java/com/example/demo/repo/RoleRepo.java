@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,4 +17,12 @@ public interface RoleRepo extends JpaRepository<Role, Long> {
     Optional<Role> findByName(String name);
 
     Optional<Role> findByDisplayName(String displayName);
+
+    // Lấy danh sách displayName của các role mà STAFF có thể chỉnh sửa
+    @Query("SELECT r.displayName FROM Role staff JOIN staff.editableRoles r WHERE staff.id = 2")
+    List<String> findStaffEditableRoleDisplayNames();
+
+    // Lấy danh sách displayName của các role mà ADMIN có thể chỉnh sửa
+    @Query("SELECT r.displayName FROM Role admin JOIN admin.editableRoles r WHERE admin.id = 1")
+    List<String> findAdminEditableRoleDisplayNames();
 }

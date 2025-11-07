@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.dto.EnumSchemaResponse;
 import com.example.demo.model.dto.MessageResponse;
 import com.example.demo.model.dto.UserProfileRequest;
 import com.example.demo.model.dto.UserProfileResponse;
@@ -94,5 +95,12 @@ public class UserProfileController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userProfileService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // GET ALL ROLES - Lấy danh sách tất cả role display names
+    @GetMapping("/roles")
+    @Operation(summary = "Get all editable roles for current user (enum schema)")
+    public ResponseEntity<EnumSchemaResponse> getAllRoles() {
+        return ResponseEntity.ok(userProfileService.getAllRoles());
     }
 }

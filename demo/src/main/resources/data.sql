@@ -476,7 +476,9 @@ VALUES
 ('JOB', 'UPDATE', 1, 'Update job'),
 ('JOB', 'DELETE', 1, 'Delete job'),
 ('JOB', 'START', 1, 'Start doing job'),
-('JOB', 'COMPLETE', 1, 'Complete jpb');
+('JOB', 'COMPLETE', 1, 'Complete jpb'),
+-- ROLE
+('ROLE', 'read', 1, 'Read role');
 
 -- 1) ADMIN: Có tất cả các quyền
 IF
@@ -507,7 +509,8 @@ WHERE
                     'PAYMENT',
                     'MAINTENANCE_SERVICE',
                     'PART',
-                    'JOB'
+                    'JOB',
+                   'ROLE'
         ));
 
 -- 3) TECHNICIAN:
