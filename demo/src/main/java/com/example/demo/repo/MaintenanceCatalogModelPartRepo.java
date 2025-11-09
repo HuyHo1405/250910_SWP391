@@ -16,6 +16,9 @@ public interface MaintenanceCatalogModelPartRepo extends JpaRepository<Maintenan
     List<MaintenanceCatalogModelPart> findByMaintenanceCatalogModelId(
             Long catalogModelId);
 
+    // Tìm tất cả catalog models sử dụng part này
+    List<MaintenanceCatalogModelPart> findByPartId(Long partId);
+
     void deleteAllByMaintenanceCatalogModelId(Long catalogModelId);
 
     void deleteAllByMaintenanceCatalogModelIdIn(List<Long> toDeleteIds);

@@ -211,10 +211,16 @@ public class BookingStatusService implements IBookingStatusService {
                 Part part = mp.getPart();
                 BigDecimal qty = mp.getQuantityRequired();
 
+                // Trừ quantity (số lượng trong kho giảm)
                 part.setQuantity(part.getQuantity().subtract(qty));
+                // Trừ reserved (số lượng đã đặt giảm)
                 part.setReserved(part.getReserved().subtract(qty));
-                partRepo.save(part);
+                // Cộng used (số lượng đã sử dụng tăng)
+                part.setUsed(part.getUsed().add(qty));
 
+                partRepo.save(part);
+                log.info("Part {} used: {} units. New stock: quantity={}, reserved={}, used={}",
+                    part.getName(), qty, part.getQuantity(), part.getReserved(), part.getUsed());
             }
         }
     }

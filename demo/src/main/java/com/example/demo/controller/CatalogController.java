@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.dto.*;
-import com.example.demo.model.modelEnum.MaintenanceCatalogType;
+import com.example.demo.model.modelEnum.MaintenanceCatalogCategory;
 import com.example.demo.service.interfaces.IMaintenanceCatalogService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -22,7 +22,7 @@ public class CatalogController {
 
     @GetMapping
     public ResponseEntity<List<CatalogResponse>> getAllCatalogs(
-            @RequestParam(required = false) MaintenanceCatalogType type,
+            @RequestParam(required = false) MaintenanceCatalogCategory type,
             @RequestParam(required = false) String vin,
             @RequestParam(defaultValue = "false") boolean includeModels
     ) {

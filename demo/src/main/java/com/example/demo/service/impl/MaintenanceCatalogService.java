@@ -5,7 +5,7 @@ import com.example.demo.exception.CatalogException;
 import com.example.demo.model.dto.*;
 import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.EntityStatus;
-import com.example.demo.model.modelEnum.MaintenanceCatalogType;
+import com.example.demo.model.modelEnum.MaintenanceCatalogCategory;
 import com.example.demo.repo.MaintenanceCatalogRepo;
 import com.example.demo.repo.PartRepo;
 import com.example.demo.repo.VehicleModelRepo;
@@ -113,7 +113,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
     @Override
     @Transactional(readOnly = true)
     public List<CatalogResponse> findAll(
-            @Nullable MaintenanceCatalogType type,
+            @Nullable MaintenanceCatalogCategory type,
             @Nullable String vin,
             boolean includeModels
     ) {

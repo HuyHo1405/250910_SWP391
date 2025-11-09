@@ -2,7 +2,7 @@ package com.example.demo.service.interfaces;
 
 import com.example.demo.model.dto.CatalogRequest;
 import com.example.demo.model.dto.CatalogResponse;
-import com.example.demo.model.modelEnum.MaintenanceCatalogType;
+import com.example.demo.model.modelEnum.MaintenanceCatalogCategory;
 import io.micrometer.common.lang.Nullable;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public interface IMaintenanceCatalogService {
     CatalogResponse findById(Long id);
 
     List<CatalogResponse> findAll(
-            @Nullable MaintenanceCatalogType type,
+            @Nullable MaintenanceCatalogCategory type,
             @Nullable String vin,
             boolean includeModels
     );

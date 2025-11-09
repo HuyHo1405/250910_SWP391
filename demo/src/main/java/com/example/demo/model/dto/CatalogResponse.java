@@ -1,7 +1,7 @@
 package com.example.demo.model.dto;
 
 import com.example.demo.model.modelEnum.EntityStatus;
-import com.example.demo.model.modelEnum.MaintenanceCatalogType;
+import com.example.demo.model.modelEnum.MaintenanceCatalogCategory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +18,7 @@ public class CatalogResponse {
     private Long id;
     private String name;
     private String description;
-    private MaintenanceCatalogType maintenanceServiceType;
+    private MaintenanceCatalogCategory maintenanceServiceType;
     private EntityStatus status;
     private LocalDateTime createdAt;
 

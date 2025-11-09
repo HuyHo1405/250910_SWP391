@@ -1,7 +1,7 @@
 package com.example.demo.repo;
 
 import com.example.demo.model.entity.MaintenanceCatalog;
-import com.example.demo.model.modelEnum.MaintenanceCatalogType;
+import com.example.demo.model.modelEnum.MaintenanceCatalogCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,7 +20,7 @@ public interface MaintenanceCatalogRepo extends JpaRepository<MaintenanceCatalog
             "WHERE (:type IS NULL OR mc.maintenanceServiceType = :type) " +
             "AND (:vin IS NULL OR v.vin = :vin)")
     List<MaintenanceCatalog> findByTypeAndVin(
-            @Param("type") MaintenanceCatalogType type,
+            @Param("type") MaintenanceCatalogCategory type,
             @Param("vin") String vin
     );
 

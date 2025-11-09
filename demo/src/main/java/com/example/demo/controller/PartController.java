@@ -1,19 +1,9 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.dto.ErrorResponse;
 import com.example.demo.model.dto.PartRequest;
 import com.example.demo.model.dto.PartResponse;
 import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.service.interfaces.IPartService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -108,4 +98,3 @@ public class PartController {
     }
 
 }
-

@@ -1,10 +1,12 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.PartException;
+import com.example.demo.model.dto.EnumSchemaResponse;
 import com.example.demo.model.dto.PartRequest;
 import com.example.demo.model.dto.PartResponse;
-import com.example.demo.model.entity.Part;
+import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.EntityStatus;
+import com.example.demo.repo.MaintenanceCatalogModelPartRepo;
 import com.example.demo.repo.PartRepo;
 import com.example.demo.service.interfaces.IPartService;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class PartService implements IPartService {
 
     private final PartRepo partRepository;
+    private final MaintenanceCatalogModelPartRepo catalogModelPartRepo;
     private final AccessControlService accessControlService;
 
     // ================================
@@ -41,10 +44,11 @@ public class PartService implements IPartService {
                 .name(request.getName())
                 .partNumber(request.getPartNumber())
                 .manufacturer(request.getManufacturer())
-                .description(request.getDescription())
+                .category(request.getCategory())
                 .currentUnitPrice(request.getCurrentUnitPrice())
                 .quantity(request.getQuantity())
                 .reserved(request.getReserved())
+                .used(request.getUsed() != null ? request.getUsed() : BigDecimal.ZERO)
                 .status(EntityStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -131,10 +135,11 @@ public class PartService implements IPartService {
         part.setName(request.getName());
         part.setPartNumber(request.getPartNumber());
         part.setManufacturer(request.getManufacturer());
-        part.setDescription(request.getDescription());
+        part.setCategory(request.getCategory());
         part.setCurrentUnitPrice(request.getCurrentUnitPrice());
         part.setQuantity(request.getQuantity());
         part.setReserved(request.getReserved());
+        part.setUsed(request.getUsed() != null ? request.getUsed() : part.getUsed());
 
         Part updatedPart = partRepository.save(part);
         log.info("Part updated successfully: {}", id);
@@ -182,6 +187,22 @@ public class PartService implements IPartService {
         }
         part.setReserved(newReserved);
         Part updatedPart = partRepository.save(part);
+        return mapToResponse(updatedPart);
+    }
+
+    @Override
+    public PartResponse adjustUsedStock(Long id, BigDecimal adjustment) {
+        log.info("Adjusting used stock for part ID: {} by {}", id, adjustment);
+        accessControlService.verifyResourceAccessWithoutOwnership("PART", "manage_stock");
+        Part part = findPartById(id);
+        BigDecimal currentUsed = part.getUsed();
+        BigDecimal newUsed = currentUsed.add(adjustment);
+        if (newUsed.compareTo(BigDecimal.ZERO) < 0) {
+            throw new PartException.NegativeQuantityResult(currentUsed, adjustment);
+        }
+        part.setUsed(newUsed);
+        Part updatedPart = partRepository.save(part);
+        log.info("Part ID {} used stock adjusted from {} to {}", id, currentUsed, newUsed);
         return mapToResponse(updatedPart);
     }
 
@@ -242,17 +263,72 @@ public class PartService implements IPartService {
     }
 
     private PartResponse mapToResponse(Part part) {
+        // Tính all = quantity + used
+        BigDecimal all = part.getQuantity().add(part.getUsed());
+
+        // Lấy thông tin usage
+        List<MaintenanceCatalogModelPart> catalogModelParts = catalogModelPartRepo.findByPartId(part.getId());
+
+        // Extract TẤT CẢ catalog names (unique)
+        List<String> catalogNames = catalogModelParts.stream()
+                .map(cmp -> cmp.getMaintenanceCatalogModel().getMaintenanceCatalog().getName())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+
+        // Extract TẤT CẢ vehicle model names (unique, format: "Brand Model")
+        List<String> vehicleModelNames = catalogModelParts.stream()
+                .map(cmp -> {
+                    VehicleModel vm = cmp.getMaintenanceCatalogModel().getVehicleModel();
+                    return vm.getBrandName() + " " + vm.getModelName();
+                })
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+
+        // Build mapping: catalog -> list of vehicles
+        Map<String, List<String>> catalogVehicleMapping = catalogModelParts.stream()
+                .collect(Collectors.groupingBy(
+                        cmp -> cmp.getMaintenanceCatalogModel().getMaintenanceCatalog().getName(),
+                        Collectors.mapping(
+                                cmp -> {
+                                    VehicleModel vm = cmp.getMaintenanceCatalogModel().getVehicleModel();
+                                    return vm.getBrandName() + " " + vm.getModelName();
+                                },
+                                Collectors.toList()
+                        )
+                ));
+
+        // Build EnumSchemaResponse cho catalogs
+        EnumSchemaResponse catalogsEnum = catalogNames.isEmpty() ? null : new EnumSchemaResponse(
+                "CatalogsForPart_" + part.getPartNumber(),
+                catalogNames,
+                "Danh sách dịch vụ sử dụng linh kiện " + part.getName()
+        );
+
+        // Build EnumSchemaResponse cho vehicle models
+        EnumSchemaResponse vehicleModelsEnum = vehicleModelNames.isEmpty() ? null : new EnumSchemaResponse(
+                "VehicleModelsForPart_" + part.getPartNumber(),
+                vehicleModelNames,
+                "Danh sách mẫu xe sử dụng linh kiện " + part.getName()
+        );
+
         return PartResponse.builder()
                 .id(part.getId())
                 .name(part.getName())
                 .partNumber(part.getPartNumber())
                 .manufacturer(part.getManufacturer())
-                .description(part.getDescription())
+                .category(part.getCategory())
                 .currentUnitPrice(part.getCurrentUnitPrice())
                 .quantity(part.getQuantity())
                 .reserved(part.getReserved())
+                .used(part.getUsed())
+                .all(all)
                 .status(part.getStatus().name())
                 .createdAt(part.getCreatedAt())
+                .catalogsEnum(catalogsEnum)
+                .vehicleModelsEnum(vehicleModelsEnum)
+                .catalogVehicleMapping(catalogVehicleMapping.isEmpty() ? null : catalogVehicleMapping)
                 .build();
     }
 }

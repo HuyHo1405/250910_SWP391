@@ -1,6 +1,7 @@
 package com.example.demo.model.entity;
 
 import com.example.demo.model.modelEnum.EntityStatus;
+import com.example.demo.model.modelEnum.PartCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,8 +34,9 @@ public class Part {
     @Column(name = "manufacturer", nullable = false, columnDefinition = "NVARCHAR(255)")
     private String manufacturer;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(255)")
-    private String description;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false, length = 50)
+    private PartCategory category;
 
     @Column(name = "current_unit_price", nullable = false)
     private BigDecimal currentUnitPrice;
@@ -44,6 +46,9 @@ public class Part {
 
     @Column(name = "reserved", nullable = false)
     private BigDecimal reserved;
+
+    @Column(name = "used", nullable = false)
+    private BigDecimal used;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)

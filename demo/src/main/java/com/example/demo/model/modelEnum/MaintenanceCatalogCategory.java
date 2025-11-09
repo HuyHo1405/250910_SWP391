@@ -1,6 +1,6 @@
 package com.example.demo.model.modelEnum;
 
-public enum MaintenanceCatalogType {
+public enum MaintenanceCatalogCategory {
     BATTERY_INSPECTION,
     TIRE_ROTATION,
     BRAKE_SYSTEM_CHECK,

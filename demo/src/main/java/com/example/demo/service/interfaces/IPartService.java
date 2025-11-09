@@ -26,6 +26,10 @@ public interface IPartService {
     List<PartResponse> getLowStockParts(BigDecimal threshold); // Parts có quantity <= threshold
 
     // ================================
+    // USAGE INFO - Thông tin sử dụng
+    // ================================
+
+    // ================================
     // UPDATE - Cập nhật part
     // ================================
     PartResponse updatePart(Long id, PartRequest request);
@@ -37,7 +41,9 @@ public interface IPartService {
     // ================================
     PartResponse adjustPartStock(Long id, BigDecimal adjustment); // Tăng/giảm quantity (+/- adjustment)
 
-    PartResponse adjustReservedStock(Long id, BigDecimal adjustment); // Tăng/giảm quantity (+/- adjustment)
+    PartResponse adjustReservedStock(Long id, BigDecimal adjustment); // Tăng/giảm reserved (+/- adjustment)
+
+    PartResponse adjustUsedStock(Long id, BigDecimal adjustment); // Tăng/giảm used (+/- adjustment)
 
     boolean checkAvailability(Long id, BigDecimal requiredQuantity); // Kiểm tra đủ hàng không
 

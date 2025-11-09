@@ -1,6 +1,6 @@
 package com.example.demo.model.dto;
 
-import com.example.demo.model.modelEnum.MaintenanceCatalogType;
+import com.example.demo.model.modelEnum.MaintenanceCatalogCategory;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -16,7 +16,7 @@ public class CatalogRequest {
     private String description;
 
     @NotNull(message = "Loại dịch vụ không được để trống")
-    private MaintenanceCatalogType maintenanceServiceType;
+    private MaintenanceCatalogCategory maintenanceServiceType;
 
     @Valid // Thêm @Valid để kiểm tra các DTO lồng bên trong
     @NotNull(message = "Danh sách model không được để trống")

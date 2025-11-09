@@ -1,5 +1,6 @@
 package com.example.demo.model.dto;
 
+import com.example.demo.model.modelEnum.PartCategory;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -22,8 +23,8 @@ public class PartRequest {
     @Size(max = 255, message = "Tên nhà sản xuất không được vượt quá 255 ký tự")
     private String manufacturer;
 
-    @Size(max = 1000, message = "Mô tả không được vượt quá 1000 ký tự")
-    private String description;
+    @NotNull(message = "Danh mục không được để trống")
+    private PartCategory category;
 
     @NotNull(message = "Đơn giá không được để trống")
     @DecimalMin(value = "0.0", message = "Đơn giá phải lớn hơn hoặc bằng 0")
@@ -36,4 +37,8 @@ public class PartRequest {
     @NotNull(message = "Số lượng hàng đã đặt không được trống")
     @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
     private BigDecimal reserved;
+
+    @NotNull(message = "Số lượng đã sử dụng không được trống")
+    @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
+    private BigDecimal used;
 }

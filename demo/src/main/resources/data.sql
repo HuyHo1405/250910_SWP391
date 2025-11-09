@@ -43,43 +43,54 @@ VALUES
 -- ================================================================================================================== --
 -- BẢNG PARTS - Định nghĩa các loại linh kiện bảo dưỡng được quản lý trong kho
 -- ================================================================================================================== --
-IF
-NOT EXISTS (SELECT 1 FROM parts)
+IF NOT EXISTS (SELECT 1 FROM parts)
 INSERT INTO parts
-(part_number, name, manufacturer, description, current_unit_price, quantity, reserved, status, created_at)
+(part_number, name, manufacturer, category, current_unit_price, quantity, reserved, used, status, created_at)
 VALUES
 -- === 1. Lọc (Filters) ===
-('PART-FIL-CAB-S', N'Lọc gió cabin (Loại S)', 'VinFast', N'Dùng cho xe cỡ nhỏ: VF 3, VF 5 Plus, VF e34', 150000, 200, 1, 'ACTIVE', GETDATE()),
-('PART-FIL-CAB-M', N'Lọc gió cabin (Loại M)', 'VinFast', N'Dùng cho xe cỡ trung: VF 6, VF 7', 220000, 150, 0, 'ACTIVE', GETDATE()),
-('PART-FIL-CAB-L', N'Lọc gió cabin (Loại L)', 'VinFast', N'Dùng cho xe cỡ lớn: VF 8, VF 9', 300000, 100, 1, 'ACTIVE', GETDATE()),
+-- ('PART-FIL-CAB-S') Hóa đơn 12 (Reserved), 17 (Reserved)
+('PART-FIL-CAB-S', N'Lọc gió cabin (Loại S)', 'VinFast', 'FILTER', 150000, 200, 2, 0, 'ACTIVE', GETDATE()),
+-- ('PART-FIL-CAB-M') Hóa đơn 7 (Used)
+('PART-FIL-CAB-M', N'Lọc gió cabin (Loại M)', 'VinFast', 'FILTER', 220000, 150, 0, 1, 'ACTIVE', GETDATE()),
+-- ('PART-FIL-CAB-L') Hóa đơn 1 (Used), 9 (Used), 14 (Reserved)
+('PART-FIL-CAB-L', N'Lọc gió cabin (Loại L)', 'VinFast', 'FILTER', 300000, 100, 1, 2, 'ACTIVE', GETDATE()),
 
 -- === 2. Dung dịch & Hóa chất (Fluids) ===
-('PART-FLD-BRK-01', N'Dầu phanh DOT 4 (1L)', 'Castrol', N'Dùng cho dịch vụ thay dầu phanh (BRAKE_FLUID_REPLACEMENT)', 180000, 300, 1, 'ACTIVE', GETDATE()),
-('PART-FLD-COL-01', N'Nước làm mát pin (EV Coolant) (5L)', 'Prestone', N'Dung dịch làm mát pin chuyên dụng (COOLANT_SYSTEM_SERVICE)', 750000, 150, 0, 'ACTIVE', GETDATE()),
-('PART-FLD-WSH-01', N'Nước rửa kính (2L)', 'VinFast', N'Bổ sung nước rửa kính (WASHER_FLUID_TOPUP)', 50000, 500, 1, 'ACTIVE', GETDATE()),
-('PART-FLD-ACG-01', N'Gas điều hòa R-1234yf (1kg)', 'Honeywell', N'Gas lạnh thế hệ mới (AC_SYSTEM_SERVICE)', 2500000, 50, 0, 'ACTIVE', GETDATE()),
-('PART-FLD-ACO-01', N'Dầu máy nén A/C (POE) (100ml)', 'Sanden', N'Dầu bôi trơn máy nén điện (AC_SYSTEM_SERVICE)', 450000, 80, 0, 'ACTIVE', GETDATE()),
+-- ('PART-FLD-BRK-01') Hóa đơn 3 (Used), 9 (Used x2), 18 (Reserved)
+('PART-FLD-BRK-01', N'Dầu phanh DOT 4 (1L)', 'Castrol', 'FLUID', 180000, 300, 1, 3, 'ACTIVE', GETDATE()),
+-- ('PART-FLD-COL-01') Hóa đơn 3 (Used)
+('PART-FLD-COL-01', N'Nước làm mát pin (EV Coolant) (5L)', 'Prestone', 'FLUID', 750000, 150, 0, 1, 'ACTIVE', GETDATE()),
+-- ('PART-FLD-WSH-01') Hóa đơn 1, 6, 10 (Used) | 13, 16 (Reserved)
+('PART-FLD-WSH-01', N'Nước rửa kính (2L)', 'VinFast', 'FLUID', 50000, 500, 2, 3, 'ACTIVE', GETDATE()),
+-- ('PART-FLD-ACG-01')
+('PART-FLD-ACG-01', N'Gas điều hòa R-1234yf (1kg)', 'Honeywell', 'FLUID', 2500000, 50, 0, 0, 'ACTIVE', GETDATE()),
+-- ('PART-FLD-ACO-01')
+('PART-FLD-ACO-01', N'Dầu máy nén A/C (POE) (100ml)', 'Sanden', 'FLUID', 450000, 80, 0, 0, 'ACTIVE', GETDATE()),
 
 -- === 3. Ắc quy 12V (Auxiliary Batteries) ===
-('PART-BAT-12V-45', N'Ắc quy 12V 45Ah (AGM)', 'GS Battery', N'Ắc quy phụ 12V cho xe cỡ nhỏ (VF 3, VF 5, VF e34, VF 6)', 1800000, 70, 0, 'ACTIVE', GETDATE()),
-('PART-BAT-12V-60', N'Ắc quy 12V 60Ah (AGM)', 'Varta', N'Ắc quy phụ 12V cho xe cỡ lớn (VF 7, VF 8, VF 9)', 2500000, 50, 0, 'ACTIVE', GETDATE()),
+-- ('PART-BAT-12V-45') Hóa đơn 8 (Used)
+('PART-BAT-12V-45', N'Ắc quy 12V 45Ah (AGM)', 'GS Battery', 'BATTERY', 1800000, 70, 0, 1, 'ACTIVE', GETDATE()),
+-- ('PART-BAT-12V-60')
+('PART-BAT-12V-60', N'Ắc quy 12V 60Ah (AGM)', 'Varta', 'BATTERY', 2500000, 50, 0, 0, 'ACTIVE', GETDATE()),
 
 -- === 4. Gạt mưa (Wipers) ===
-('PART-WPR-16', N'Gạt mưa Bosch 16"', 'Bosch', N'Gạt mưa đa năng, cỡ 16 inch', 120000, 100, 0, 'ACTIVE', GETDATE()),
-('PART-WPR-24', N'Gạt mưa Bosch 24"', 'Bosch', N'Gạt mưa đa năng, cỡ 24 inch', 180000, 100, 0, 'ACTIVE', GETDATE()),
-('PART-WPR-26', N'Gạt mưa Bosch 26"', 'Bosch', N'Gạt mưa đa năng, cỡ 26 inch', 200000, 100, 0, 'ACTIVE', GETDATE()),
+-- ('PART-WPR-16')
+('PART-WPR-16', N'Gạt mưa Bosch 16"', 'Bosch', 'WIPER', 120000, 100, 0, 0, 'ACTIVE', GETDATE()),
+-- ('PART-WPR-24') Hóa đơn 5 (Used) | 11, 13 (Reserved)
+('PART-WPR-24', N'Gạt mưa Bosch 24"', 'Bosch', 'WIPER', 180000, 100, 2, 1, 'ACTIVE', GETDATE()),
+-- ('PART-WPR-26') Hóa đơn 5 (Used) | 11, 13 (Reserved)
+('PART-WPR-26', N'Gạt mưa Bosch 26"', 'Bosch', 'WIPER', 200000, 100, 2, 1, 'ACTIVE', GETDATE()),
 
 -- === 5. Lốp (Tires) ===
-('PART-TIRE-175-65R16', N'Lốp 175/65R16', 'Bridgestone', N'Lốp theo xe VF 3', 1500000, 40, 0, 'ACTIVE', GETDATE()),
-('PART-TIRE-215-60R17', N'Lốp 215/60R17', 'Goodyear', N'Lốp theo xe VF 5 Plus', 2100000, 40, 0, 'ACTIVE', GETDATE()),
-('PART-TIRE-215-55R18', N'Lốp 215/55R18', 'Michelin', N'Lốp theo xe VF e34', 2800000, 40, 0, 'ACTIVE', GETDATE()),
-('PART-TIRE-245-45R20', N'Lốp 245/45R20', 'Pirelli', N'Lốp theo xe VF 8', 4500000, 30, 0, 'ACTIVE', GETDATE()),
-('PART-TIRE-275-40R22', N'Lốp 275/40R22', 'Pirelli', N'Lốp theo xe VF 9', 6000000, 20, 0, 'ACTIVE', GETDATE()),
+('PART-TIRE-175-65R16', N'Lốp 175/65R16', 'Bridgestone', 'TIRE', 1500000, 40, 0, 0, 'ACTIVE', GETDATE()),
+('PART-TIRE-215-60R17', N'Lốp 215/60R17', 'Goodyear', 'TIRE', 2100000, 40, 0, 0, 'ACTIVE', GETDATE()),
+('PART-TIRE-215-55R18', N'Lốp 215/55R18', 'Michelin', 'TIRE', 2800000, 40, 0, 0, 'ACTIVE', GETDATE()),
+('PART-TIRE-245-45R20', N'Lốp 245/45R20', 'Pirelli', 'TIRE', 4500000, 30, 0, 0, 'ACTIVE', GETDATE()),
+('PART-TIRE-275-40R22', N'Lốp 275/40R22', 'Pirelli', 'TIRE', 6000000, 20, 0, 0, 'ACTIVE', GETDATE()),
 
 -- === 6. Phanh (Brakes) ===
-('PART-BRAKE-PAD-F-S', N'Má phanh trước (Loại S)', 'Brembo', N'Dùng cho VF 5, VF e34, VF 6', 800000, 60, 0, 'ACTIVE', GETDATE()),
-('PART-BRAKE-PAD-F-L', N'Má phanh trước (Loại L)', 'Brembo', N'Dùng cho VF 8, VF 9', 1500000, 40, 0, 'ACTIVE', GETDATE());
-
+('PART-BRAKE-PAD-F-S', N'Má phanh trước (Loại S)', 'Brembo', 'BRAKE', 800000, 60, 0, 0, 'ACTIVE', GETDATE()),
+('PART-BRAKE-PAD-F-L', N'Má phanh trước (Loại L)', 'Brembo', 'BRAKE', 1500000, 40, 0, 0, 'ACTIVE', GETDATE());
 -- ================================================================================================================== --
 -- BẢNG MAINTENANCE CATALOG MODELS - Mapping các mẫu xe với các dịch vụ
 -- BẢNG MAINTENANCE CATALOG MODEL PARTS - Mapping các linh kiện cho các mẫu xe và các dịch vụ

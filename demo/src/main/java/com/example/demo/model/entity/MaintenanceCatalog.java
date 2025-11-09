@@ -2,7 +2,7 @@
 package com.example.demo.model.entity;
 
 import com.example.demo.model.modelEnum.EntityStatus;
-import com.example.demo.model.modelEnum.MaintenanceCatalogType;
+import com.example.demo.model.modelEnum.MaintenanceCatalogCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +28,7 @@ public class MaintenanceCatalog {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MaintenanceCatalogType maintenanceServiceType;
+    private MaintenanceCatalogCategory maintenanceServiceType;
 
     @Column(columnDefinition = "NVARCHAR(255)")
     private String description;
