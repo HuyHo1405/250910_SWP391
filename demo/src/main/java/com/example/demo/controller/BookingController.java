@@ -4,11 +4,12 @@ import com.example.demo.model.dto.BookingRequest;
 import com.example.demo.model.dto.BookingResponse;
 import com.example.demo.model.dto.DailyBookedSlot;
 import com.example.demo.model.modelEnum.BookingStatus;
-import com.example.demo.service.impl.BookingSlotService;
 import com.example.demo.service.interfaces.IBookingService;
+import com.example.demo.service.interfaces.IBookingSlotService;
 import com.example.demo.service.interfaces.IBookingStatusService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,9 @@ import java.util.List;
 public class BookingController {
     private final IBookingService bookingService;
     private final IBookingStatusService bookingStatusService;
-    private final BookingSlotService bookingSlotService;
+    private final IBookingSlotService bookingSlotService;
+
+    private static final String VIN_REGEX = "^[A-HJ-NPR-Z0-9]{17}$";
 
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingRequest request) {
@@ -44,7 +47,11 @@ public class BookingController {
     }
 
     @GetMapping("/vehicle/{vin}")
-    public ResponseEntity<List<BookingResponse>> getBookingsByVehicle(@PathVariable String vin) {
+    public ResponseEntity<List<BookingResponse>> getBookingsByVehicle(
+            @PathVariable
+            @Pattern(regexp = VIN_REGEX, message = "Mã vin không đúng định dạng")
+            String vin
+    ) {
         List<BookingResponse> responses = bookingService.getBookingsByVehicleVin(vin);
         return ResponseEntity.ok(responses);
     }

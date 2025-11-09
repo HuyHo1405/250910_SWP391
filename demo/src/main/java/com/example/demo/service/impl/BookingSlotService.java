@@ -3,6 +3,7 @@ package com.example.demo.service.impl;
 import com.example.demo.model.dto.DailyBookedSlot;
 import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.repo.BookingRepo;
+import com.example.demo.service.interfaces.IBookingSlotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor // Tự động inject BookingRepo
 @Slf4j
-public class BookingSlotService {
+public class BookingSlotService implements IBookingSlotService {
 
     private final BookingRepo bookingRepository;
 
@@ -28,6 +29,7 @@ public class BookingSlotService {
     private static final int WORKING_HOUR_END = 17;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    @Override
     @Transactional(readOnly = true)
     public List<DailyBookedSlot> getBookedSlot(){
         LocalDate startDate = LocalDate.now();

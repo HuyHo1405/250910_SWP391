@@ -32,8 +32,6 @@ public class UserProfileRequest {
         private String phoneNumber;
 
         @NotBlank(message = "Vai trò không được để trống")
-//        @Pattern(regexp = "^(Admin|Staff Employee|Technician Employee|Customer)$",
-//                message = "Vai trò phải là Admin, Staff Employee, Customer, hoặc Technician Employee")
         private String roleDisplayName;
 
         @NotBlank(message = "Mật khẩu không được để trống")

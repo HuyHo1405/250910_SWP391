@@ -176,6 +176,14 @@ public class JobService implements IJobService {
         jobRepo.deleteById(jobId);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<JobResponse> getUnassignedJobs() {
+        accessControlService.verifyCanAccessAllResources("JOB", "READ");
+        List<Job> unassignedJobs = jobRepo.findUnassignJob();
+        return unassignedJobs.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
     private void checkBookingInProgress(Long bookingDetailsId){
         BookingDetail bd = bookingDetailRepo.findById(bookingDetailsId)
                 .orElseThrow(() -> new CommonException.NotFound("BookingDetail", bookingDetailsId)); // ✅ Sửa

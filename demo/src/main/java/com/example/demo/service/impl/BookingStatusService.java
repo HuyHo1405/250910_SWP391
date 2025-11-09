@@ -83,6 +83,11 @@ public class BookingStatusService implements IBookingStatusService {
 
         usePartsForMaintenance(booking);
 
+        // Tự động tạo unassigned Jobs cho mỗi BookingDetail
+        createUnassignedJobsForBooking(booking);
+
+        log.info("Booking {} started maintenance. Created {} unassigned jobs.", id, booking.getBookingDetails().size());
+
         // Trả về DTO đầy đủ
         return BookingResponseMapper.toDtoFull(booking);
     }
@@ -211,6 +216,26 @@ public class BookingStatusService implements IBookingStatusService {
                 partRepo.save(part);
 
             }
+        }
+    }
+
+    private void createUnassignedJobsForBooking(Booking booking) {
+        for (BookingDetail detail : booking.getBookingDetails()) {
+            // Kiểm tra xem BookingDetail này đã có Job chưa
+            if (jobRepo.findByBookingDetailId(detail.getId()).isPresent()) {
+                log.warn("BookingDetail {} already has a Job, skipping creation", detail.getId());
+                continue;
+            }
+
+            // Tạo Job mới với technician = null (unassigned)
+            Job job = Job.builder()
+                    .bookingDetail(detail)
+                    .technician(null) // chưa assign technician
+                    .notes("Auto-created job for booking #" + booking.getId())
+                    .build();
+
+            jobRepo.save(job);
+            log.info("Created unassigned Job for BookingDetail #{}", detail.getId());
         }
     }
 }

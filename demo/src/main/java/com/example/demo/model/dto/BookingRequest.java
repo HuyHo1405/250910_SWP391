@@ -1,6 +1,5 @@
 package com.example.demo.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -8,7 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,11 +17,14 @@ import java.util.Set;
 @AllArgsConstructor
 public class BookingRequest {
 
+    private static final String VIN_REGEX = "^[A-HJ-NPR-Z0-9]{17}$";
+
     @NotNull(message = "Mã người dùng không được để trống")
     @Positive(message = "Mã người dùng phải không âm")
     private Long customerId;
 
     @NotBlank(message = "Mã VIN không được để trống")
+    @Pattern(regexp = VIN_REGEX, message = "Mã vin không đúng định dạng")
     private String vehicleVin;
 
     @NotNull(message = "Thời gian lịch hẹn không được để trống")
@@ -31,6 +32,7 @@ public class BookingRequest {
     private ScheduleDateTime scheduleDateTime;
 
     @Valid
+    @NotEmpty(message = "Danh sách dịch vụ không được để trống")
     private List<ServiceDetail> serviceDetails;
 
     // Method phải bắt đầu với 'is' để validator nhận ra

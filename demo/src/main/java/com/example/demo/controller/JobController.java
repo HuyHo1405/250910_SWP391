@@ -18,10 +18,10 @@ import java.util.List;
 public class JobController {
     private final IJobService jobService;
 
-    @PostMapping("/assign")
-    public ResponseEntity<JobResponse> assignJob(@RequestBody JobRequest.JobAssign request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(jobService.assignJob(request));
-    }
+//    @PostMapping("/assign")
+//    public ResponseEntity<JobResponse> assignJob(@RequestBody JobRequest.JobAssign request) {
+//        return ResponseEntity.status(HttpStatus.CREATED).body(jobService.assignJob(request));
+//    }
 
     @PutMapping("/{jobId}")
     public ResponseEntity<JobResponse> updateJob(@PathVariable Long jobId, @RequestBody JobRequest.JobUpdate request) {
@@ -57,6 +57,11 @@ public class JobController {
     public ResponseEntity<Void> deleteJob(@PathVariable Long jobId) {
         jobService.deleteJob(jobId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/unassigned")
+    public ResponseEntity<List<JobResponse>> getUnassignedJobs() {
+        return ResponseEntity.ok(jobService.getUnassignedJobs());
     }
 
 }

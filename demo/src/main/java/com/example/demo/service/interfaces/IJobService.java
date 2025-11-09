@@ -21,4 +21,7 @@ public interface IJobService {
     List<JobResponse> getTechnicianTasks(Long technicianId);
 
     void deleteJob(Long jobId);
+
+    // Lấy danh sách các Job chưa được assign technician
+    List<JobResponse> getUnassignedJobs();
 }
