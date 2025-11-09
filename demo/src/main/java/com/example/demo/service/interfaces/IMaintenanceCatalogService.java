@@ -2,6 +2,7 @@ package com.example.demo.service.interfaces;
 
 import com.example.demo.model.dto.CatalogRequest;
 import com.example.demo.model.dto.CatalogResponse;
+import com.example.demo.model.dto.EnumSchemaResponse;
 import com.example.demo.model.modelEnum.MaintenanceCatalogCategory;
 import io.micrometer.common.lang.Nullable;
 
@@ -18,9 +19,11 @@ public interface IMaintenanceCatalogService {
     List<CatalogResponse> findAll(
             @Nullable MaintenanceCatalogCategory type,
             @Nullable String vin,
-            boolean includeModels
+            @Nullable Long modelId
     );
 
     void delete(Long id);
+
+    EnumSchemaResponse getCategoryEnumSchema();
 
 }

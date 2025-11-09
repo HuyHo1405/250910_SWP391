@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,7 +53,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
         MaintenanceCatalog catalog = MaintenanceCatalog.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .maintenanceServiceType(request.getMaintenanceServiceType())
+                .maintenanceServiceCategory(request.getMaintenanceServiceCategory())
                 .status(EntityStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -83,7 +84,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
         catalog.setName(request.getName());
         catalog.setDescription(request.getDescription());
-        catalog.setMaintenanceServiceType(request.getMaintenanceServiceType());
+        catalog.setMaintenanceServiceCategory(request.getMaintenanceServiceCategory());
 
         MaintenanceCatalog updated = catalogRepository.save(catalog);
         log.info("Updated maintenance catalog: id={}, name={}", updated.getId(), updated.getName());
@@ -115,7 +116,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
     public List<CatalogResponse> findAll(
             @Nullable MaintenanceCatalogCategory type,
             @Nullable String vin,
-            boolean includeModels
+            @Nullable Long modelId
     ) {
         // ✅ Phân quyền: Tất cả user có quyền đọc catalog
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
@@ -124,6 +125,13 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
         if (vin != null && !vin.isEmpty()) {
             if (!vehicleRepository.existsByVinAndEntityStatus(vin, EntityStatus.ACTIVE)) {
                 throw new CommonException.NotFound("Xe với mã VIN", vin);
+            }
+        }
+
+        // ✅ Nếu truyền modelId, validate modelId có tồn tại không
+        if (modelId != null) {
+            if (!vehicleModelRepository.existsById(modelId)) {
+                throw new CommonException.NotFound("Mẫu xe với Id", modelId);
             }
         }
 
@@ -137,6 +145,11 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
         return catalogs.stream()
                 .filter(c -> c.getStatus() == EntityStatus.ACTIVE) // Chỉ lấy catalog ACTIVE
                 .map(this::mapToResponse)
+                .filter(catalogResponse -> {
+                    if (modelId == null) return true;
+                    return catalogResponse.getModels().stream()
+                            .anyMatch(model -> model.getModelId().equals(modelId));
+                })
                 .collect(Collectors.toList());
     }
 
@@ -164,6 +177,24 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
                     "Không thể xóa dịch vụ: " + e.getMessage()
             );
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EnumSchemaResponse getCategoryEnumSchema() {
+        // ✅ Phân quyền: Tất cả user có quyền đọc enum schema
+        accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
+
+        // Lấy tất cả values tiếng Việt của MaintenanceCatalogCategory enum
+        List<String> categoryNames = Arrays.stream(MaintenanceCatalogCategory.values())
+                .map(MaintenanceCatalogCategory::getVietnameseName)
+                .collect(Collectors.toList());
+
+        return new EnumSchemaResponse(
+                "MaintenanceCatalogCategory",
+                categoryNames,
+                "Danh sách loại dịch vụ bảo dưỡng"
+        );
     }
 
     private void processNestedModels(MaintenanceCatalog catalog, List<CatalogModelRequest> modelRequests) {
@@ -212,7 +243,7 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
                 .id(catalog.getId())
                 .name(catalog.getName())
                 .description(catalog.getDescription())
-                .maintenanceServiceType(catalog.getMaintenanceServiceType())
+                .maintenanceServiceCategory(catalog.getMaintenanceServiceCategory().getVietnameseName())
                 .status(catalog.getStatus())
                 .createdAt(catalog.getCreatedAt())
                 .models(models)

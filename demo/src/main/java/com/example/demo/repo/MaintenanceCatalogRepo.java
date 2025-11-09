@@ -17,7 +17,7 @@ public interface MaintenanceCatalogRepo extends JpaRepository<MaintenanceCatalog
             "LEFT JOIN mc.models mcm " +
             "LEFT JOIN mcm.vehicleModel vm " +
             "LEFT JOIN Vehicle v ON v.model.id = vm.id " +
-            "WHERE (:type IS NULL OR mc.maintenanceServiceType = :type) " +
+            "WHERE (:type IS NULL OR mc.maintenanceServiceCategory = :type) " +
             "AND (:vin IS NULL OR v.vin = :vin)")
     List<MaintenanceCatalog> findByTypeAndVin(
             @Param("type") MaintenanceCatalogCategory type,

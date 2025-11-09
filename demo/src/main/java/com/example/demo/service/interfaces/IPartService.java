@@ -26,10 +26,6 @@ public interface IPartService {
     List<PartResponse> getLowStockParts(BigDecimal threshold); // Parts có quantity <= threshold
 
     // ================================
-    // USAGE INFO - Thông tin sử dụng
-    // ================================
-
-    // ================================
     // UPDATE - Cập nhật part
     // ================================
     PartResponse updatePart(Long id, PartRequest request);

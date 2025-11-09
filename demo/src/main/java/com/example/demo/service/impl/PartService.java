@@ -6,6 +6,7 @@ import com.example.demo.model.dto.PartRequest;
 import com.example.demo.model.dto.PartResponse;
 import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.EntityStatus;
+import com.example.demo.model.modelEnum.PartCategory;
 import com.example.demo.repo.MaintenanceCatalogModelPartRepo;
 import com.example.demo.repo.PartRepo;
 import com.example.demo.service.interfaces.IPartService;
@@ -40,11 +41,15 @@ public class PartService implements IPartService {
         if (partRepository.existsByPartNumber(request.getPartNumber())) {
             throw new PartException.PartNumberExists(request.getPartNumber());
         }
+
+        // Parse category từ tiếng Việt sang enum
+        PartCategory category = PartCategory.fromVietnameseName(request.getCategory());
+
         Part part = Part.builder()
                 .name(request.getName())
                 .partNumber(request.getPartNumber())
                 .manufacturer(request.getManufacturer())
-                .category(request.getCategory())
+                .category(category)
                 .currentUnitPrice(request.getCurrentUnitPrice())
                 .quantity(request.getQuantity())
                 .reserved(request.getReserved())
@@ -132,10 +137,13 @@ public class PartService implements IPartService {
             throw new PartException.PartNumberExists(request.getPartNumber());
         }
 
+        // Parse category từ tiếng Việt sang enum
+        PartCategory category = PartCategory.fromVietnameseName(request.getCategory());
+
         part.setName(request.getName());
         part.setPartNumber(request.getPartNumber());
         part.setManufacturer(request.getManufacturer());
-        part.setCategory(request.getCategory());
+        part.setCategory(category);
         part.setCurrentUnitPrice(request.getCurrentUnitPrice());
         part.setQuantity(request.getQuantity());
         part.setReserved(request.getReserved());
@@ -318,7 +326,7 @@ public class PartService implements IPartService {
                 .name(part.getName())
                 .partNumber(part.getPartNumber())
                 .manufacturer(part.getManufacturer())
-                .category(part.getCategory())
+                .category(part.getCategory().getVietnameseName())
                 .currentUnitPrice(part.getCurrentUnitPrice())
                 .quantity(part.getQuantity())
                 .reserved(part.getReserved())

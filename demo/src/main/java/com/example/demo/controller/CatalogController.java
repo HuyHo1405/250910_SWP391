@@ -24,9 +24,14 @@ public class CatalogController {
     public ResponseEntity<List<CatalogResponse>> getAllCatalogs(
             @RequestParam(required = false) MaintenanceCatalogCategory type,
             @RequestParam(required = false) String vin,
-            @RequestParam(defaultValue = "false") boolean includeModels
+            @RequestParam(required = false) Long modelId
     ) {
-        return ResponseEntity.ok(catalogService.findAll(type, vin, includeModels));
+        return ResponseEntity.ok(catalogService.findAll(type, vin, modelId));
+    }
+
+    @GetMapping("/enum/category")
+    public ResponseEntity<EnumSchemaResponse> getCategoryEnumSchema() {
+        return ResponseEntity.ok(catalogService.getCategoryEnumSchema());
     }
 
     @PostMapping

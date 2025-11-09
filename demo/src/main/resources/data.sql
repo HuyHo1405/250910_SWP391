@@ -4,7 +4,7 @@
 IF
 NOT EXISTS (SELECT 1 FROM maintenance_catalogs)
 INSERT INTO maintenance_catalogs
-(name, maintenance_service_type, description, status, created_at)
+(name, maintenance_service_category, description, status, created_at)
 VALUES
 (N'Kiểm tra pin điện áp cao', 'BATTERY_INSPECTION', N'Kiểm tra tổng thể tình trạng và chẩn đoán sức khỏe pin (SoH)', 'ACTIVE', GETDATE()),
 (N'Đảo lốp', 'TIRE_ROTATION', N'Đảo vị trí 4 lốp để mòn đều', 'ACTIVE', GETDATE()),

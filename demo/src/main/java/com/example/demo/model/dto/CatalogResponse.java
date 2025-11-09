@@ -18,7 +18,7 @@ public class CatalogResponse {
     private Long id;
     private String name;
     private String description;
-    private MaintenanceCatalogCategory maintenanceServiceType;
+    private String maintenanceServiceCategory;
     private EntityStatus status;
     private LocalDateTime createdAt;
 

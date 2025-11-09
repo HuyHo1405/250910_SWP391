@@ -16,7 +16,7 @@ public class CatalogRequest {
     private String description;
 
     @NotNull(message = "Loại dịch vụ không được để trống")
-    private MaintenanceCatalogCategory maintenanceServiceType;
+    private MaintenanceCatalogCategory maintenanceServiceCategory;
 
     @Valid // Thêm @Valid để kiểm tra các DTO lồng bên trong
     @NotNull(message = "Danh sách model không được để trống")

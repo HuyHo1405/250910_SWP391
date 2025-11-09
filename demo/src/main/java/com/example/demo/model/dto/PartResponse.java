@@ -17,7 +17,7 @@ public class PartResponse {
     private String name;
     private String partNumber;
     private String manufacturer;
-    private PartCategory category;
+    private String category;
     private BigDecimal currentUnitPrice;
     private BigDecimal quantity;        // Số lượng còn trong kho
     private BigDecimal reserved;        // Số lượng đã đặt trước

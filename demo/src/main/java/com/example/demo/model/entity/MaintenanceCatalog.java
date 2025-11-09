@@ -28,7 +28,7 @@ public class MaintenanceCatalog {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MaintenanceCatalogCategory maintenanceServiceType;
+    private MaintenanceCatalogCategory maintenanceServiceCategory;
 
     @Column(columnDefinition = "NVARCHAR(255)")
     private String description;

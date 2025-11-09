@@ -24,7 +24,7 @@ public class PartRequest {
     private String manufacturer;
 
     @NotNull(message = "Danh mục không được để trống")
-    private PartCategory category;
+    private String category;
 
     @NotNull(message = "Đơn giá không được để trống")
     @DecimalMin(value = "0.0", message = "Đơn giá phải lớn hơn hoặc bằng 0")
