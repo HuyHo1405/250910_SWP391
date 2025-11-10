@@ -67,10 +67,10 @@ public class BookingResponseMapper {
         BookingResponse response = toDtoSummary(booking, scheduleDateTime);
 
         // 2. Map chi tiết dịch vụ (BookingDetail)
-        List<BookingResponse.ServiceDetail> serviceDetails = booking.getBookingDetails().stream()
-                .map(detail -> BookingResponse.ServiceDetail.builder()
+        List<BookingResponse.CatalogDetail> serviceDetails = booking.getBookingDetails().stream()
+                .map(detail -> BookingResponse.CatalogDetail.builder()
                         .id(detail.getId())
-                        .serviceId(detail.getCatalogModel().getMaintenanceCatalog().getId()) // Giả định: detail.getCatalog()
+                        .catalogId(detail.getCatalogModel().getMaintenanceCatalog().getId()) // Giả định: detail.getCatalog()
                         .serviceName(detail.getCatalogModel().getMaintenanceCatalog().getName())
                         .description(detail.getDescription()) // Giả định: detail.getDescription()
                         .build())
