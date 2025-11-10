@@ -120,7 +120,7 @@ public class InvoiceService implements IInvoiceService {
     // 5. Build InvoiceLine cho 1 dịch vụ & model (Catalog + Model)
     public List<InvoiceLine> buildInvoiceLine(Long catalogModelId, Invoice invoice){
         MaintenanceCatalogModel selectedModel = catalogModelRepo.findById(catalogModelId)
-                .orElseThrow(() -> new CommonException.NotFound("MaintenanceCatalogModel", catalogModelId)); // ✅ Sửa
+                .orElseThrow(() -> new CommonException.NotFound("MaintenanceCatalogModel", catalogModelId));
 
         MaintenanceCatalog catalog = selectedModel.getMaintenanceCatalog();
 
@@ -132,6 +132,7 @@ public class InvoiceService implements IInvoiceService {
         serviceLine.setItemType(InvoiceItemType.SERVICE);
         serviceLine.setQuantity(BigDecimal.ONE);
         serviceLine.setUnitPrice(selectedModel.getMaintenancePrice());
+        serviceLine.calculateAmounts(); // ← THÊM: Tính lineTotal ngay
         lines.add(serviceLine);
 
         // 2. Các phụ tùng thuộc model này
@@ -142,13 +143,13 @@ public class InvoiceService implements IInvoiceService {
             partLine.setItemType(InvoiceItemType.PART);
             partLine.setQuantity(partRel.getQuantityRequired());
             partLine.setUnitPrice(partRel.getPart().getCurrentUnitPrice());
+            partLine.calculateAmounts(); // ← THÊM: Tính lineTotal ngay
             lines.add(partLine);
         }
 
         return lines;
     }
 
-    // ... (toLineResponses và mapToResponse không đổi) ...
     private List<InvoiceLineResponse> toLineResponses(List<InvoiceLine> lines) {
         return lines.stream().map(line -> InvoiceLineResponse.builder()
                         .id(line.getId())
@@ -156,6 +157,7 @@ public class InvoiceService implements IInvoiceService {
                         .itemType(line.getItemType())
                         .quantity(line.getQuantity())
                         .unitPrice(line.getUnitPrice())
+                        .totalPrice(line.getLineTotal()) // ← SỬA: totalPrice (trong DTO) = lineTotal (trong Entity)
                         .build())
                 .collect(Collectors.toList());
     }

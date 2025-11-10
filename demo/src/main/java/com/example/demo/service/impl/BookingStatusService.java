@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,8 +62,14 @@ public class BookingStatusService implements IBookingStatusService {
 
         // Chuyển trạng thái sang CONFIRMED
         booking.setBookingStatus(BookingStatus.CONFIRMED);
-        invoiceService.create(id);
         bookingRepository.save(booking);
+
+        // Tạo invoice
+        invoiceService.create(id);
+
+        // ← FIX: Refresh booking để lấy invoice vừa tạo
+        booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new CommonException.NotFound("Booking", id));
 
         // Trả về DTO đầy đủ (bao gồm cả hóa đơn vừa tạo)
         return BookingResponseMapper.toDtoFull(booking);
@@ -142,6 +149,7 @@ public class BookingStatusService implements IBookingStatusService {
 
         Invoice invoice = booking.getInvoice();
         invoice.setStatus(InvoiceStatus.UNPAID);
+        invoice.setDueDate(LocalDateTime.now().plusDays(7));
         invoiceRepo.save(invoice);
 
         log.info("Booking {} marked as delivered/completed. Invoice was recalculated and finalized.", id);

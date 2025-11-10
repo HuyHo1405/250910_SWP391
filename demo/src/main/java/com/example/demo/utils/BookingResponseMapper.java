@@ -143,6 +143,7 @@ public class BookingResponseMapper {
                 .itemType(line.getItemType())
                 .quantity(line.getQuantity())
                 .unitPrice(line.getUnitPrice())
+                .totalPrice(line.getLineTotal())
                 .build();
     }
 }
