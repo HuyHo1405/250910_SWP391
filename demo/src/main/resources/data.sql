@@ -442,6 +442,7 @@ VALUES
 ('VEHICLE', 'delete', 1, 'Delete vehicles'),
 ('VEHICLE', 'read', 1, 'Read vehicles'),
 ('VEHICLE', 'update', 1, 'Update vehicles'),
+('VEHICLE', 'bypass_ownership', 1, 'Bypass ownership check specifically for vehicles'),
 -- VEHICLE_MODEL
 ('VEHICLE_MODEL', 'create', 1, 'Create vehicle models'),
 ('VEHICLE_MODEL', 'delete', 1, 'Delete vehicle models'),
@@ -545,7 +546,10 @@ WHERE
     (p.resource = 'USER' AND p.action IN ('read', 'update'))
    OR
 -- Quyền tự xem và làm những công việc được phân công
-    (p.resource = 'JOB' AND p.action IN ('read', 'start', 'complete'));
+    (p.resource = 'JOB' AND p.action IN ('read', 'start', 'complete'))
+   OR
+-- Quyền tự xem xe của customer được phân công làm việc
+    (p.resource = 'VEHICLE' AND p.action = 'bypass_ownership');
 
 -- 4) CUSTOMER:
 IF

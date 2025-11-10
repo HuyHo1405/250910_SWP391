@@ -30,7 +30,7 @@ public class AccessControlService {
         }
 
         // 2. Check ownership if required (for non-admin/staff users)
-        if (requiresOwnershipCheck(currentUser) && resourceOwnerId != null) {
+        if (requiresOwnershipCheck(currentUser, resourceType) && resourceOwnerId != null) {
             if (!currentUser.getId().equals(resourceOwnerId)) {
                 log.warn("Ownership check failed: user {} tried to {} resource owned by {}",
                         currentUser.getId(), action, resourceOwnerId);
@@ -93,9 +93,13 @@ public class AccessControlService {
         return currentUserService.getCurrentUserId().equals(resourceOwnerId);
     }
 
-    private boolean requiresOwnershipCheck(User user) {
+    private boolean requiresOwnershipCheck(User user, String resourceType) {
         // Check if user has "bypass_ownership" privilege
         // This can be a special permission in database
-        return !permissionService.hasPermission(user, "SYSTEM", "bypass_ownership");
+        if (permissionService.hasPermission(user, "SYSTEM", "bypass_ownership")) {
+            return false;
+        }
+
+        return !permissionService.hasPermission(user, resourceType, "bypass_ownership");
     }
 }

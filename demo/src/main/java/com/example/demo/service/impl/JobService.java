@@ -175,7 +175,7 @@ public class JobService implements IJobService {
 
         jobRepo.deleteById(jobId);
     }
-
+    
     @Override
     @Transactional(readOnly = true)
     public List<JobResponse> getUnassignedJobs() {
