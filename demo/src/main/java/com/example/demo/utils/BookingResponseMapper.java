@@ -76,7 +76,7 @@ public class BookingResponseMapper {
                         .build())
                 .collect(Collectors.toList());
 
-        response.setServiceDetails(serviceDetails);
+        response.setCatalogDetails(serviceDetails);
         return response;
     }
 

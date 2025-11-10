@@ -1,5 +1,6 @@
 package com.example.demo.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class ScheduleDateTime {
     // You can add a timezone field if needed:
     private String timezone;        // Optional
 
+    @JsonIgnore
     @AssertTrue(message = "Định dạng hoặc giá trị ngày/giờ không hợp lệ")
     public boolean isValid() {
         try {

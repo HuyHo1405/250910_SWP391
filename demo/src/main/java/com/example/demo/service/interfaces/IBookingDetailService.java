@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface IBookingDetailService {
 
-    BookingDetail addServiceToBooking(Long bookingId, BookingRequest.ServiceDetail serviceDetail);
+    BookingDetail addServiceToBooking(Long bookingId, BookingRequest.CatalogDetail serviceDetail);
 
     void removeServiceFromBooking(Long bookingId, Long serviceId);
 
-    void updateBookingServices(Long bookingId, List<BookingRequest.ServiceDetail> serviceDetails);
+    void updateBookingServices(Long bookingId, List<BookingRequest.CatalogDetail> serviceDetails);
 
     List<BookingDetail> getBookingDetailsByBookingId(Long bookingId);
 

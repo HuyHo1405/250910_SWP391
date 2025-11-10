@@ -33,19 +33,19 @@ public class BookingRequest {
 
     @Valid
     @NotEmpty(message = "Danh sách dịch vụ không được để trống")
-    private List<ServiceDetail> serviceDetails;
+    private List<CatalogDetail> catalogDetails;
 
     // Method phải bắt đầu với 'is' để validator nhận ra
     @AssertTrue(message = "Các dịch vụ không được trùng nhau")
     private boolean isServiceIdsUnique() {
-        if (serviceDetails == null || serviceDetails.isEmpty()) {
+        if (catalogDetails == null || catalogDetails.isEmpty()) {
             return true; // Skip validation nếu list rỗng (handled by @NotEmpty)
         }
 
         Set<Long> uniqueIds = new HashSet<>();
-        for (ServiceDetail detail : serviceDetails) {
-            if (detail.getServiceId() != null) {
-                if (!uniqueIds.add(detail.getServiceId())) {
+        for (CatalogDetail detail : catalogDetails) {
+            if (detail.getCatalogId() != null) {
+                if (!uniqueIds.add(detail.getCatalogId())) {
                     return false; // Found duplicate
                 }
             }
@@ -57,11 +57,11 @@ public class BookingRequest {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ServiceDetail {
+    public static class CatalogDetail {
 
         @NotNull(message = "Mã dịch vụ không được trống")
         @Positive(message = "Mã dịch vụ phải không âm")
-        private Long serviceId;
+        private Long catalogId;
 
         @NotNull(message = "Mã mẫu xe không được trống")
         @Positive(message = "Mã mẫu xe phải không âm")

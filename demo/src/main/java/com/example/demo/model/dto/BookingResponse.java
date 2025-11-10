@@ -22,7 +22,7 @@ public class BookingResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    private List<CatalogDetail> serviceDetails;
+    private List<CatalogDetail> catalogDetails;
 
     private InvoiceResponse invoice;
 

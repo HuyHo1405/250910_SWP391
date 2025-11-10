@@ -24,20 +24,20 @@ public class BookingDetailService implements IBookingDetailService {
     private final MaintenanceCatalogModelRepo  maintenanceCatalogModelRepository;
 
     @Override
-    public BookingDetail addServiceToBooking(Long bookingId, BookingRequest.ServiceDetail serviceDetail) {
-        log.info("Adding service ID: {} to booking ID: {}", serviceDetail.getServiceId(), bookingId);
+    public BookingDetail addServiceToBooking(Long bookingId, BookingRequest.CatalogDetail serviceDetail) {
+        log.info("Adding service ID: {} to booking ID: {}", serviceDetail.getCatalogId(), bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đặt lịch với ID: " + bookingId));
 
-        catalogRepository.findById(serviceDetail.getServiceId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy dịch vụ với ID: " + serviceDetail.getServiceId()));
+        catalogRepository.findById(serviceDetail.getCatalogId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy dịch vụ với ID: " + serviceDetail.getCatalogId()));
 
         vehicleModelRepository.findById(serviceDetail.getModelId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy mẫu xe với ID: " + serviceDetail.getModelId()));
 
         MaintenanceCatalogModel catalogModel = maintenanceCatalogModelRepository
-                .findByMaintenanceCatalogIdAndVehicleModelId(serviceDetail.getServiceId(), serviceDetail.getModelId())
+                .findByMaintenanceCatalogIdAndVehicleModelId(serviceDetail.getCatalogId(), serviceDetail.getModelId())
                 .orElseThrow(() -> new RuntimeException("Dịch vụ dành cho xe không tồn tại"));
 
         BookingDetail bookingDetail = BookingDetail.builder()
@@ -70,7 +70,7 @@ public class BookingDetailService implements IBookingDetailService {
     }
 
     @Override
-    public void updateBookingServices(Long bookingId, List<BookingRequest.ServiceDetail> serviceDetails) {
+    public void updateBookingServices(Long bookingId, List<BookingRequest.CatalogDetail> serviceDetails) {
         log.info("Updating services for booking ID: {}", bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
@@ -82,7 +82,7 @@ public class BookingDetailService implements IBookingDetailService {
         bookingDetailRepository.deleteByBookingId(bookingId);
 
         // Add new booking details
-        for (BookingRequest.ServiceDetail serviceDetail : serviceDetails) {
+        for (BookingRequest.CatalogDetail serviceDetail : serviceDetails) {
             addServiceToBooking(bookingId, serviceDetail);
         }
 

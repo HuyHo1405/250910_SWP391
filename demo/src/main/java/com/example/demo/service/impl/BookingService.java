@@ -64,10 +64,10 @@ BookingService implements IBookingService {
                 .build();
         booking = bookingRepository.save(booking);
 
-        if (request.getServiceDetails() != null) {
-            for (BookingRequest.ServiceDetail serviceDetail : request.getServiceDetails()) {
-                if(!maintenanceCatalogRepo.isServiceValidForVin(serviceDetail.getServiceId(), vehicle.getVin())) {
-                    throw new BookingException.ServiceNotCompatibleWithVehicle(serviceDetail.getServiceId(), vehicle.getVin());
+        if (request.getCatalogDetails() != null) {
+            for (BookingRequest.CatalogDetail serviceDetail : request.getCatalogDetails()) {
+                if(!maintenanceCatalogRepo.isServiceValidForVin(serviceDetail.getCatalogId(), vehicle.getVin())) {
+                    throw new BookingException.ServiceNotCompatibleWithVehicle(serviceDetail.getCatalogId(), vehicle.getVin());
                 }
                 bookingDetailService.addServiceToBooking(booking.getId(), serviceDetail);
             }
@@ -214,19 +214,21 @@ BookingService implements IBookingService {
             throw new CommonException.InvalidOperation("Không được cập nhật đơn với trạng thái này: " + booking.getBookingStatus());
         }
 
+        if(request.getCustomerId() != null || !request.getCustomerId().equals(booking.getCustomer().getId())) {
+            throw new CommonException.InvalidOperation("Không thể thay đổi khách hàng của đơn đặt lịch");
+        }
+
+        if(request.getVehicleVin() != null || !request.getVehicleVin().equals(booking.getVehicle().getVin())) {
+            throw new CommonException.InvalidOperation("Không thể thay đổi xe của đơn đặt lịch");
+        }
+
         if (request.getScheduleDateTime() != null) {
             LocalDateTime scheduleDate = checkFutureScheduleDate(request.getScheduleDateTime());
             booking.setScheduleDate(scheduleDate);
         }
 
-        if (request.getVehicleVin() != null) {
-            Vehicle vehicle = vehicleRepository.findByVin(request.getVehicleVin())
-                    .orElseThrow(() -> new CommonException.NotFound("Vehicle", request.getVehicleVin()));
-            booking.setVehicle(vehicle);
-        }
-
-        if (request.getServiceDetails() != null) {
-            bookingDetailService.updateBookingServices(id, request.getServiceDetails());
+        if (request.getCatalogDetails() != null) {
+            bookingDetailService.updateBookingServices(id, request.getCatalogDetails());
         }
 
         booking = bookingRepository.save(booking);
@@ -237,21 +239,6 @@ BookingService implements IBookingService {
 
         // Trả về DTO có chi tiết dịch vụ
         return BookingResponseMapper.toDtoWithDetails(booking, responseSchedule);
-    }
-
-    @Override
-    @Transactional
-    public void deleteBooking(Long id) {
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new CommonException.NotFound("Booking", id));
-
-        // Không cho xóa nếu đã hoàn thành hoặc hủy
-        if (booking.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE
-                || booking.getBookingStatus() == BookingStatus.CANCELLED) {
-            throw new CommonException.InvalidOperation("Không thể xóa đơn với với trạng thái này: " + booking.getBookingStatus());
-        }
-
-        bookingRepository.delete(booking);
     }
 
     private LocalDateTime checkFutureScheduleDate(ScheduleDateTime scheduleDate) {

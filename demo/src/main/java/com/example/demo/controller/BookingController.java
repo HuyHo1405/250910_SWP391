@@ -74,14 +74,7 @@ public class BookingController {
         return ResponseEntity.ok(resp);
     }
 
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
-        bookingService.deleteBooking(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/cancel")
+    @PutMapping("/{id}/cancel")
     public ResponseEntity<BookingResponse> cancelBooking(
             @PathVariable Long id,
             @RequestParam(required = false) String reason) {
@@ -89,19 +82,19 @@ public class BookingController {
         return ResponseEntity.ok(resp);
     }
 
-    @PostMapping("/{id}/confirm")
+    @PutMapping("/{id}/confirm")
     public ResponseEntity<BookingResponse> confirmBooking(@PathVariable Long id) {
         BookingResponse resp = bookingStatusService.confirmBooking(id);
         return ResponseEntity.ok(resp);
     }
 
-    @PostMapping("/{id}/start-maintenance")
+    @PutMapping("/{id}/start-maintenance")
     public ResponseEntity<BookingResponse> startMaintenance(@PathVariable Long id) {
         BookingResponse resp = bookingStatusService.startMaintenance(id);
         return ResponseEntity.ok(resp);
     }
 
-    @PostMapping("/{id}/complete")
+    @PutMapping("/{id}/complete")
     public ResponseEntity<BookingResponse> completeBooking(@PathVariable Long id) {
         BookingResponse resp = bookingStatusService.completeMaintenance(id);
         return ResponseEntity.ok(resp);
