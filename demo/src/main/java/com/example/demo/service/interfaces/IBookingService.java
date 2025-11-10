@@ -15,8 +15,8 @@ public interface IBookingService {
     List<BookingResponse> getAllBookingsFiltered(
             BookingStatus bookingStatus
     );
-    List<BookingResponse.ServiceDetail> getRecentlyUsedServicesByVehicle(String vin, int limit);
-    List<BookingResponse.ServiceDetail> getRecentlyUsedServicesByCustomer(Long customerId, int limit);
+    List<BookingResponse.CatalogDetail> getRecentlyUsedServicesByVehicle(String vin, int limit);
+    List<BookingResponse.CatalogDetail> getRecentlyUsedServicesByCustomer(Long customerId, int limit);
     BookingResponse updateBooking(Long id, BookingRequest request);
     void deleteBooking(Long id);
 }

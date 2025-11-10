@@ -130,7 +130,7 @@ BookingService implements IBookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookingResponse.ServiceDetail> getRecentlyUsedServicesByVehicle(String vin, int limit) {
+    public List<BookingResponse.CatalogDetail> getRecentlyUsedServicesByVehicle(String vin, int limit) {
         log.info("Fetching recently used services for vehicle: {}", vin);
 
         // Verify vehicle exists
@@ -147,11 +147,11 @@ BookingService implements IBookingService {
                 .collect(Collectors.toList());
 
         // Extract service details và loại bỏ trùng lặp theo serviceId
-        List<BookingResponse.ServiceDetail> recentServices = completedBookings.stream()
+        List<BookingResponse.CatalogDetail> recentServices = completedBookings.stream()
                 .flatMap(booking -> booking.getBookingDetails().stream())
-                .map(detail -> BookingResponse.ServiceDetail.builder()
+                .map(detail -> BookingResponse.CatalogDetail.builder()
                         .id(detail.getId())
-                        .serviceId(detail.getCatalogModel().getMaintenanceCatalog().getId())
+                        .catalogId(detail.getCatalogModel().getMaintenanceCatalog().getId())
                         .serviceName(detail.getCatalogModel().getMaintenanceCatalog().getName())
                         .description(detail.getDescription())
                         .build())
@@ -165,7 +165,7 @@ BookingService implements IBookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<BookingResponse.ServiceDetail> getRecentlyUsedServicesByCustomer(Long customerId, int limit) {
+    public List<BookingResponse.CatalogDetail> getRecentlyUsedServicesByCustomer(Long customerId, int limit) {
         log.info("Fetching recently used services for customer: {}", customerId);
 
         // Verify customer exists
@@ -183,11 +183,11 @@ BookingService implements IBookingService {
                 .collect(Collectors.toList());
 
         // Extract service details
-        List<BookingResponse.ServiceDetail> recentServices = completedBookings.stream()
+        List<BookingResponse.CatalogDetail> recentServices = completedBookings.stream()
                 .flatMap(booking -> booking.getBookingDetails().stream())
-                .map(detail -> BookingResponse.ServiceDetail.builder()
+                .map(detail -> BookingResponse.CatalogDetail.builder()
                         .id(detail.getId())
-                        .serviceId(detail.getCatalogModel().getMaintenanceCatalog().getId())
+                        .catalogId(detail.getCatalogModel().getMaintenanceCatalog().getId())
                         .serviceName(detail.getCatalogModel().getMaintenanceCatalog().getName())
                         .description(detail.getDescription())
                         .build())

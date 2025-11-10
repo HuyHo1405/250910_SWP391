@@ -22,7 +22,7 @@ public class BookingResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    private List<ServiceDetail> serviceDetails;
+    private List<CatalogDetail> serviceDetails;
 
     private InvoiceResponse invoice;
 
@@ -30,9 +30,9 @@ public class BookingResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class ServiceDetail {
+    public static class CatalogDetail {
         private Long id;
-        private Long serviceId;
+        private Long catalogId;
         private String serviceName;
         private String description;
     }
