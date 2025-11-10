@@ -560,7 +560,7 @@ SELECT 4, p.id
 FROM permissions p
 WHERE
 -- Quyền quản lý xe của mình
-    (p.resource = 'VEHICLE')
+    (p.resource = 'VEHICLE' AND p.action IN ('create', 'read', 'update', 'delete'))
    OR
 -- Quyền xem thông tin chung (mẫu xe, dịch vụ)
     (p.resource IN ('VEHICLE_MODEL', 'MAINTENANCE_SERVICE') AND p.action = 'read')
