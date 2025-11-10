@@ -1044,3 +1044,34 @@ VALUES
 -- Job 9: Đảo lốp (booking_detail_id=34) - ASSIGNED BUT NOT STARTED
 -- Technician ID 6 đã được assign, đang chờ xe lên cầu nâng
 (34, 6, NULL, NULL, NULL, N'Sẵn sàng đảo lốp khi xe lên cầu nâng', DATEADD(HOUR, -1, GETDATE()), DATEADD(MINUTE, -30, GETDATE()));
+
+-- ================================================================================================================== --
+-- BẢNG PAYMENTS - (CẬP NHẬT) Dùng PENDING, SUCCESSFUL, FAILED
+-- ================================================================================================================== --
+IF NOT EXISTS (SELECT 1 FROM payments)
+INSERT INTO payments
+(invoice_id, payment_method, amount, status, order_code, transaction_ref, response_code, paid_at, raw_response_data, created_at, updated_at)
+VALUES
+-- === Các hóa đơn đã PAID (1-8) -> Trạng thái: SUCCESSFUL ===
+-- HĐ 1 (VNPAY, 1,080,000)
+(1, 'VNPAY', 1080000.00, 'SUCCESSFUL', 'PAY-INV-00001', '14523456', '00', DATEADD(DAY, -30, GETDATE()), N'{"vnp_Amount":"108000000", "vnp_BankCode":"NCB", "vnp_ResponseCode":"00"}', DATEADD(DAY, -30, GETDATE()), DATEADD(DAY, -30, GETDATE())),
+-- HĐ 2 (CASH, 300,000)
+(2, 'CASH', 300000.00, 'SUCCESSFUL', 'PAY-INV-00002', NULL, NULL, DATEADD(DAY, -25, GETDATE()), NULL, DATEADD(DAY, -25, GETDATE()), DATEADD(DAY, -25, GETDATE())),
+-- HĐ 3 (CASH, 1,880,000)
+(3, 'CASH', 1880000.00, 'SUCCESSFUL', 'PAY-INV-00003', NULL, NULL, DATEADD(DAY, -20, GETDATE()), NULL, DATEADD(DAY, -20, GETDATE()), DATEADD(DAY, -20, GETDATE())),
+-- HĐ 4 (CASH, 450,000)
+(4, 'CASH', 450000.00, 'SUCCESSFUL', 'PAY-INV-00004', NULL, NULL, DATEADD(DAY, -15, GETDATE()), NULL, DATEADD(DAY, -15, GETDATE()), DATEADD(DAY, -15, GETDATE())),
+-- HĐ 5 (CASH, 610,000)
+(5, 'CASH', 610000.00, 'SUCCESSFUL', 'PAY-INV-00005', NULL, NULL, DATEADD(DAY, -10, GETDATE()), NULL, DATEADD(DAY, -10, GETDATE()), DATEADD(DAY, -10, GETDATE())),
+-- HĐ 6 (VNPAY, 300,000)
+(6, 'VNPAY', 300000.00, 'SUCCESSFUL', 'PAY-INV-00006', '14529876', '00', DATEADD(DAY, -7, GETDATE()), NULL, DATEADD(DAY, -7, GETDATE()), DATEADD(DAY, -7, GETDATE())),
+-- HĐ 7 (CASH, 720,000)
+(7, 'CASH', 720000.00, 'SUCCESSFUL', 'PAY-INV-00007', NULL, NULL, DATEADD(DAY, -5, GETDATE()), NULL, DATEADD(DAY, -5, GETDATE()), DATEADD(DAY, -5, GETDATE())),
+-- HĐ 8 (VNPAY, 1,900,000)
+(8, 'VNPAY', 1900000.00, 'SUCCESSFUL', 'PAY-INV-00008', '14530001', '00', DATEADD(DAY, -4, GETDATE()), N'{"vnp_Amount":"190000000", "vnp_BankCode":"QR", "vnp_ResponseCode":"00"}', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -4, GETDATE())),
+
+-- === Các hóa đơn UNPAID (9-10) -> Trạng thái: PENDING / FAILED ===
+-- HĐ 9 (1,340,000) - VNPAY PENDING
+(9, 'VNPAY', 1340000.00, 'PENDING', 'PAY-INV-00009', NULL, NULL, NULL, NULL, GETDATE(), GETDATE()),
+-- HĐ 10 (200,000) - VNPAY FAILED
+(10, 'VNPAY', 200000.00, 'FAILED', 'PAY-INV-00010', '14531122', '09', NULL, N'{"vnp_ResponseCode":"09", "vnp_Message":"Invalid card number"}', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE()));

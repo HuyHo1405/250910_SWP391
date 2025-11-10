@@ -4,6 +4,7 @@ import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.BookingResponse;
 import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.BookingStatus;
+import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.modelEnum.InvoiceStatus;
 import com.example.demo.repo.*;
 import com.example.demo.service.interfaces.IBookingStatusService;
@@ -170,6 +171,10 @@ public class BookingStatusService implements IBookingStatusService {
 
             for (MaintenanceCatalogModelPart mp : requiredParts) {
                 Part part = mp.getPart();
+                if(part.getStatus() == EntityStatus.INACTIVE) {
+                    return false;
+                }
+
                 BigDecimal available = part.getQuantity().subtract(part.getReserved());
                 if (available.compareTo(mp.getQuantityRequired()) < 0) {
                     return false; // thiếu part

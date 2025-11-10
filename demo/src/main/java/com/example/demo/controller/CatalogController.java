@@ -22,11 +22,11 @@ public class CatalogController {
 
     @GetMapping
     public ResponseEntity<List<CatalogResponse>> getAllCatalogs(
-            @RequestParam(required = false) MaintenanceCatalogCategory type,
+            @RequestParam(required = false) MaintenanceCatalogCategory category,
             @RequestParam(required = false) String vin,
             @RequestParam(required = false) Long modelId
     ) {
-        return ResponseEntity.ok(catalogService.findAll(type, vin, modelId));
+        return ResponseEntity.ok(catalogService.findAll(category, vin, modelId));
     }
 
     @GetMapping("/enum/category")
