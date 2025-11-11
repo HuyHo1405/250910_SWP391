@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
-public class VehicleModelRequest {
+public class    VehicleModelRequest {
 
     @Data
     public static class CreateModel {
@@ -43,6 +43,9 @@ public class VehicleModelRequest {
         @Positive(message = "Trọng lượng phải lớn hơn 0")
         @DecimalMax(value = "10000.0", message = "Trọng lượng không được vượt quá 10000 kg")
         private Double weightKg;
+
+        @Size(max = 500, message = "URL hình ảnh không được vượt quá 500 ký tự")
+        private String imageUrl;
 
         @JsonIgnore
         private EntityStatus status = EntityStatus.ACTIVE;
@@ -85,6 +88,9 @@ public class VehicleModelRequest {
         @Positive(message = "Trọng lượng phải lớn hơn 0")
         @DecimalMax(value = "10000.0", message = "Trọng lượng không được vượt quá 10000 kg")
         private Double weightKg;
+
+        @Size(max = 500, message = "URL hình ảnh không được vượt quá 500 ký tự")
+        private String imageUrl;
 
         private EntityStatus status;
     }

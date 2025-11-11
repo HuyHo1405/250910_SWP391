@@ -26,19 +26,22 @@ VALUES
 -- ================================================================================================================== --
 -- BẢNG VEHICLE MODELS - Định nghĩa các mẫu xe hệ thống hỗ trợ bảo dưỡng
 -- ================================================================================================================== --
+-- ================================================================================================================== --
+-- BẢNG VEHICLE MODELS - Định nghĩa các mẫu xe hệ thống hỗ trợ bảo dưỡng
+-- ================================================================================================================== --
 IF
 NOT EXISTS (SELECT 1 FROM vehicle_models)
 INSERT INTO vehicle_models
-(brand_name, model_name, dimensions, seats, battery_capacity_kwh, range_km, charging_time_hours, motor_power_kw, weight_kg, status, created_at)
+(brand_name, model_name, dimensions, seats, battery_capacity_kwh, range_km, charging_time_hours, motor_power_kw, weight_kg, status, image_url, created_at)
 VALUES
-('VinFast', 'VF 3', '3190x1675x1600', 4, 18.64, 210, 0.5, 32, 1090, 'ACTIVE', GETDATE()),
-('VinFast', 'VF 5 Plus', '3967x1723x1578', 5, 37.23, 326, 0.5, 100, 1360, 'ACTIVE', GETDATE()),
-('VinFast', 'VF 6', '4238x1820x1594', 5, 59.6, 399, 0.5, 150, 1550, 'ACTIVE', GETDATE()),
-('VinFast', 'VF 7', '4545x1890x1636', 5, 75.3, 431, 0.42, 260, 2025, 'ACTIVE', GETDATE()),
-('VinFast', 'VF 8', '4750x1934x1667', 5, 87.7, 471, 0.43, 300, 2605, 'ACTIVE', GETDATE()),
-('VinFast', 'VF 9', '5118x2004x1696', 7, 92, 438, 0.43, 300, 2830, 'ACTIVE', GETDATE()),
-('VinFast', 'VF e34', '4300x1768x1613', 5, 41.9, 318, 0.3, 110, 1490, 'ACTIVE', GETDATE()),
-('VinFast', 'VF Wild', '5324x1997xN/A', 5, 120, 600, 2.0, 300, 2400, 'INACTIVE', GETDATE());
+    ('VinFast', 'VF 3', '3190x1675x1600', 4, 18.64, 210, 0.5, 32, 1090, 'ACTIVE', 'https://vinfast-cars.vn/wp-content/uploads/2024/10/vinfast-vf3-do.png', GETDATE()),
+    ('VinFast', 'VF 5 Plus', '3967x1723x1578', 5, 37.23, 326, 0.5, 100, 1360, 'ACTIVE', 'https://vinfastbinhthanh.com/wp-content/uploads/2024/01/vinfast_vf5_trang-768x768.webp', GETDATE()),
+    ('VinFast', 'VF 6', '4238x1820x1594', 5, 59.6, 399, 0.5, 150, 1550, 'ACTIVE', 'https://i.pinimg.com/736x/1c/d6/c8/1cd6c8d23d8815f29ebd852f158e3119.jpg', GETDATE()),
+    ('VinFast', 'VF 7', '4545x1890x1636', 5, 75.3, 431, 0.42, 260, 2025, 'ACTIVE', 'https://i.pinimg.com/736x/e3/c9/ae/e3c9aeed275f2b3efcf0f4e008a9992b.jpg', GETDATE()),
+    ('VinFast', 'VF 8', '4750x1934x1667', 5, 87.7, 471, 0.43, 300, 2605, 'ACTIVE', 'https://i.pinimg.com/736x/8d/1d/43/8d1d4386aa53db78fa935b4ff4b67161.jpg', GETDATE()),
+    ('VinFast', 'VF 9', '5118x2004x1696', 7, 92, 438, 0.43, 300, 2830, 'ACTIVE', 'https://i.pinimg.com/736x/43/e9/17/43e917f48fe53c38185bd39cf750d6d6.jpg', GETDATE()),
+    ('VinFast', 'VF e34', '4300x1768x1613', 5, 41.9, 318, 0.3, 110, 1490, 'ACTIVE', 'https://i.pinimg.com/1200x/15/25/28/1525281d921639b33c0bd6308fa7e935.jpg', GETDATE()),
+    ('VinFast', 'VF Wild', '5324x1997xN/A', 5, 120, 600, 2.0, 300, 2400, 'INACTIVE', 'https://autopro8.mediacdn.vn/134505113543774208/2024/3/25/nlh4913-17113739622841194169314.jpg', GETDATE());
 
 -- ================================================================================================================== --
 -- BẢNG PARTS - Định nghĩa các loại linh kiện bảo dưỡng được quản lý trong kho

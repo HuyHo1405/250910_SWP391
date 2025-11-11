@@ -23,6 +23,7 @@ public class VehicleModelResponse {
     private Double chargingTimeHours;
     private Double motorPowerKw;
     private Double weightKg;
+    private String imageUrl;
     private EntityStatus status;
     private LocalDateTime createdAt;
 }

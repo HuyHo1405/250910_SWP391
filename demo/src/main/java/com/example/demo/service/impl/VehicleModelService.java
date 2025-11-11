@@ -51,6 +51,7 @@ public class VehicleModelService implements IVehicleModelService{
                 .chargingTimeHours(request.getChargingTimeHours())
                 .motorPowerKw(request.getMotorPowerKw())
                 .weightKg(request.getWeightKg())
+                .imageUrl(request.getImageUrl())
                 .status(request.getStatus())
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -227,6 +228,7 @@ public class VehicleModelService implements IVehicleModelService{
                 .chargingTimeHours(vehicleModel.getChargingTimeHours())
                 .motorPowerKw(vehicleModel.getMotorPowerKw())
                 .weightKg(vehicleModel.getWeightKg())
+                .imageUrl(vehicleModel.getImageUrl())
                 .status(vehicleModel.getStatus())
                 .createdAt(vehicleModel.getCreatedAt())
                 .build();

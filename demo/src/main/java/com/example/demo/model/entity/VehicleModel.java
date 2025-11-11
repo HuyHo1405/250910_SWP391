@@ -50,6 +50,9 @@ public class VehicleModel {
     @Column(name = "weight_kg")
     private Double weightKg;
 
+    @Column(name = "image_url", columnDefinition = "NVARCHAR(500)")
+    private String imageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private EntityStatus status;
