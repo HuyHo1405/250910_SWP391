@@ -16,8 +16,6 @@ import com.example.demo.service.interfaces.IMaintenanceCatalogModelService;
 import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,11 +113,10 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<CatalogResponse> findAllPaged(
+    public List<CatalogResponse> findAll(
             @Nullable MaintenanceCatalogCategory type,
             @Nullable String vin,
-            @Nullable Long modelId,
-            Pageable pageable
+            @Nullable Long modelId
     ) {
         // ✅ Phân quyền: Tất cả user có quyền đọc catalog
         accessControlService.verifyResourceAccessWithoutOwnership("MAINTENANCE_SERVICE", "read");
@@ -138,48 +135,22 @@ public class MaintenanceCatalogService implements IMaintenanceCatalogService {
             }
         }
 
-        Page<MaintenanceCatalog> catalogsPage = catalogRepository.findByTypeAndVinPaged(type, vin, pageable);
+        List<MaintenanceCatalog> catalogs = catalogRepository.findByTypeAndVin(type, vin);
 
         // ✅ Nếu không có catalog nào, throw NoServicesAvailable
-        if (catalogsPage.isEmpty() && vin != null) {
+        if (catalogs.isEmpty() && vin != null) {
             throw new CatalogException.NoServicesAvailable("VIN: " + vin);
         }
 
-        // Map Page<MaintenanceCatalog> to Page<CatalogResponse>
-        Page<CatalogResponse> responsePage = catalogsPage.map(catalog -> {
-            // Chỉ lấy catalog ACTIVE
-            if (catalog.getStatus() != EntityStatus.ACTIVE) {
-                return null;
-            }
-
-            CatalogResponse response = mapToResponse(catalog);
-
-            // Filter by modelId if provided
-            if (modelId != null) {
-                List<CatalogModelResponse> filteredModels = response.getModels().stream()
-                        .filter(model -> model.getModelId().equals(modelId))
-                        .collect(Collectors.toList());
-
-                if (filteredModels.isEmpty()) {
-                    return null;
-                }
-                response.setModels(filteredModels);
-            }
-
-            return response;
-        });
-
-        // Filter out null responses (inactive catalogs or catalogs without matching models)
-        // Note: Page doesn't support direct filtering, so we convert to PageImpl with filtered content
-        List<CatalogResponse> filteredContent = responsePage.getContent().stream()
-                .filter(response -> response != null)
+        return catalogs.stream()
+                .filter(c -> c.getStatus() == EntityStatus.ACTIVE) // Chỉ lấy catalog ACTIVE
+                .map(this::mapToResponse)
+                .filter(catalogResponse -> {
+                    if (modelId == null) return true;
+                    return catalogResponse.getModels().stream()
+                            .anyMatch(model -> model.getModelId().equals(modelId));
+                })
                 .collect(Collectors.toList());
-
-        return new org.springframework.data.domain.PageImpl<>(
-                filteredContent,
-                pageable,
-                catalogsPage.getTotalElements()
-        );
     }
 
     @Override
