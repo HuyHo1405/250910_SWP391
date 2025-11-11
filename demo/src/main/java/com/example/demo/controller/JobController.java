@@ -59,9 +59,12 @@ public class JobController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/unassigned")
-    public ResponseEntity<List<JobResponse>> getUnassignedJobs() {
-        return ResponseEntity.ok(jobService.getUnassignedJobs());
+    @GetMapping
+    public ResponseEntity<List<JobResponse>> getJobsFiltered(
+            @RequestParam(required = false) Long technicianId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long bookingId
+    ) {
+        return ResponseEntity.ok(jobService.getJobsFiltered(technicianId, status, bookingId));
     }
-
 }

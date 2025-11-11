@@ -32,4 +32,6 @@ public interface BookingDetailRepo extends JpaRepository<BookingDetail, Long> {
     // Statistics queries
     @Query("SELECT bd.catalogModel.maintenanceCatalog.name, COUNT(bd) FROM BookingDetail bd GROUP BY bd.catalogModel.maintenanceCatalog.name ORDER BY COUNT(bd) DESC")
     List<Object[]> getMostPopularServices();
+
+    boolean existsByBookingId(Long bookingId);
 }

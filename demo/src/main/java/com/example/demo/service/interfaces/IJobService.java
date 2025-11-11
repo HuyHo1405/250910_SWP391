@@ -2,6 +2,7 @@ package com.example.demo.service.interfaces;
 
 import com.example.demo.model.dto.JobRequest;
 import com.example.demo.model.dto.JobResponse;
+import io.micrometer.common.lang.Nullable;
 
 import java.util.List;
 
@@ -22,6 +23,17 @@ public interface IJobService {
 
     void deleteJob(Long jobId);
 
-    // Lấy danh sách các Job chưa được assign technician
-    List<JobResponse> getUnassignedJobs();
+    /**
+     * Lấy danh sách Jobs với filter
+     *
+     * @param technicianId - ID của kỹ thuật viên (nullable)
+     * @param status       - Trạng thái: PENDING, IN_PROGRESS, COMPLETED, UNASSIGNED (nullable)
+     * @param bookingId    - ID của booking (nullable)
+     * @return Danh sách jobs đã filter
+     */
+    List<JobResponse> getJobsFiltered(
+            @Nullable Long technicianId,
+            @Nullable String status,
+            @Nullable Long bookingId
+    );
 }

@@ -12,6 +12,7 @@ import com.example.demo.repo.BookingDetailRepo;
 import com.example.demo.repo.JobRepo;
 import com.example.demo.repo.UserRepo;
 import com.example.demo.service.interfaces.IJobService;
+import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -178,10 +179,62 @@ public class JobService implements IJobService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<JobResponse> getUnassignedJobs() {
+    public List<JobResponse> getJobsFiltered(
+            @Nullable Long technicianId,
+            @Nullable String status, // "PENDING", "IN_PROGRESS", "COMPLETED", "UNASSIGNED"
+            @Nullable Long bookingId
+    ) {
         accessControlService.verifyCanAccessAllResources("JOB", "READ");
-        List<Job> unassignedJobs = jobRepo.findUnassignJob();
-        return unassignedJobs.stream().map(this::mapToResponse).collect(Collectors.toList());
+
+        // ✅ Validate technician nếu có
+        if (technicianId != null) {
+            if (!userRepo.existsById(technicianId)) {
+                throw new CommonException.NotFound("Technician (User)", technicianId);
+            }
+        }
+
+        // ✅ Validate booking nếu có
+        if (bookingId != null) {
+            if (!bookingDetailRepo.existsByBookingId(bookingId)) {
+                throw new CommonException.NotFound("Booking", bookingId);
+            }
+        }
+
+        // Lấy tất cả jobs
+        List<Job> allJobs = jobRepo.findAll();
+
+        return allJobs.stream()
+                // Filter theo technician
+                .filter(job -> {
+                    if (technicianId == null) return true;
+                    return job.getTechnician() != null &&
+                           job.getTechnician().getId().equals(technicianId);
+                })
+                // Filter theo status
+                .filter(job -> {
+                    if (status == null) return true;
+
+                    String jobStatus;
+                    if (job.getActualEndTime() != null) {
+                        jobStatus = "COMPLETED";
+                    } else if (job.getStartTime() != null) {
+                        jobStatus = "IN_PROGRESS";
+                    } else if (job.getTechnician() == null) {
+                        jobStatus = "UNASSIGNED";
+                    } else {
+                        jobStatus = "PENDING";
+                    }
+
+                    return jobStatus.equalsIgnoreCase(status);
+                })
+                // Filter theo booking
+                .filter(job -> {
+                    if (bookingId == null) return true;
+                    return job.getBookingDetail() != null &&
+                           job.getBookingDetail().getBooking().getId().equals(bookingId);
+                })
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     private void checkBookingInProgress(Long bookingDetailsId){
@@ -215,3 +268,4 @@ public class JobService implements IJobService {
                 .build();
     }
 }
+

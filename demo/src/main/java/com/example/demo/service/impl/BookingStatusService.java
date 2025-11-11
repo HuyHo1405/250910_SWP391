@@ -17,8 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -144,6 +147,9 @@ public class BookingStatusService implements IBookingStatusService {
             );
         }
 
+        // ← THÊM MỚI: Kiểm tra tất cả jobs đã hoàn thành chưa
+        checkAllJobsCompleted(booking);
+
         // Chuyển sang trạng thái hoàn thành
         booking.setBookingStatus(BookingStatus.MAINTENANCE_COMPLETE);
 
@@ -256,5 +262,49 @@ public class BookingStatusService implements IBookingStatusService {
             jobRepo.save(job);
             log.info("Created unassigned Job for BookingDetail #{}", detail.getId());
         }
+    }
+
+    /**
+     * Kiểm tra tất cả jobs của booking đã hoàn thành chưa
+     * @param booking Booking cần kiểm tra
+     * @throws CommonException.InvalidOperation nếu còn job chưa hoàn thành
+     */
+    private void checkAllJobsCompleted(Booking booking) {
+        List<Job> incompleteJobs = new ArrayList<>();
+
+        for (BookingDetail detail : booking.getBookingDetails()) {
+            Optional<Job> jobOpt = jobRepo.findByBookingDetailId(detail.getId());
+
+            if (jobOpt.isEmpty()) {
+                // Có BookingDetail nhưng chưa có Job
+                throw new CommonException.InvalidOperation(
+                    String.format("BookingDetail #%d chưa có Job được tạo", detail.getId())
+                );
+            }
+
+            Job job = jobOpt.get();
+
+            // Kiểm tra job đã hoàn thành chưa (actualEndTime != null)
+            if (job.getActualEndTime() == null) {
+                incompleteJobs.add(job);
+            }
+        }
+
+        // Nếu có job chưa hoàn thành, throw exception
+        if (!incompleteJobs.isEmpty()) {
+            String jobIds = incompleteJobs.stream()
+                    .map(job -> "#" + job.getId())
+                    .collect(Collectors.joining(", "));
+
+            throw new CommonException.InvalidOperation(
+                String.format(
+                    "Không thể hoàn thành booking. Còn %d job chưa hoàn thành: %s",
+                    incompleteJobs.size(),
+                    jobIds
+                )
+            );
+        }
+
+        log.info("All jobs for Booking #{} are completed. Proceeding to complete maintenance.", booking.getId());
     }
 }
