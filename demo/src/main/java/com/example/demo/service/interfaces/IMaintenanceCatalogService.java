@@ -5,6 +5,8 @@ import com.example.demo.model.dto.CatalogResponse;
 import com.example.demo.model.dto.EnumSchemaResponse;
 import com.example.demo.model.modelEnum.MaintenanceCatalogCategory;
 import io.micrometer.common.lang.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -16,10 +18,11 @@ public interface IMaintenanceCatalogService {
 
     CatalogResponse findById(Long id);
 
-    List<CatalogResponse> findAll(
+    Page<CatalogResponse> findAllPaged(
             @Nullable MaintenanceCatalogCategory type,
             @Nullable String vin,
-            @Nullable Long modelId
+            @Nullable Long modelId,
+            Pageable pageable
     );
 
     void delete(Long id);
