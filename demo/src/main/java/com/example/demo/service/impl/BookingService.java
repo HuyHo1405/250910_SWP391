@@ -13,6 +13,7 @@ import com.example.demo.repo.UserRepo;
 import com.example.demo.repo.VehicleRepo;
 import com.example.demo.service.interfaces.IBookingDetailService;
 import com.example.demo.service.interfaces.IBookingService;
+import com.example.demo.service.interfaces.IInvoiceService;
 import com.example.demo.utils.ScheduleDateTimeParser; // Giữ nguyên util parser
 import com.example.demo.utils.BookingResponseMapper; // <-- THAY ĐỔI IMPORT
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class
 BookingService implements IBookingService {
 
     private final IBookingDetailService bookingDetailService;
+    private final IInvoiceService invoiceService;
     private final AccessControlService accessControlService;
 
     private final BookingRepo bookingRepository;
@@ -75,8 +77,11 @@ BookingService implements IBookingService {
 
         booking = bookingRepository.save(booking);
 
-        // Trả về DTO có chi tiết dịch vụ
-        return BookingResponseMapper.toDtoWithDetails(booking, request.getScheduleDateTime());
+        // Tạo invoice tự động sau khi tạo booking
+        invoiceService.create(booking.getId());
+
+        // Trả về DTO có chi tiết dịch vụ và invoice
+        return BookingResponseMapper.toDtoFull(booking, request.getScheduleDateTime());
     }
 
     @Override
@@ -222,6 +227,8 @@ BookingService implements IBookingService {
             throw new CommonException.InvalidOperation("Không thể thay đổi xe của đơn đặt lịch");
         }
 
+        boolean catalogDetailsUpdated = false;
+
         if (request.getScheduleDateTime() != null) {
             LocalDateTime scheduleDate = checkFutureScheduleDate(request.getScheduleDateTime());
             booking.setScheduleDate(scheduleDate);
@@ -229,9 +236,21 @@ BookingService implements IBookingService {
 
         if (request.getCatalogDetails() != null) {
             bookingDetailService.updateBookingServices(id, request.getCatalogDetails());
+            catalogDetailsUpdated = true;
         }
 
         booking = bookingRepository.save(booking);
+
+        // Cập nhật invoice nếu có thay đổi về dịch vụ
+        if (catalogDetailsUpdated) {
+            try {
+                invoiceService.updateInvoiceFromBooking(booking.getId());
+                log.info("Invoice updated successfully for booking {}", booking.getId());
+            } catch (Exception e) {
+                log.error("Failed to update invoice for booking {}: {}", booking.getId(), e.getMessage());
+                // Không block việc update booking nếu invoice update thất bại
+            }
+        }
 
         ScheduleDateTime responseSchedule = request.getScheduleDateTime() != null
                 ? request.getScheduleDateTime()

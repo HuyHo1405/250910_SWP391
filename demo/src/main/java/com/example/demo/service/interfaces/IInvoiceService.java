@@ -7,6 +7,7 @@ import com.example.demo.model.modelEnum.InvoiceStatus;
 public interface IInvoiceService {
     InvoiceResponse create(Long bookingId);
     InvoiceResponse updateById(Long invoiceId, InvoiceRequest.UpdateInvoice update);
+    InvoiceResponse updateInvoiceFromBooking(Long bookingId);
     InvoiceResponse findById(Long id);
     void deleteById(Long invoiceId);
 }

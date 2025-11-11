@@ -65,14 +65,7 @@ public class BookingStatusService implements IBookingStatusService {
 
         // Chuyển trạng thái sang CONFIRMED
         booking.setBookingStatus(BookingStatus.CONFIRMED);
-        bookingRepository.save(booking);
-
-        // Tạo invoice
-        invoiceService.create(id);
-
-        // ← FIX: Refresh booking để lấy invoice vừa tạo
-        booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new CommonException.NotFound("Booking", id));
+        booking = bookingRepository.save(booking);
 
         // Trả về DTO đầy đủ (bao gồm cả hóa đơn vừa tạo)
         return BookingResponseMapper.toDtoFull(booking);

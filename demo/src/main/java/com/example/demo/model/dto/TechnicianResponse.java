@@ -17,4 +17,3 @@ public class TechnicianResponse {
     private String role;
     private String status;
 }
-

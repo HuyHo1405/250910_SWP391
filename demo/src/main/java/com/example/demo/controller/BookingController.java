@@ -7,6 +7,7 @@ import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.service.interfaces.IBookingService;
 import com.example.demo.service.interfaces.IBookingSlotService;
 import com.example.demo.service.interfaces.IBookingStatusService;
+import com.example.demo.model.dto.EnumSchemaResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -14,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -112,5 +113,21 @@ public class BookingController {
     ) {
         boolean isSufficient = bookingStatusService.checkEnoughPartForBooking(bookingId);
         return ResponseEntity.ok(isSufficient);
+    }
+
+    @GetMapping("/working-hours")
+    public ResponseEntity<EnumSchemaResponse> getWorkingHours() {
+        List<String> hours = new ArrayList<>();
+        for (int i = 7; i <= 17; i++) {
+            hours.add(String.format("%02d:00", i));
+        }
+
+        EnumSchemaResponse response = new EnumSchemaResponse(
+                "workingHours",
+                hours,
+                "Danh sách giờ làm việc có thể đặt lịch (từ 07:00 đến 17:00)"
+        );
+
+        return ResponseEntity.ok(response);
     }
 }

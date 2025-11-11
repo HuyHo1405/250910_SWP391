@@ -58,17 +58,29 @@ public class InvoiceService implements IInvoiceService {
 
             lines.addAll(buildInvoiceLine(catalogModel.getId(), invoice));
         }
+
+        // Set lines vào invoice
         invoice.setLines(lines);
+
+        // Tính tổng tiền
         BigDecimal totalAmount = lines.stream()
                 .map(line -> line.getQuantity().multiply(line.getUnitPrice()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.HALF_UP);
         invoice.setTotalAmount(totalAmount);
 
+        // ✅ QUAN TRỌNG: Set bidirectional relationship
+        booking.setInvoice(invoice);
 
-        invoiceRepo.save(invoice);
+        // Save invoice (sẽ cascade save lines)
+        Invoice savedInvoice = invoiceRepo.save(invoice);
 
-        return mapToResponse(invoice);
+        // Save booking để update relationship
+        bookingRepo.save(booking);
+
+        log.info("Invoice created successfully with {} lines, total: {}", lines.size(), totalAmount);
+
+        return mapToResponse(savedInvoice);
     }
 
     // 2. Cập nhật invoice (trả về DTO đã chỉnh)
@@ -117,7 +129,48 @@ public class InvoiceService implements IInvoiceService {
         invoiceRepo.delete(invoice);
     }
 
-    // 5. Build InvoiceLine cho 1 dịch vụ & model (Catalog + Model)
+    // 5. Update invoice khi booking thay đổi (thêm/xóa dịch vụ)
+    @Override
+    public InvoiceResponse updateInvoiceFromBooking(Long bookingId) {
+        log.info("Updating invoice for booking {}", bookingId);
+
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId));
+
+        Invoice invoice = invoiceRepo.findByBookingId(bookingId)
+                .orElseThrow(() -> new CommonException.NotFound("Invoice for Booking", bookingId));
+
+        // Không cho update nếu invoice đã thanh toán
+        if(invoice.getStatus() == InvoiceStatus.PAID) {
+            throw new CommonException.InvalidOperation("Không thể cập nhật hóa đơn đã thanh toán");
+        }
+
+        // Xóa toàn bộ invoice lines cũ
+        invoice.getLines().clear();
+
+        // Tạo lại invoice lines từ booking details hiện tại
+        List<InvoiceLine> newLines = new ArrayList<>();
+        for (BookingDetail detail : booking.getBookingDetails()) {
+            MaintenanceCatalogModel catalogModel = detail.getCatalogModel();
+            newLines.addAll(buildInvoiceLine(catalogModel.getId(), invoice));
+        }
+
+        invoice.getLines().addAll(newLines);
+
+        // Tính lại tổng tiền
+        BigDecimal totalAmount = newLines.stream()
+                .map(line -> line.getQuantity().multiply(line.getUnitPrice()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+        invoice.setTotalAmount(totalAmount);
+
+        invoiceRepo.save(invoice);
+
+        log.info("Invoice updated successfully for booking {}, new total: {}", bookingId, totalAmount);
+        return mapToResponse(invoice);
+    }
+
+    // 6. Build InvoiceLine cho 1 dịch vụ & model (Catalog + Model)
     public List<InvoiceLine> buildInvoiceLine(Long catalogModelId, Invoice invoice){
         MaintenanceCatalogModel selectedModel = catalogModelRepo.findById(catalogModelId)
                 .orElseThrow(() -> new CommonException.NotFound("MaintenanceCatalogModel", catalogModelId));
