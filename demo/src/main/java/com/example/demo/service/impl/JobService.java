@@ -31,35 +31,6 @@ public class JobService implements IJobService {
     private final BookingDetailRepo bookingDetailRepo;
     private final UserRepo userRepo;
 
-
-
-    @Override
-    @Transactional
-    public JobResponse assignJob(JobRequest.JobAssign request) {
-        accessControlService.verifyResourceAccessWithoutOwnership("JOB", "CREATE");
-
-        BookingDetail bd = bookingDetailRepo.findById(request.getBookingDetailId())
-                .orElseThrow(() -> new CommonException.NotFound("BookingDetail", request.getBookingDetailId())); // ✅ Sửa
-        User technician = userRepo.findById(request.getTechnicianId())
-                .orElseThrow(() -> new CommonException.NotFound("Technician (User)", request.getTechnicianId())); // ✅ Sửa
-
-        Job check = jobRepo.findByBookingDetailId(request.getBookingDetailId()).orElse(null);
-        if (check != null) {
-            throw new CommonException.AlreadyExists("Job", "BookingDetailId", request.getBookingDetailId()); // ✅ Sửa
-        }
-
-        checkBookingInProgress(request.getBookingDetailId());
-
-        Job job = Job.builder()
-                .bookingDetail(bd)
-                .technician(technician)
-                .notes(request.getNotes())
-                .build();
-
-        jobRepo.save(job);
-        return mapToResponse(job);
-    }
-
     @Override
     @Transactional
     public JobResponse updateJob(Long jobId, JobRequest.JobUpdate request) {

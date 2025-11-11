@@ -7,7 +7,6 @@ import io.micrometer.common.lang.Nullable;
 import java.util.List;
 
 public interface IJobService {
-    JobResponse assignJob(JobRequest.JobAssign request);
 
     JobResponse updateJob(Long jobId, JobRequest.JobUpdate request);
 
