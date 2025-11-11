@@ -55,4 +55,10 @@ public interface UserRepo extends JpaRepository<User, Long> {
     Page<User> findByRoleNameAndStatus(String role, EntityStatus status, Pageable pageable);
 
     Page<User> findByFullNameContainingIgnoreCaseOrEmailAddressContainingIgnoreCaseOrPhoneNumberContaining(String keyword, String keyword1, String keyword2, Pageable pageable);
+
+    /**
+     * Lấy danh sách technician theo role name và status
+     */
+    @Query("SELECT u FROM User u WHERE u.role.name = :roleName AND u.status = :status")
+    List<User> findByRoleNameAndStatus(@Param("roleName") String roleName, @Param("status") EntityStatus status);
 }

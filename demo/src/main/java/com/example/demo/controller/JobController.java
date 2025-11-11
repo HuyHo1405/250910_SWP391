@@ -1,11 +1,15 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.dto.AvailableTechnicianRequest;
 import com.example.demo.model.dto.JobRequest;
 import com.example.demo.model.dto.JobResponse;
+import com.example.demo.model.dto.TechnicianResponse;
+import com.example.demo.model.modelEnum.JobStatus;
 import com.example.demo.service.interfaces.IJobService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,9 +61,22 @@ public class JobController {
     @GetMapping
     public ResponseEntity<List<JobResponse>> getJobsFiltered(
             @RequestParam(required = false) Long technicianId,
-            @RequestParam(required = false) String status,
+            @RequestParam(required = false) JobStatus status,
             @RequestParam(required = false) Long bookingId
     ) {
         return ResponseEntity.ok(jobService.getJobsFiltered(technicianId, status, bookingId));
+    }
+
+    @PostMapping("/available-technicians")
+    @Operation(
+        summary = "Get available technicians",
+        description = "Lấy danh sách kỹ thuật viên rảnh vào thời điểm được chỉ định. Hỗ trợ nhiều format ngày giờ."
+    )
+    public ResponseEntity<List<TechnicianResponse>> getAvailableTechnicians(
+            @Valid @RequestBody AvailableTechnicianRequest request
+    ) {
+        return ResponseEntity.ok(
+            jobService.getAvailableTechnicians(request.getScheduleDateTime())
+        );
     }
 }
