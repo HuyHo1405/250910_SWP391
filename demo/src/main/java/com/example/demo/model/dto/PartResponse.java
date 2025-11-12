@@ -23,6 +23,7 @@ public class PartResponse {
     private BigDecimal reserved;        // Số lượng đã đặt trước
     private BigDecimal used;            // Số lượng đã sử dụng
     private BigDecimal all;             // Tổng số lượng = quantity + used
+    private String imageUrl;            // URL hình ảnh của phụ tùng
     private String status;              // Enum EntityStatus (ACTIVE, INACTIVE, etc.)
     private LocalDateTime createdAt;
 

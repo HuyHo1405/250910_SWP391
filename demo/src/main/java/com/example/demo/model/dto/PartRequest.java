@@ -41,4 +41,7 @@ public class PartRequest {
     @NotNull(message = "Số lượng đã sử dụng không được trống")
     @Min(value = 0, message = "Số lượng phải lớn hơn hoặc bằng 0")
     private BigDecimal used;
+
+    @Size(max = 500, message = "URL hình ảnh không được vượt quá 500 ký tự")
+    private String imageUrl;
 }

@@ -54,6 +54,7 @@ public class PartService implements IPartService {
                 .quantity(request.getQuantity())
                 .reserved(request.getReserved())
                 .used(request.getUsed() != null ? request.getUsed() : BigDecimal.ZERO)
+                .imageUrl(request.getImageUrl())
                 .status(EntityStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -332,6 +333,7 @@ public class PartService implements IPartService {
                 .reserved(part.getReserved())
                 .used(part.getUsed())
                 .all(all)
+                .imageUrl(part.getImageUrl())
                 .status(part.getStatus().name())
                 .createdAt(part.getCreatedAt())
                 .catalogsEnum(catalogsEnum)

@@ -48,52 +48,52 @@ VALUES
 -- ================================================================================================================== --
 IF NOT EXISTS (SELECT 1 FROM parts)
 INSERT INTO parts
-(part_number, name, manufacturer, category, current_unit_price, quantity, reserved, used, status, created_at)
+(part_number, name, manufacturer, category, current_unit_price, quantity, reserved, used, status, created_at, image_url)
 VALUES
 -- === 1. Lọc (Filters) ===
 -- ('PART-FIL-CAB-S') Hóa đơn 12 (Reserved), 17 (Reserved)
-('PART-FIL-CAB-S', N'Lọc gió cabin (Loại S)', 'VinFast', 'FILTER', 150000, 200, 2, 0, 'ACTIVE', GETDATE()),
+('PART-FIL-CAB-S', N'Lọc gió cabin (Loại S)', 'VinFast', 'FILTER', 150000, 200, 2, 0, 'ACTIVE', GETDATE(), 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mejerouay3gk45.webp'),
 -- ('PART-FIL-CAB-M') Hóa đơn 7 (Used)
-('PART-FIL-CAB-M', N'Lọc gió cabin (Loại M)', 'VinFast', 'FILTER', 220000, 150, 0, 1, 'ACTIVE', GETDATE()),
+('PART-FIL-CAB-M', N'Lọc gió cabin (Loại M)', 'VinFast', 'FILTER', 220000, 150, 0, 1, 'ACTIVE', GETDATE(), 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mejerouay3gk45.webp'),
 -- ('PART-FIL-CAB-L') Hóa đơn 1 (Used), 9 (Used), 14 (Reserved)
-('PART-FIL-CAB-L', N'Lọc gió cabin (Loại L)', 'VinFast', 'FILTER', 300000, 100, 1, 2, 'ACTIVE', GETDATE()),
+('PART-FIL-CAB-L', N'Lọc gió cabin (Loại L)', 'VinFast', 'FILTER', 300000, 100, 1, 2, 'ACTIVE', GETDATE(), 'https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mejerouay3gk45.webp'),
 
 -- === 2. Dung dịch & Hóa chất (Fluids) ===
 -- ('PART-FLD-BRK-01') Hóa đơn 3 (Used), 9 (Used x2), 18 (Reserved)
-('PART-FLD-BRK-01', N'Dầu phanh DOT 4 (1L)', 'Castrol', 'FLUID', 180000, 300, 1, 3, 'ACTIVE', GETDATE()),
+('PART-FLD-BRK-01', N'Dầu phanh DOT 4 (1L)', 'Castrol', 'FLUID', 180000, 300, 1, 3, 'ACTIVE', GETDATE(), 'https://bizweb.dktcdn.net/100/360/787/products/3093.jpg?v=1663317054257'),
 -- ('PART-FLD-COL-01') Hóa đơn 3 (Used)
-('PART-FLD-COL-01', N'Nước làm mát pin (EV Coolant) (5L)', 'Prestone', 'FLUID', 750000, 150, 0, 1, 'ACTIVE', GETDATE()),
+('PART-FLD-COL-01', N'Nước làm mát pin (EV Coolant) (5L)', 'Prestone', 'FLUID', 750000, 150, 0, 1, 'ACTIVE', GETDATE(), 'https://daunhotpenrite.com/wp-content/uploads/2023/03/RUN005-2-e1677732726630.png'),
 -- ('PART-FLD-WSH-01') Hóa đơn 1, 6, 10 (Used) | 13, 16 (Reserved)
-('PART-FLD-WSH-01', N'Nước rửa kính (2L)', 'VinFast', 'FLUID', 50000, 500, 2, 3, 'ACTIVE', GETDATE()),
+('PART-FLD-WSH-01', N'Nước rửa kính (2L)', 'VinFast', 'FLUID', 50000, 500, 2, 3, 'ACTIVE', GETDATE(), 'https://toyotahcm.vn/wp-content/uploads/2024/06/nuoc-rua-kinh-o-to-toyota-3.jpg'),
 -- ('PART-FLD-ACG-01')
-('PART-FLD-ACG-01', N'Gas điều hòa R-1234yf (1kg)', 'Honeywell', 'FLUID', 2500000, 50, 0, 0, 'ACTIVE', GETDATE()),
+('PART-FLD-ACG-01', N'Gas điều hòa R-1234yf (1kg)', 'Honeywell', 'FLUID', 2500000, 50, 0, 0, 'ACTIVE', GETDATE(), 'https://news.oto-hui.com/wp-content/uploads/2022/06/r-1234yf-moi-chat-lam-lanh-thay-the-r-134a-cu-trong-he-thong-dieu-hoa-o-to-5.jpg'),
 -- ('PART-FLD-ACO-01')
-('PART-FLD-ACO-01', N'Dầu máy nén A/C (POE) (100ml)', 'Sanden', 'FLUID', 450000, 80, 0, 0, 'ACTIVE', GETDATE()),
+('PART-FLD-ACO-01', N'Dầu máy nén A/C (POE) (100ml)', 'Sanden', 'FLUID', 450000, 80, 0, 0, 'ACTIVE', GETDATE(), 'https://media.witglobal.net/source/eshop/stmedia/0100/images/std.lang.all/resolutions/category/576px/130432.jpg'),
 
 -- === 3. Ắc quy 12V (Auxiliary Batteries) ===
 -- ('PART-BAT-12V-45') Hóa đơn 8 (Used)
-('PART-BAT-12V-45', N'Ắc quy 12V 45Ah (AGM)', 'GS Battery', 'BATTERY', 1800000, 70, 0, 1, 'ACTIVE', GETDATE()),
+('PART-BAT-12V-45', N'Ắc quy 12V 45Ah (AGM)', 'GS Battery', 'BATTERY', 1800000, 70, 0, 1, 'ACTIVE', GETDATE(), 'https://giaphatbattery.com/wp-content/uploads/2023/10/long-12v-45ah-wp45-12.png'),
 -- ('PART-BAT-12V-60')
-('PART-BAT-12V-60', N'Ắc quy 12V 60Ah (AGM)', 'Varta', 'BATTERY', 2500000, 50, 0, 0, 'ACTIVE', GETDATE()),
+('PART-BAT-12V-60', N'Ắc quy 12V 60Ah (AGM)', 'Varta', 'BATTERY', 2500000, 50, 0, 0, 'ACTIVE', GETDATE(), 'https://product.hstatic.net/1000296508/product/rocket_agm_997ec35bab674934b0db9406cb7630c8_master.jpg'),
 
 -- === 4. Gạt mưa (Wipers) ===
 -- ('PART-WPR-16')
-('PART-WPR-16', N'Gạt mưa Bosch 16"', 'Bosch', 'WIPER', 120000, 100, 0, 0, 'ACTIVE', GETDATE()),
+('PART-WPR-16', N'Gạt mưa Bosch 16"', 'Bosch', 'WIPER', 120000, 100, 0, 0, 'ACTIVE', GETDATE(), 'https://bizweb.dktcdn.net/100/366/403/products/bosch-ba-20-9492fec8-1571-46c7-b940-e8a770d1f642.jpg?v=1679043168857'),
 -- ('PART-WPR-24') Hóa đơn 5 (Used) | 11, 13 (Reserved)
-('PART-WPR-24', N'Gạt mưa Bosch 24"', 'Bosch', 'WIPER', 180000, 100, 2, 1, 'ACTIVE', GETDATE()),
--- ('PART-WPR-26') Hóa đơn 5 (Used) | 11, 13 (Reserved)
-('PART-WPR-26', N'Gạt mưa Bosch 26"', 'Bosch', 'WIPER', 200000, 100, 2, 1, 'ACTIVE', GETDATE()),
+('PART-WPR-24', N'Gạt mưa Bosch 24"', 'Bosch', 'WIPER', 180000, 100, 2, 1, 'ACTIVE', GETDATE(), 'https://bizweb.dktcdn.net/100/366/403/products/bosch-ba-20-9492fec8-1571-46c7-b940-e8a770d1f642.jpg?v=1679043168857'),
+   -- ('PART-WPR-26') Hóa đơn 5 (Used) | 11, 13 (Reserved)
+('PART-WPR-26', N'Gạt mưa Bosch 26"', 'Bosch', 'WIPER', 200000, 100, 2, 1, 'ACTIVE', GETDATE(), 'https://bizweb.dktcdn.net/100/366/403/products/bosch-ba-20-9492fec8-1571-46c7-b940-e8a770d1f642.jpg?v=1679043168857'),
 
 -- === 5. Lốp (Tires) ===
-('PART-TIRE-175-65R16', N'Lốp 175/65R16', 'Bridgestone', 'TIRE', 1500000, 40, 0, 0, 'ACTIVE', GETDATE()),
-('PART-TIRE-215-60R17', N'Lốp 215/60R17', 'Goodyear', 'TIRE', 2100000, 40, 0, 0, 'ACTIVE', GETDATE()),
-('PART-TIRE-215-55R18', N'Lốp 215/55R18', 'Michelin', 'TIRE', 2800000, 40, 0, 0, 'ACTIVE', GETDATE()),
-('PART-TIRE-245-45R20', N'Lốp 245/45R20', 'Pirelli', 'TIRE', 4500000, 30, 0, 0, 'ACTIVE', GETDATE()),
-('PART-TIRE-275-40R22', N'Lốp 275/40R22', 'Pirelli', 'TIRE', 6000000, 20, 0, 0, 'ACTIVE', GETDATE()),
+('PART-TIRE-175-65R16', N'Lốp 175/65R16', 'Bridgestone', 'TIRE', 1500000, 40, 0, 0, 'ACTIVE', GETDATE(), 'https://img.alicdn.com/imgextra/https://img.alicdn.com/imgextra/i3/2208486842803/O1CN016qioii1WZozb27d9q_!!2208486842803.jpg_400x400.jpg_.webp'),
+('PART-TIRE-215-60R17', N'Lốp 215/60R17', 'Goodyear', 'TIRE', 2100000, 40, 0, 0, 'ACTIVE', GETDATE(), 'https://img.alicdn.com/imgextra/https://img.alicdn.com/imgextra/i3/2208486842803/O1CN016qioii1WZozb27d9q_!!2208486842803.jpg_400x400.jpg_.webp'),
+('PART-TIRE-215-55R18', N'Lốp 215/55R18', 'Michelin', 'TIRE', 2800000, 40, 0, 0, 'ACTIVE', GETDATE(), 'https://img.alicdn.com/imgextra/https://img.alicdn.com/imgextra/i3/2208486842803/O1CN016qioii1WZozb27d9q_!!2208486842803.jpg_400x400.jpg_.webp'),
+('PART-TIRE-245-45R20', N'Lốp 245/45R20', 'Pirelli', 'TIRE', 4500000, 30, 0, 0, 'ACTIVE', GETDATE(), 'https://img.alicdn.com/imgextra/https://img.alicdn.com/imgextra/i3/2208486842803/O1CN016qioii1WZozb27d9q_!!2208486842803.jpg_400x400.jpg_.webp'),
+('PART-TIRE-275-40R22', N'Lốp 275/40R22', 'Pirelli', 'TIRE', 6000000, 20, 0, 0, 'ACTIVE', GETDATE(), 'https://img.alicdn.com/imgextra/https://img.alicdn.com/imgextra/i3/2208486842803/O1CN016qioii1WZozb27d9q_!!2208486842803.jpg_400x400.jpg_.webp'),
 
 -- === 6. Phanh (Brakes) ===
-('PART-BRAKE-PAD-F-S', N'Má phanh trước (Loại S)', 'Brembo', 'BRAKE', 800000, 60, 0, 0, 'ACTIVE', GETDATE()),
-('PART-BRAKE-PAD-F-L', N'Má phanh trước (Loại L)', 'Brembo', 'BRAKE', 1500000, 40, 0, 0, 'ACTIVE', GETDATE());
+('PART-BRAKE-PAD-F-S', N'Má phanh trước (Loại S)', 'Brembo', 'BRAKE', 800000, 60, 0, 0, 'ACTIVE', GETDATE(), 'https://bizweb.dktcdn.net/100/366/403/products/10032598a-jpg-v-1695960203640-537afc15-1a5c-4d82-beac-c05b74c64127.jpg?v=1697308710877'),
+('PART-BRAKE-PAD-F-L', N'Má phanh trước (Loại L)', 'Brembo', 'BRAKE', 1500000, 40, 0, 0, 'ACTIVE', GETDATE(), 'https://bizweb.dktcdn.net/100/366/403/products/10032598a-jpg-v-1695960203640-537afc15-1a5c-4d82-beac-c05b74c64127.jpg?v=1697308710877');
 -- ================================================================================================================== --
 -- BẢNG MAINTENANCE CATALOG MODELS - Mapping các mẫu xe với các dịch vụ
 -- BẢNG MAINTENANCE CATALOG MODEL PARTS - Mapping các linh kiện cho các mẫu xe và các dịch vụ
