@@ -40,8 +40,8 @@ public class InvoiceService implements IInvoiceService {
         Booking booking = bookingRepo.findById(bookingId)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId)); // ✅ Sửa
 
-        accessControlService.verifyCanAccessAllResources("INVOICE", "create");
-
+        accessControlService.verifyResourceAccess(booking.getCustomer().getId(), "INVOICE", "create");
+    
         if (invoiceRepo.findByBookingId(bookingId).isPresent())
             throw new CommonException.AlreadyExists("Invoice", "BookingId", bookingId); // ✅ Sửa
 

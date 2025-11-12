@@ -467,6 +467,7 @@ VALUES
 ('PART', 'view_low_stock', 1, 'View low stock alerts'),
 -- BOOKING
 ('BOOKING', 'cancel', 1, 'Cancel booking'),
+('BOOKING', 'reject', 1, 'Reject booking'),
 ('BOOKING', 'complete', 1, 'Complete booking'),
 ('BOOKING', 'confirm', 1, 'Confirm booking'),
 ('BOOKING', 'create', 1, 'Create booking'),
@@ -572,7 +573,7 @@ WHERE
     (p.resource = 'BOOKING' AND p.action IN ('create', 'read', 'cancel'))
    OR
 -- Quyền coi hóa đơn
-    (p.resource = 'INVOICE' AND p.action = 'read')
+    (p.resource = 'INVOICE' AND p.action IN ('read', 'create'))
    OR
 -- Quyền thanh toán
     (p.resource = 'PAYMENT' AND p.action = 'pay')

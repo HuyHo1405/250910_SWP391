@@ -36,11 +36,18 @@ public class BookingStatusService implements IBookingStatusService {
     private final MaintenanceCatalogModelPartRepo maintenanceCatalogModelPartRepo;
     private final PartRepo partRepo;
     private final InvoiceRepo invoiceRepo;
+    private final PaymentRepo paymentRepo;
 
-    // Các trạng thái cho phép cancel
+    // Các trạng thái cho phép cancel (customer)
     private final List<BookingStatus> CANCELLABLE_STATUSES = Arrays.asList(
             BookingStatus.PENDING
     );
+
+    // Các trạng thái cho phép reject (staff/admin)
+    private final List<BookingStatus> REJECTABLE_STATUSES = Arrays.asList(
+            BookingStatus.PENDING
+    );
+
     private final JobRepo jobRepo;
     private final JobService jobService;
 
@@ -67,32 +74,18 @@ public class BookingStatusService implements IBookingStatusService {
         booking.setBookingStatus(BookingStatus.CONFIRMED);
         booking = bookingRepository.save(booking);
 
-        // Trả về DTO đầy đủ (bao gồm cả hóa đơn vừa tạo)
-        return BookingResponseMapper.toDtoFull(booking);
-    }
+        // Chuyển invoice thành DRAFT thành UNPAID và đặt dueDate = scheduleDate
+        Invoice invoice = booking.getInvoice();
 
-
-    @Override
-    public BookingResponse startMaintenance(Long id) {
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new CommonException.NotFound("Booking", id));
-
-        accessControlService.verifyCanAccessAllResources( "BOOKING", "start-maintenance");
-
-        if (booking.getBookingStatus() != BookingStatus.CONFIRMED) {
-            throw new CommonException.InvalidOperation("Đặt lịch chưa được xác nhận cho thao tác này");
+        if(invoice == null || invoice.getStatus() != InvoiceStatus.DRAFT) {
+            throw new CommonException.InvalidOperation("Invoice không tồn tại hoặc không ở trạng thái DRAFT");
         }
 
-        booking.setBookingStatus(BookingStatus.IN_PROGRESS);
+        invoice.setStatus(InvoiceStatus.UNPAID);
+        invoice.setDueDate(booking.getScheduleDate());
+        invoiceRepo.save(invoice);
 
-        usePartsForMaintenance(booking);
-
-        // Tự động tạo unassigned Jobs cho mỗi BookingDetail
-        createUnassignedJobsForBooking(booking);
-
-        log.info("Booking {} started maintenance. Created {} unassigned jobs.", id, booking.getBookingDetails().size());
-
-        // Trả về DTO đầy đủ
+        // Trả về DTO đầy đủ (bao gồm cả hóa đơn vừa tạo)
         return BookingResponseMapper.toDtoFull(booking);
     }
 
@@ -127,6 +120,64 @@ public class BookingStatusService implements IBookingStatusService {
     }
 
     @Override
+    public BookingResponse rejectBooking(Long id, String reason) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new CommonException.NotFound("Booking", id));
+
+        accessControlService.verifyResourceAccess(booking.getCustomer().getId(), "BOOKING", "reject");
+
+        // Kiểm tra trạng thái đã bị hủy chưa
+        if (booking.getBookingStatus() == BookingStatus.REJECTED) {
+            throw new CommonException.InvalidOperation("Booking is already rejected");
+        }
+
+        // Kiểm tra trạng thái có cho phép cancel không
+        if (!REJECTABLE_STATUSES.contains(booking.getBookingStatus())) {
+            throw new CommonException.InvalidOperation(
+                    "Không thể từ chối đặt lịch ở trạng thái: " + booking.getBookingStatus() +
+                            ". Chỉ có thể từ chối các đặt lịch ở trạng thái PENDING."
+            );
+        }
+
+        // Cập nhật trạng thái thành CANCELLED
+        booking.setBookingStatus(BookingStatus.REJECTED);
+
+        log.info("Booking {} cancelled. Reason: {}", id, reason);
+
+        // Trả về DTO đầy đủ
+        return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
+
+    }
+
+    @Override
+    @Transactional
+    public BookingResponse startMaintenance(Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new CommonException.NotFound("Booking", id));
+
+        accessControlService.verifyCanAccessAllResources( "BOOKING", "start-maintenance");
+
+        // 🔄 THAY ĐỔI: Phải PAID mới được bắt đầu
+        if (booking.getBookingStatus() != BookingStatus.PAID) {
+            throw new CommonException.InvalidOperation(
+                    "Chưa thanh toán, không thể bắt đầu bảo trì. Trạng thái hiện tại: " + booking.getBookingStatus()
+            );
+        }
+
+        booking.setBookingStatus(BookingStatus.IN_PROGRESS);
+
+        usePartsForMaintenance(booking);
+
+        // Tự động tạo unassigned Jobs cho mỗi BookingDetail
+        createUnassignedJobsForBooking(booking);
+
+        log.info("Booking {} started maintenance. Created {} unassigned jobs.", id, booking.getBookingDetails().size());
+
+        // Trả về DTO đầy đủ
+        return BookingResponseMapper.toDtoFull(booking);
+    }
+
+    @Override
     @Transactional
     public BookingResponse completeMaintenance(Long id) {
         Booking booking = bookingRepository.findById(id)
@@ -146,17 +197,13 @@ public class BookingStatusService implements IBookingStatusService {
         // Chuyển sang trạng thái hoàn thành
         booking.setBookingStatus(BookingStatus.MAINTENANCE_COMPLETE);
 
-        Invoice invoice = booking.getInvoice();
-        invoice.setStatus(InvoiceStatus.UNPAID);
-        invoice.setDueDate(LocalDateTime.now().plusDays(7));
-        invoiceRepo.save(invoice);
-
         log.info("Booking {} marked as delivered/completed. Invoice was recalculated and finalized.", id);
         // Trả về DTO đầy đủ (bao gồm cả hóa đơn đã cập nhật trạng thái)
         return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean checkEnoughPartForBooking(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId));
@@ -299,5 +346,24 @@ public class BookingStatusService implements IBookingStatusService {
         }
 
         log.info("All jobs for Booking #{} are completed. Proceeding to complete maintenance.", booking.getId());
+    }
+
+    /**
+     * Giải phóng parts đã reserved khi reject booking
+     */
+    private void unreserveParts(Booking booking) {
+        for (BookingDetail detail : booking.getBookingDetails()) {
+            Long catalogModelId = detail.getCatalogModel().getId();
+            List<MaintenanceCatalogModelPart> requiredParts =
+                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogModelId(catalogModelId);
+
+            for (MaintenanceCatalogModelPart mp : requiredParts) {
+                Part part = mp.getPart();
+                part.setReserved(part.getReserved().subtract(mp.getQuantityRequired()));
+                partRepo.save(part);
+                log.info("Part {} unreserved: {} units. New reserved: {}",
+                    part.getName(), mp.getQuantityRequired(), part.getReserved());
+            }
+        }
     }
 }

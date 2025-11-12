@@ -6,6 +6,7 @@ public enum BookingStatus {
     // ===== SCHEDULE PHASE =====
     PENDING,            // Đã đặt lịch, chờ xác nhận
     CONFIRMED,          // Xác nhận (Giả định là khách hàng sẽ luôn đem xe đến)
+    PAID,               // Đã thanh toán trước (bắt buộc)
 
     // ===== MAINTENANCE PHASE =====
     IN_PROGRESS,        // Đang sửa/bảo dưỡng
@@ -13,4 +14,5 @@ public enum BookingStatus {
 
     // ===== CANCELLED STATES =====
     CANCELLED,          // Đã hủy trước khi bắt đầu
+    REJECTED,           // Bị từ chối (nếu có lý do hợp lệ)
 }

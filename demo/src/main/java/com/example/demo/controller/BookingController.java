@@ -83,6 +83,14 @@ public class BookingController {
         return ResponseEntity.ok(resp);
     }
 
+    @PutMapping("/{id}/rejected")
+    public ResponseEntity<BookingResponse> rejectBooking(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason) {
+        BookingResponse resp = bookingStatusService.rejectBooking(id, reason);
+        return ResponseEntity.ok(resp);
+    }
+
     @PutMapping("/{id}/confirm")
     public ResponseEntity<BookingResponse> confirmBooking(@PathVariable Long id) {
         BookingResponse resp = bookingStatusService.confirmBooking(id);

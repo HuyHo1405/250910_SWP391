@@ -33,14 +33,14 @@ public class PaymentController {
      * @param vnpayParams Map chứa tất cả các tham số VNPAY gửi sang.
      * @return DTO (VnpayIpn) chứa RspCode và Message để VNPAY biết kết quả.
      */
-    @PostMapping("/vnpay-ipn")
-    public ResponseEntity<PaymentResponse.VnpayIpn> handleVnpayIpn(
-            @RequestParam Map<String, String> vnpayParams
-    ) {
-        // Gọi service để xử lý IPN
-        PaymentResponse.VnpayIpn response = paymentService.handleVnpayIpn(vnpayParams);
-        return ResponseEntity.ok(response);
-    }
+//    @PostMapping("/vnpay-ipn")
+//    public ResponseEntity<PaymentResponse.VnpayIpn> handleVnpayIpn(
+//            @RequestParam Map<String, String> vnpayParams
+//    ) {
+//        // Gọi service để xử lý IPN
+//        PaymentResponse.VnpayIpn response = paymentService.handleVnpayIpn(vnpayParams);
+//        return ResponseEntity.ok(response);
+//    }
 
     /**
      * API để Frontend gọi (ở trang "Kết quả thanh toán") để kiểm tra trạng thái.
