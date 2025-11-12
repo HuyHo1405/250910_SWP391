@@ -60,7 +60,7 @@ public class PasswordService implements IPasswordService {
         tokenRepo.save(resetToken);
 
         // Send email with reset link
-        String resetLink = appConfig.getActiveUrl() + "/api/auth/reset-password?token=" + token;
+        String resetLink = "http://localhost:3000/reset-password?token=" + token;
         mailService.sendPasswordResetMail(user.getEmailAddress(), resetLink);
 
         return "Password reset link has been sent to your email";
