@@ -110,7 +110,7 @@ public class AuthService implements IAuthService {
 
     @Override
     @Transactional
-    public AuthResponse verifyEmail(AuthRequest.Verify verifyRequest) {
+    public MessageResponse verifyEmail(AuthRequest.Verify verifyRequest) {
         String email = verifyRequest.getUserName();
         String code = verifyRequest.getCode();
 
@@ -124,11 +124,11 @@ public class AuthService implements IAuthService {
         user.setUpdateAt(LocalDateTime.now());
         userRepo.save(user);
 
-        // Generate tokens
-        String accessToken = jwtUtil.generateToken(user);
-        String refreshToken = createRefreshToken(user);
-
-        return buildAuthResponse(user, accessToken, refreshToken);
+        return MessageResponse.builder()
+                .message("Xác thực email thành công. Bạn có thể đăng nhập ngay bây giờ.")
+                .timestamp(LocalDateTime.now())
+                .path("uri=" + httpServletRequest.getRequestURI())
+                .build();
     }
 
     @Override
