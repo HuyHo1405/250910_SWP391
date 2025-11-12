@@ -42,9 +42,13 @@ public class JobController {
         return ResponseEntity.ok(jobService.getJobDetail(jobId));
     }
 
-    @GetMapping("/booking-detail/{bookingDetailId}")
-    public ResponseEntity<JobResponse> getJobsByBookingDetail(@PathVariable Long bookingDetailId) {
-        return ResponseEntity.ok(jobService.getJobsByBookingDetail(bookingDetailId));
+    @GetMapping("/booking/{bookingId}")
+    @Operation(
+        summary = "Get job by booking",
+        description = "Lấy Job duy nhất của Booking (One-to-One relationship)"
+    )
+    public ResponseEntity<JobResponse> getJobByBooking(@PathVariable Long bookingId) {
+        return ResponseEntity.ok(jobService.getJobByBooking(bookingId));
     }
 
     @GetMapping("/technician/{technicianId}/tasks")

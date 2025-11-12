@@ -16,12 +16,6 @@ public class InvoiceController {
 
     private final IInvoiceService invoiceService;
 
-    @PostMapping("/{bookingId}")
-    public ResponseEntity<InvoiceResponse> createInvoice(@PathVariable Long bookingId) {
-        InvoiceResponse response = invoiceService.create(bookingId);
-        return ResponseEntity.ok(response);
-    }
-
     @PutMapping("/{invoiceId}")
     public ResponseEntity<InvoiceResponse> updateInvoice(
             @PathVariable Long invoiceId,

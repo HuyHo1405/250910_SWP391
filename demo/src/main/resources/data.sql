@@ -999,55 +999,11 @@ VALUES
 
 IF NOT EXISTS (SELECT 1 FROM jobs)
 INSERT INTO jobs
-(booking_detail_id, technician_id, start_time, est_end_time, actual_end_time, notes, created_at, updated_at)
+(booking_id, technician_id, start_time, est_end_time, actual_end_time, notes, created_at, updated_at)
 VALUES
--- ========================================
--- BOOKING 11 (ĐANG TIẾN HÀNH) - VF 8, customer_id=19
--- BookingDetails ID: 26, 27, 28, 29
--- ========================================
--- Job 1: Chẩn đoán tổng thể xe (booking_detail_id=26) - ĐÃ GIAO & ĐANG TIẾN HÀNH
--- Kỹ thuật viên ID 4 đang làm việc, dự kiến xong sau 3 tiếng
-(26, 4, DATEADD(HOUR, -2, GETDATE()), DATEADD(HOUR, 1, GETDATE()), NULL, N'Đang thực hiện chẩn đoán hệ thống điện và điện tử', DATEADD(HOUR, -3, GETDATE()), DATEADD(HOUR, -2, GETDATE())),
-
--- Job 2: Cập nhật phần mềm (booking_detail_id=27) - CHƯA GIAO
--- Chưa có kỹ thuật viên được giao
-(27, NULL, NULL, NULL, NULL, N'Công việc tự động tạo cho lịch hẹn #11', DATEADD(HOUR, -3, GETDATE()), DATEADD(HOUR, -3, GETDATE())),
-
--- Job 3: Kiểm tra ắc quy 12V (booking_detail_id=28) - ĐÃ GIAO NHƯNG CHƯA BẮT ĐẦU
--- Kỹ thuật viên ID 5 đã được giao nhưng chưa bắt đầu làm
-(28, 5, NULL, NULL, NULL, N'Đã giao cho kỹ thuật viên, chờ bắt đầu', DATEADD(HOUR, -3, GETDATE()), DATEADD(HOUR, -1, GETDATE())),
-
--- Job 4: Thay gạt mưa (booking_detail_id=29) - ĐÃ HOÀN THÀNH
--- Kỹ thuật viên ID 6 đã hoàn thành công việc
-(29, 6, DATEADD(HOUR, -2, GETDATE()), DATEADD(HOUR, -1.5, GETDATE()), DATEADD(HOUR, -1, GETDATE()), N'Đã thay xong 2 cặp gạt mưa, kiểm tra hoạt động tốt', DATEADD(HOUR, -3, GETDATE()), DATEADD(HOUR, -1, GETDATE())),
-
--- ========================================
--- BOOKING 12 (ĐANG TIẾN HÀNH) - VF e34, customer_id=20
--- BookingDetails ID: 30, 31
--- ========================================
--- Job 5: Kiểm tra pin điện áp cao (booking_detail_id=30) - ĐÃ GIAO & ĐANG TIẾN HÀNH
--- Kỹ thuật viên ID 4 đang làm (sau khi xong job 1)
-(30, 4, DATEADD(HOUR, -1, GETDATE()), DATEADD(HOUR, 0, GETDATE()), NULL, N'Đang kiểm tra tình trạng pin, SoH hiện tại 97.2%', DATEADD(HOUR, -2, GETDATE()), DATEADD(HOUR, -1, GETDATE())),
-
--- Job 6: Thay lọc gió cabin (booking_detail_id=31) - CHƯA GIAO
--- Chưa có kỹ thuật viên được giao
-(31, NULL, NULL, NULL, NULL, N'Công việc tự động tạo cho lịch hẹn #12', DATEADD(HOUR, -2, GETDATE()), DATEADD(HOUR, -2, GETDATE())),
-
--- ========================================
--- BOOKING 13 (ĐANG TIẾN HÀNH) - VF 7, customer_id=21
--- BookingDetails ID: 32, 33, 34
--- ========================================
--- Job 7: Thay gạt mưa (booking_detail_id=32) - CHƯA GIAO
--- Chưa có kỹ thuật viên được giao
-(32, NULL, NULL, NULL, NULL, N'Công việc tự động tạo cho lịch hẹn #13', DATEADD(HOUR, -1, GETDATE()), DATEADD(HOUR, -1, GETDATE())),
-
--- Job 8: Bổ sung nước rửa kính (booking_detail_id=33) - ĐÃ HOÀN THÀNH
--- Kỹ thuật viên ID 5 đã hoàn thành nhanh (5 phút)
-(33, 5, DATEADD(HOUR, -1, GETDATE()), DATEADD(HOUR, -0.9, GETDATE()), DATEADD(HOUR, -0.8, GETDATE()), N'Đã bổ sung đầy bình nước rửa kính', DATEADD(HOUR, -1, GETDATE()), DATEADD(HOUR, -0.8, GETDATE())),
-
--- Job 9: Đảo lốp (booking_detail_id=34) - ĐÃ GIAO NHƯNG CHƯA BẮT ĐẦU
--- Kỹ thuật viên ID 6 đã được giao, đang chờ xe lên cầu nâng
-(34, 6, NULL, NULL, NULL, N'Sẵn sàng đảo lốp khi xe lên cầu nâng', DATEADD(HOUR, -1, GETDATE()), DATEADD(MINUTE, -30, GETDATE()));
+(11, 4, DATEADD(HOUR, -2, GETDATE()), DATEADD(HOUR, 1, GETDATE()), NULL, N'Đang thực hiện chẩn đoán hệ thống điện và điện tử (Job này đại diện cho toàn bộ Booking 11)', DATEADD(HOUR, -3, GETDATE()), DATEADD(HOUR, -2, GETDATE())),
+(12, 4, DATEADD(HOUR, -1, GETDATE()), DATEADD(HOUR, 0, GETDATE()), NULL, N'Đang kiểm tra tình trạng pin, SoH hiện tại 97.2% (Job này đại diện cho toàn bộ Booking 12)', DATEADD(HOUR, -2, GETDATE()), DATEADD(HOUR, -1, GETDATE())),
+(13, NULL, NULL, NULL, NULL, N'Công việc tự động tạo cho lịch hẹn #13 (Job này đại diện cho toàn bộ Booking 13)', DATEADD(HOUR, -1, GETDATE()), DATEADD(HOUR, -1, GETDATE()));
 
 -- ================================================================================================================== --
 -- BẢNG PAYMENTS - (CẬP NHẬT) Dùng PENDING, SUCCESSFUL, FAILED

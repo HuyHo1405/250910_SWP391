@@ -12,8 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class JobResponse {
     private Long id;
-    private String description;
-    private Long bookingDetailId;
+    private Long bookingId;
     private Long technicianId;
     private String technicianName;    // Tên kỹ thuật viên
     private LocalDateTime startTime;
