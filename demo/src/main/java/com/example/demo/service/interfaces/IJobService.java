@@ -19,7 +19,13 @@ public interface IJobService {
 
     JobResponse getJobDetail(Long jobId);
 
-    JobResponse getJobsByBookingDetail(Long bookingDetailId);
+    /**
+     * Lấy Job duy nhất của Booking (One-to-One relationship)
+     *
+     * @param bookingId - ID của booking
+     * @return JobResponse
+     */
+    JobResponse getJobByBooking(Long bookingId);
 
     List<JobResponse> getTechnicianTasks(Long technicianId);
 

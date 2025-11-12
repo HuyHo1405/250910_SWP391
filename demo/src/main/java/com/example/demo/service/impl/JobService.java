@@ -5,14 +5,11 @@ import com.example.demo.model.dto.JobRequest;
 import com.example.demo.model.dto.JobResponse;
 import com.example.demo.model.dto.ScheduleDateTime;
 import com.example.demo.model.dto.TechnicianResponse;
-import com.example.demo.model.entity.BookingDetail;
-import com.example.demo.model.entity.Job;
-import com.example.demo.model.entity.MaintenanceCatalogModel;
-import com.example.demo.model.entity.User;
+import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.modelEnum.JobStatus;
-import com.example.demo.repo.BookingDetailRepo;
+import com.example.demo.repo.BookingRepo;
 import com.example.demo.repo.JobRepo;
 import com.example.demo.repo.UserRepo;
 import com.example.demo.service.interfaces.IJobService;
@@ -23,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,7 +30,7 @@ public class JobService implements IJobService {
     private final AccessControlService accessControlService;
 
     private final JobRepo jobRepo;
-    private final BookingDetailRepo bookingDetailRepo;
+    private final BookingRepo bookingRepo;
     private final UserRepo userRepo;
 
     @Override
@@ -46,22 +44,23 @@ public class JobService implements IJobService {
         if (job.getStartTime() != null)
             throw new CommonException.Conflict("JOB_ALREADY_STARTED", "Không thể cập nhật Job đã bắt đầu");
 
-        if (request.getBookingDetailId() != null) {
-            if(job.getBookingDetail().getId() != null && !job.getBookingDetail().getId().equals(request.getBookingDetailId())){
-                throw new CommonException.InvalidOperation("CANNOT_CHANGE_BOOKING_DETAIL", "Không thể thay đổi BookingDetail của Job đã được gán");
+        if (request.getBookingId() != null) {
+            if(job.getBooking() != null && job.getBooking().getId() != null && !job.getBooking().getId().equals(request.getBookingId())){
+                throw new CommonException.InvalidOperation("CANNOT_CHANGE_BOOKING", "Không thể thay đổi Booking của Job đã được gán");
             }
 
-            BookingDetail bd = bookingDetailRepo.findById(request.getBookingDetailId())
-                    .orElseThrow(() -> new CommonException.NotFound("BookingDetail", request.getBookingDetailId()));
+            Booking booking = bookingRepo.findById(request.getBookingId())
+                    .orElseThrow(() -> new CommonException.NotFound("Booking", request.getBookingId()));
 
-            Job check = jobRepo.findByBookingDetailId(request.getBookingDetailId()).orElse(null);
+            // Kiểm tra booking này đã có job khác chưa (One-to-One)
+            Job check = jobRepo.findByBookingId(request.getBookingId()).orElse(null);
             // Đảm bảo nó không báo lỗi "đã tồn tại" với chính nó
             if (check != null && !check.getId().equals(jobId)) {
-                throw new CommonException.AlreadyExists("Job", "BookingDetailId", request.getBookingDetailId());
+                throw new CommonException.AlreadyExists("Job", "BookingId", request.getBookingId());
             }
 
-            checkBookingInProgress(request.getBookingDetailId());
-            job.setBookingDetail(bd);
+            checkBookingInProgress(request.getBookingId());
+            job.setBooking(booking);
         }
 
         if (request.getTechnicianId() != null) {
@@ -70,8 +69,8 @@ public class JobService implements IJobService {
             if(!technician.getRole().getName().equals("TECHNICIAN"))
                 throw new CommonException.InvalidOperation("INVALID_ROLE", "Người dùng được gán phải có vai trò là kỹ thuật viên");
 
-            // ← THÊM MỚI: Kiểm tra technician có rảnh không vào giờ của booking
-            checkTechnicianAvailability(request.getTechnicianId(), job.getBookingDetail().getBooking().getScheduleDate(), jobId);
+            // Kiểm tra technician có rảnh không vào giờ của booking
+            checkTechnicianAvailability(request.getTechnicianId(), job.getBooking().getScheduleDate(), jobId);
 
             job.setTechnician(technician);
         }
@@ -91,11 +90,11 @@ public class JobService implements IJobService {
         if (job.getStartTime() != null)
             throw new CommonException.Conflict("JOB_ALREADY_STARTED", "Job đã được bắt đầu"); // ✅ Sửa
 
-        MaintenanceCatalogModel catalogModel = job.getBookingDetail().getCatalogModel();
-        Double estTime = catalogModel.getEstTimeMinutes();
+//        MaintenanceCatalogModel catalogModel = job.getBooking().getCatalogModel();
+//        Double estTime = catalogModel.getEstTimeMinutes();
 
-        job.setStartTime(LocalDateTime.now());
-        job.setEstEndTime(LocalDateTime.now().plusMinutes(estTime.longValue()));
+//        job.setStartTime(LocalDateTime.now());
+//        job.setEstEndTime(LocalDateTime.now().plusMinutes(estTime.longValue()));
 
         jobRepo.save(job);
         return mapToResponse(job);
@@ -114,7 +113,11 @@ public class JobService implements IJobService {
 
         job.setActualEndTime(LocalDateTime.now());
         if (notes != null) job.setNotes(notes);
+
+        job.getBooking().setBookingStatus(BookingStatus.MAINTENANCE_COMPLETE);
         jobRepo.save(job);
+
+
         return mapToResponse(job);
     }
 
@@ -123,7 +126,7 @@ public class JobService implements IJobService {
     public JobResponse getJobDetail(Long jobId) {
         Job job = jobRepo.findById(jobId).orElseThrow(() -> new CommonException.NotFound("Job", jobId));
 
-        // ← SỬA: Check technician trước khi verify access
+        // Check technician trước khi verify access
         if (job.getTechnician() != null) {
             accessControlService.verifyResourceAccess(job.getTechnician().getId(), "JOB", "READ");
         } else {
@@ -136,11 +139,11 @@ public class JobService implements IJobService {
 
     @Override
     @Transactional(readOnly = true)
-    public JobResponse getJobsByBookingDetail(Long bookingDetailId) {
-        Job job = jobRepo.findByBookingDetailId(bookingDetailId)
-                .orElseThrow(() -> new CommonException.NotFound("Job cho BookingDetailId", bookingDetailId));
+    public JobResponse getJobByBooking(Long bookingId) {
+        Job job = jobRepo.findByBookingId(bookingId)
+                .orElseThrow(() -> new CommonException.NotFound("Job cho BookingId", bookingId));
 
-        // ← SỬA: Check technician trước khi verify access
+        // Check technician trước khi verify access
         if (job.getTechnician() != null) {
             accessControlService.verifyResourceAccess(job.getTechnician().getId(), "JOB", "READ");
         } else {
@@ -180,7 +183,7 @@ public class JobService implements IJobService {
     @Transactional(readOnly = true)
     public List<JobResponse> getJobsFiltered(
             @Nullable Long technicianId,
-            @Nullable JobStatus status, // ← ĐỔI: String → JobStatus enum
+            @Nullable JobStatus status,
             @Nullable Long bookingId
     ) {
         accessControlService.verifyCanAccessAllResources("JOB", "READ");
@@ -195,7 +198,7 @@ public class JobService implements IJobService {
         // ✅ Validate booking nếu có
         if (bookingId != null) {
             if (!jobRepo.existsByBookingId(bookingId)) {
-                throw new CommonException.NotFound("Booking", bookingId);
+                throw new CommonException.NotFound("Job cho Booking", bookingId);
             }
         }
 
@@ -203,7 +206,9 @@ public class JobService implements IJobService {
         List<Job> jobs;
 
         if (bookingId != null) {
-            jobs = jobRepo.findByBookingId(bookingId);
+            // Trả về list có 1 phần tử (hoặc empty) vì One-to-One
+            Optional<Job> jobOpt = jobRepo.findByBookingId(bookingId);
+            jobs = jobOpt.map(List::of).orElse(List.of());
         } else {
             jobs = jobRepo.findAll();
         }
@@ -246,12 +251,12 @@ public class JobService implements IJobService {
                 .collect(Collectors.toList());
     }
 
-    private void checkBookingInProgress(Long bookingDetailsId){
-        BookingDetail bd = bookingDetailRepo.findById(bookingDetailsId)
-                .orElseThrow(() -> new CommonException.NotFound("BookingDetail", bookingDetailsId)); // ✅ Sửa
+    private void checkBookingInProgress(Long bookingId){
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId));
 
-        if(bd.getBooking().getBookingStatus() != BookingStatus.IN_PROGRESS){
-            throw new CommonException.InvalidOperation("BOOKING_NOT_IN_PROGRESS", "Booking không ở trạng thái IN_PROGRESS"); // ✅ Sửa
+        if(booking.getBookingStatus() != BookingStatus.IN_PROGRESS){
+            throw new CommonException.InvalidOperation("BOOKING_NOT_IN_PROGRESS", "Booking không ở trạng thái IN_PROGRESS");
         }
     }
 
@@ -290,7 +295,7 @@ public class JobService implements IJobService {
             }
 
             // Lấy schedule time của booking
-            LocalDateTime jobScheduleTime = job.getBookingDetail().getBooking().getScheduleDate();
+            LocalDateTime jobScheduleTime = job.getBooking().getScheduleDate();
 
             // Kiểm tra trùng giờ (cùng giờ tròn)
             // VD: 09:00:00 == 09:00:00
@@ -323,8 +328,7 @@ public class JobService implements IJobService {
 
         return JobResponse.builder()
                 .id(job.getId())
-                .description(job.getBookingDetail() != null ? job.getBookingDetail().getDescription() : null)
-                .bookingDetailId(job.getBookingDetail() != null ? job.getBookingDetail().getId() : null)
+                .bookingId(job.getBooking() != null ? job.getBooking().getId() : null)
                 .technicianId(job.getTechnician() != null ? job.getTechnician().getId() : null)
                 .technicianName(job.getTechnician() != null ? job.getTechnician().getFullName() : null)
                 .startTime(job.getStartTime())

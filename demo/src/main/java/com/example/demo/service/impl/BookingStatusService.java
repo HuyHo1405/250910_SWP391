@@ -16,12 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,14 +26,12 @@ import java.util.stream.Collectors;
 @Transactional
 public class BookingStatusService implements IBookingStatusService {
 
-    private final IInvoiceService invoiceService;
     private final AccessControlService accessControlService;
 
     private final BookingRepo bookingRepository;
     private final MaintenanceCatalogModelPartRepo maintenanceCatalogModelPartRepo;
     private final PartRepo partRepo;
     private final InvoiceRepo invoiceRepo;
-    private final PaymentRepo paymentRepo;
 
     // Các trạng thái cho phép cancel (customer)
     private final List<BookingStatus> CANCELLABLE_STATUSES = Arrays.asList(
@@ -49,7 +44,6 @@ public class BookingStatusService implements IBookingStatusService {
     );
 
     private final JobRepo jobRepo;
-    private final JobService jobService;
 
     @Override
     @Transactional
@@ -168,10 +162,10 @@ public class BookingStatusService implements IBookingStatusService {
 
         usePartsForMaintenance(booking);
 
-        // Tự động tạo unassigned Jobs cho mỗi BookingDetail
-        createUnassignedJobsForBooking(booking);
+        // Tạo Job duy nhất cho Booking (One-to-One)
+        createJobForBooking(booking);
 
-        log.info("Booking {} started maintenance. Created {} unassigned jobs.", id, booking.getBookingDetails().size());
+        log.info("Booking {} started maintenance. Created job.", id);
 
         // Trả về DTO đầy đủ
         return BookingResponseMapper.toDtoFull(booking);
@@ -191,8 +185,20 @@ public class BookingStatusService implements IBookingStatusService {
             );
         }
 
-        // ← THÊM MỚI: Kiểm tra tất cả jobs đã hoàn thành chưa
-        checkAllJobsCompleted(booking);
+        // Kiểm tra job đã hoàn thành chưa
+        Optional<Job> jobOpt = jobRepo.findByBookingId(booking.getId());
+        if (jobOpt.isEmpty()) {
+            throw new CommonException.InvalidOperation("Booking chưa có Job");
+        }
+
+        Job job = jobOpt.get();
+        if(job.getTechnician() == null) {
+            throw new CommonException.InvalidOperation("Job chưa được phân công kỹ thuật viên");
+        }
+
+        if (job.getActualEndTime() == null) {
+            throw new CommonException.InvalidOperation("Job chưa hoàn thành. Technician phải hoàn thành job trước.");
+        }
 
         // Chuyển sang trạng thái hoàn thành
         booking.setBookingStatus(BookingStatus.MAINTENANCE_COMPLETE);
@@ -284,68 +290,22 @@ public class BookingStatusService implements IBookingStatusService {
         }
     }
 
-    private void createUnassignedJobsForBooking(Booking booking) {
-        for (BookingDetail detail : booking.getBookingDetails()) {
-            // Kiểm tra xem BookingDetail này đã có Job chưa
-            if (jobRepo.findByBookingDetailId(detail.getId()).isPresent()) {
-                log.warn("BookingDetail {} already has a Job, skipping creation", detail.getId());
-                continue;
-            }
-
-            // Tạo Job mới với technician = null (unassigned)
-            Job job = Job.builder()
-                    .bookingDetail(detail)
-                    .technician(null) // chưa assign technician
-                    .notes("Auto-created job for booking #" + booking.getId())
-                    .build();
-
-            jobRepo.save(job);
-            log.info("Created unassigned Job for BookingDetail #{}", detail.getId());
-        }
-    }
-
-    /**
-     * Kiểm tra tất cả jobs của booking đã hoàn thành chưa
-     * @param booking Booking cần kiểm tra
-     * @throws CommonException.InvalidOperation nếu còn job chưa hoàn thành
-     */
-    private void checkAllJobsCompleted(Booking booking) {
-        List<Job> incompleteJobs = new ArrayList<>();
-
-        for (BookingDetail detail : booking.getBookingDetails()) {
-            Optional<Job> jobOpt = jobRepo.findByBookingDetailId(detail.getId());
-
-            if (jobOpt.isEmpty()) {
-                // Có BookingDetail nhưng chưa có Job
-                throw new CommonException.InvalidOperation(
-                    String.format("BookingDetail #%d chưa có Job được tạo", detail.getId())
-                );
-            }
-
-            Job job = jobOpt.get();
-
-            // Kiểm tra job đã hoàn thành chưa (actualEndTime != null)
-            if (job.getActualEndTime() == null) {
-                incompleteJobs.add(job);
-            }
+    private void createJobForBooking(Booking booking) {
+        // Kiểm tra xem Booking đã có Job chưa
+        if (jobRepo.findByBookingId(booking.getId()).isPresent()) {
+            log.warn("Booking {} already has a Job, skipping creation", booking.getId());
+            throw new CommonException.InvalidOperation("Booking đã có Job, không thể tạo thêm");
         }
 
-        // Nếu có job chưa hoàn thành, throw exception
-        if (!incompleteJobs.isEmpty()) {
-            String jobIds = incompleteJobs.stream()
-                    .map(job -> "#" + job.getId())
-                    .collect(Collectors.joining(", "));
+        // Tạo Job mới với technician = null (unassigned)
+        Job job = Job.builder()
+                .booking(booking)
+                .technician(null) // chưa assign technician
+                .notes("Auto-created job for booking #" + booking.getId())
+                .build();
 
-            throw new CommonException.InvalidOperation(
-                String.format(
-                    "Không thể hoàn thành booking. Còn %d job chưa hoàn thành: %s",
-                    incompleteJobs.size(),
-                    jobIds
-                )
-            );
-        }
-
-        log.info("All jobs for Booking #{} are completed. Proceeding to complete maintenance.", booking.getId());
+        jobRepo.save(job);
+        log.info("Created unassigned Job for Booking #{}", booking.getId());
     }
 
     /**

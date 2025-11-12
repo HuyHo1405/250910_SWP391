@@ -8,14 +8,14 @@ public class JobRequest {
 
     @Data
     public static class JobAssign{
-        private Long bookingDetailId;
+        private Long bookingId;
         private Long technicianId;
         private String notes;
     }
 
     @Data
     public static class JobUpdate{
-        private Long bookingDetailId;
+        private Long bookingId;
         private Long technicianId;
         private String notes;
     }
