@@ -84,17 +84,24 @@ public class JobService implements IJobService {
     @Override
     @Transactional
     public JobResponse startJob(Long jobId) {
-        Job job = jobRepo.findById(jobId).orElseThrow(() -> new CommonException.NotFound("Job", jobId)); // ✅ Sửa
+        Job job = jobRepo.findById(jobId).orElseThrow(() -> new CommonException.NotFound("Job", jobId));
         accessControlService.verifyResourceAccess(job.getTechnician().getId(), "JOB", "START");
 
         if (job.getStartTime() != null)
-            throw new CommonException.Conflict("JOB_ALREADY_STARTED", "Job đã được bắt đầu"); // ✅ Sửa
+            throw new CommonException.Conflict("JOB_ALREADY_STARTED", "Job đã được bắt đầu");
 
-//        MaintenanceCatalogModel catalogModel = job.getBooking().getCatalogModel();
-//        Double estTime = catalogModel.getEstTimeMinutes();
+        // Calculate total estimated time from all booking details
+        Double totalEstTimeMinutes = job.getBooking().getBookingDetails().stream()
+                .map(detail -> detail.getCatalogModel().getEstTimeMinutes())
+                .filter(estTime -> estTime != null)
+                .reduce(0.0, Double::sum);
 
-//        job.setStartTime(LocalDateTime.now());
-//        job.setEstEndTime(LocalDateTime.now().plusMinutes(estTime.longValue()));
+        // Set start time and estimated end time
+        job.setStartTime(LocalDateTime.now());
+        job.setEstEndTime(LocalDateTime.now().plusMinutes(totalEstTimeMinutes.longValue()));
+
+        // Update booking status to IN_PROGRESS
+        job.getBooking().setBookingStatus(BookingStatus.IN_PROGRESS);
 
         jobRepo.save(job);
         return mapToResponse(job);

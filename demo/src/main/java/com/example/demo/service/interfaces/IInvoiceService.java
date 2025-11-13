@@ -10,4 +10,5 @@ public interface IInvoiceService {
     InvoiceResponse updateInvoiceFromBooking(Long bookingId);
     InvoiceResponse findById(Long id);
     void deleteById(Long invoiceId);
+    void cancelOverdueInvoices();
 }
