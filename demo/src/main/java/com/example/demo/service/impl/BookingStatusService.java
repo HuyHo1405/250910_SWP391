@@ -85,7 +85,7 @@ public class BookingStatusService implements IBookingStatusService {
 
     @Override
     @Transactional
-    public BookingResponse cancelBooking(Long id, String reason) {
+    public BookingResponse cancelBooking(Long id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", id));
 
@@ -107,14 +107,14 @@ public class BookingStatusService implements IBookingStatusService {
         // Cập nhật trạng thái thành CANCELLED
         booking.setBookingStatus(BookingStatus.CANCELLED);
 
-        log.info("Booking {} cancelled. Reason: {}", id, reason);
+        log.info("Booking {} cancelled.", id);
 
         // Trả về DTO đầy đủ
         return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
     }
 
     @Override
-    public BookingResponse rejectBooking(Long id, String reason) {
+    public BookingResponse rejectBooking(Long id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", id));
 
@@ -136,7 +136,7 @@ public class BookingStatusService implements IBookingStatusService {
         // Cập nhật trạng thái thành CANCELLED
         booking.setBookingStatus(BookingStatus.REJECTED);
 
-        log.info("Booking {} cancelled. Reason: {}", id, reason);
+        log.info("Booking {} cancelled.", id);
 
         // Trả về DTO đầy đủ
         return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
