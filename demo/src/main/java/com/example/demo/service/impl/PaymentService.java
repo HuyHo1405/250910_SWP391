@@ -3,8 +3,10 @@ package com.example.demo.service.impl;
 import com.example.demo.config.VnpayConfig;
 import com.example.demo.model.dto.PaymentRequest;
 import com.example.demo.model.dto.PaymentResponse;
+import com.example.demo.model.entity.Booking;
 import com.example.demo.model.entity.Invoice;
 import com.example.demo.model.entity.Payment;
+import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.model.modelEnum.InvoiceStatus;
 import com.example.demo.model.modelEnum.PaymentMethod;
 import com.example.demo.model.modelEnum.PaymentStatus;
@@ -201,7 +203,11 @@ public class PaymentService implements IPaymentService {
             if ("00".equals(vnpResponseCode)) {
                 log.info("IPN: Thanh toán thành công (Success) cho đơn hàng {}", orderCode);
                 payment.getInvoice().setStatus(InvoiceStatus.PAID);
-                invoiceRepository.save(payment.getInvoice());
+                Invoice invoice = invoiceRepository.save(payment.getInvoice());
+
+                Booking booking = invoice.getBooking();
+                booking.setBookingStatus(BookingStatus.PAID);
+
 
                 payment.setStatus(PaymentStatus.SUCCESSFUL);
                 payment.setPaidAt(LocalDateTime.now());

@@ -117,6 +117,10 @@ public class AuthService implements IAuthService {
         User user = userRepo.findByEmailAddress(email)
                 .orElseThrow(() -> new CommonException.NotFound("User", email));
 
+        if(user.getStatus() == EntityStatus.ACTIVE){
+            throw new CommonException.InvalidOperation("Tài khoản đã được xác thực trước đó.");
+        }
+
         verificationCodeService.verifyCode(user, code);
 
         // Activate user

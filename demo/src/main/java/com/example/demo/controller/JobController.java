@@ -1,14 +1,15 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.dto.AvailableTechnicianRequest;
+import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.JobRequest;
 import com.example.demo.model.dto.JobResponse;
+import com.example.demo.model.dto.ScheduleDateTime;
 import com.example.demo.model.dto.TechnicianResponse;
+import com.example.demo.model.modelEnum.DateTimeFormat;
 import com.example.demo.model.modelEnum.JobStatus;
 import com.example.demo.service.interfaces.IJobService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,15 +43,6 @@ public class JobController {
         return ResponseEntity.ok(jobService.getJobDetail(jobId));
     }
 
-    @GetMapping("/booking/{bookingId}")
-    @Operation(
-        summary = "Get job by booking",
-        description = "Lấy Job duy nhất của Booking (One-to-One relationship)"
-    )
-    public ResponseEntity<JobResponse> getJobByBooking(@PathVariable Long bookingId) {
-        return ResponseEntity.ok(jobService.getJobByBooking(bookingId));
-    }
-
     @GetMapping("/technician/{technicianId}/tasks")
     public ResponseEntity<List<JobResponse>> getTechnicianTasks(@PathVariable Long technicianId) {
         return ResponseEntity.ok(jobService.getTechnicianTasks(technicianId));
@@ -71,16 +63,35 @@ public class JobController {
         return ResponseEntity.ok(jobService.getJobsFiltered(technicianId, status, bookingId));
     }
 
-    @PostMapping("/available-technicians")
+    @GetMapping("/available-technicians")
     @Operation(
         summary = "Get available technicians",
-        description = "Lấy danh sách kỹ thuật viên rảnh vào thời điểm được chỉ định. Hỗ trợ nhiều format ngày giờ."
+        description = "Lấy danh sách kỹ thuật viên rảnh vào thời điểm được chỉ định. " +
+                      "Format: iso, timestamp, hoặc custom. " +
+                      "Ví dụ: scheduleTime=2025-11-13T09:00:00&format=iso hoặc scheduleTime=1699704600000&format=timestamp"
     )
     public ResponseEntity<List<TechnicianResponse>> getAvailableTechnicians(
-            @Valid @RequestBody AvailableTechnicianRequest request
+            @RequestParam String scheduleTime,
+            @RequestParam(defaultValue = "iso") DateTimeFormat format,
+            @RequestParam(required = false, defaultValue = "UTC") String timezone
     ) {
+        ScheduleDateTime scheduleDateTime = ScheduleDateTime.builder()
+                .format(format.getValue())
+                .value(scheduleTime)
+                .timezone(timezone)
+                .build();
+
+        // Validate the ScheduleDateTime object
+        if (!scheduleDateTime.isValid()) {
+            throw new CommonException.InvalidOperation("Định dạng hoặc giá trị ngày/giờ không hợp lệ");
+        }
+
+        if (!scheduleDateTime.isHourOnly()) {
+            throw new CommonException.InvalidOperation("Giờ hẹn chỉ được chọn theo giờ tròn (phút và giây phải là 00)");
+        }
+
         return ResponseEntity.ok(
-            jobService.getAvailableTechnicians(request.getScheduleDateTime())
+            jobService.getAvailableTechnicians(scheduleDateTime)
         );
     }
 }

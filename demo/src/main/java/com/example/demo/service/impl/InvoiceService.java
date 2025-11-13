@@ -5,12 +5,14 @@ import com.example.demo.model.dto.InvoiceLineResponse;
 import com.example.demo.model.dto.InvoiceRequest;
 import com.example.demo.model.dto.InvoiceResponse;
 import com.example.demo.model.entity.*;
+import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.model.modelEnum.InvoiceItemType;
 import com.example.demo.model.modelEnum.InvoiceStatus;
 import com.example.demo.repo.*;
 import com.example.demo.service.interfaces.IInvoiceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -168,6 +170,48 @@ public class InvoiceService implements IInvoiceService {
 
         log.info("Invoice updated successfully for booking {}, new total: {}", bookingId, totalAmount);
         return mapToResponse(invoice);
+    }
+
+    @Scheduled(cron = "0 0 * * * *") // Chạy mỗi giờ
+    @Transactional // Đảm bảo tất cả cùng thành công hoặc thất bại
+    public void cancelOverdueInvoices() {
+        log.info("[Scheduler] Bắt đầu chạy tác vụ: Hủy hóa đơn DRAFT quá hạn...");
+
+        // 1. Lấy thời điểm hiện tại
+        LocalDateTime now = LocalDateTime.now();
+
+        // 2. Tìm tất cả hóa đơn DRAFT đã quá hạn (dueDate < now)
+        List<Invoice> overdueInvoices = invoiceRepo.findByStatusAndDueDateBefore(
+                InvoiceStatus.DRAFT,
+                now
+        );
+
+        if (overdueInvoices.isEmpty()) {
+            log.info("[Scheduler] Không tìm thấy hóa đơn DRAFT nào quá hạn.");
+            return;
+        }
+
+        log.warn("[Scheduler] Tìm thấy {} hóa đơn quá hạn. Đang tiến hành hủy...", overdueInvoices.size());
+
+        // 3. Chuyển trạng thái của chúng thành CANCELLED
+        for (Invoice invoice : overdueInvoices) {
+            invoice.setStatus(InvoiceStatus.CANCELLED);
+
+            Booking booking = invoice.getBooking();
+            booking.setBookingStatus(BookingStatus.CANCELLED);
+            bookingRepo.save(booking);
+            // (Tùy chọn) Bạn có thể muốn cập nhật lại booking hoặc không,
+            // tùy theo logic nghiệp vụ của bạn.
+            // Ví dụ: booking.setStatus(BookingStatus.CANCELLED);
+
+            log.warn("[Scheduler] Hóa đơn ID {} (Booking ID: {}) đã quá hạn và bị hủy.",
+                    invoice.getId(), invoice.getBooking().getId());
+        }
+
+        // 4. Lưu tất cả thay đổi vào DB
+        invoiceRepo.saveAll(overdueInvoices);
+
+        log.info("[Scheduler] Hoàn thành tác vụ. Đã hủy {} hóa đơn.", overdueInvoices.size());
     }
 
     // 6. Build InvoiceLine cho 1 dịch vụ & model (Catalog + Model)
