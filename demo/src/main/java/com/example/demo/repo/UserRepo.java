@@ -22,7 +22,7 @@ public interface UserRepo extends JpaRepository<User, Long> {
             "(:fullName IS NULL OR u.fullName LIKE %:fullName%) AND " +
             "(:phoneNumber IS NULL OR u.phoneNumber LIKE %:phoneNumber%) AND " +
             "(:roleDisplayName IS NULL OR u.role.displayName = :roleDisplayName) AND " +
-            "(u.role.displayName != 'Admin') AND " +
+            "(u.role.name != 'ADMIN') AND " +
             "(:status IS NULL OR u.status = :status)")
     List<User> findWithFilters(
             @Param("emailAddress") String emailAddress,
@@ -37,8 +37,8 @@ public interface UserRepo extends JpaRepository<User, Long> {
             "(:fullName IS NULL OR u.fullName LIKE %:fullName%) AND " +
             "(:phoneNumber IS NULL OR u.phoneNumber LIKE %:phoneNumber%) AND " +
             "(:roleDisplayName IS NULL OR u.role.displayName = :roleDisplayName) AND " +
-            "(u.role.displayName != 'Admin') AND " +
-            "(u.role.displayName != 'Staff Employee') AND " +
+            "(u.role.name != 'STAFF') AND " +
+            "(u.role.name != 'ADMIN') AND " +
             "(:status IS NULL OR STR(u.status) = STR(:status))")
     List<User> findWithStaffFilters(
             @Param("emailAddress") String emailAddress,
