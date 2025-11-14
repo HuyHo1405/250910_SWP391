@@ -74,6 +74,15 @@ public class BookingStatusService implements IBookingStatusService {
         if(invoice == null || invoice.getStatus() != InvoiceStatus.DRAFT) {
             throw new CommonException.InvalidOperation("Invoice không tồn tại hoặc không ở trạng thái DRAFT");
         }
+        
+        if(invoice.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            booking.setBookingStatus(BookingStatus.PAID);
+            bookingRepository.save(booking);
+            invoice.setStatus(InvoiceStatus.PAID);
+            invoiceRepo.save(invoice);
+            log.info("Invoice {} auto-marked as PAID due to zero total amount.", invoice.getId());
+            return BookingResponseMapper.toDtoFull(booking);
+        }
 
         invoice.setStatus(InvoiceStatus.UNPAID);
         invoice.setDueDate(booking.getScheduleDate());
