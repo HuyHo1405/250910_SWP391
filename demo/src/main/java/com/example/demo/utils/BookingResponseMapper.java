@@ -45,8 +45,8 @@ public class BookingResponseMapper {
                 .bookingStatus(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
                 .createdAt(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())
-                .assignedTechnicianId(job.getTechnician() != null? job.getTechnician().getId() : null)
-                .assignedTechnicianName(job.getTechnician() != null? job.getTechnician().getFullName() : null)
+                .assignedTechnicianId(job != null? job.getTechnician().getId() : null)
+                .assignedTechnicianName(job != null? job.getTechnician().getFullName() : null)
                 // Lưu ý: Ở đây chúng ta KHÔ
 
                 // serviceDetails và invoice sẽ là null
