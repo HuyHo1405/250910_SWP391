@@ -137,6 +137,27 @@ public class AuthService implements IAuthService {
 
     @Override
     @Transactional
+    public MessageResponse resentVerificationCode(String email) {
+        User user = userRepo.findByEmailAddress(email)
+                .orElseThrow(() -> new CommonException.NotFound("User", email));
+
+        if(user.getStatus() == EntityStatus.ACTIVE){
+            throw new CommonException.InvalidOperation("Tài khoản đã được xác thực trước đó.");
+        }
+
+        String newVerificationCode = verificationCodeService.addVerificationCode(user);
+        mailService.sendVerificationMail(user.getEmailAddress(), newVerificationCode);
+
+        return MessageResponse.builder()
+                .message("Đã gửi lại mã xác thực đến email của bạn.")
+                .timestamp(LocalDateTime.now())
+                .path("uri=" + httpServletRequest.getRequestURI())
+                .build();
+    }
+
+
+    @Override
+    @Transactional
     public MessageResponse logout(AuthRequest.Logout logoutRequest) {
         String refreshTokenStr = logoutRequest.getRefreshToken();
 
@@ -197,6 +218,7 @@ public class AuthService implements IAuthService {
         userRepo.save(user);
     }
 
+    @Override
     @Transactional
     public AuthResponse refreshToken(String refreshToken) {
         RefreshToken token = refreshTokenRepo.findByToken(refreshToken)

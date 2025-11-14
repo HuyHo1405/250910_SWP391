@@ -77,17 +77,15 @@ public class BookingController {
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<BookingResponse> cancelBooking(
-            @PathVariable Long id,
-            @RequestParam(required = false) String reason) {
-        BookingResponse resp = bookingStatusService.cancelBooking(id, reason);
+            @PathVariable Long id) {
+        BookingResponse resp = bookingStatusService.cancelBooking(id);
         return ResponseEntity.ok(resp);
     }
 
     @PutMapping("/{id}/rejected")
     public ResponseEntity<BookingResponse> rejectBooking(
-            @PathVariable Long id,
-            @RequestParam(required = false) String reason) {
-        BookingResponse resp = bookingStatusService.rejectBooking(id, reason);
+            @PathVariable Long id) {
+        BookingResponse resp = bookingStatusService.rejectBooking(id);
         return ResponseEntity.ok(resp);
     }
 
@@ -102,12 +100,6 @@ public class BookingController {
         BookingResponse resp = bookingStatusService.startMaintenance(id);
         return ResponseEntity.ok(resp);
     }
-
-//    @PutMapping("/{id}/complete")
-//    public ResponseEntity<BookingResponse> completeBooking(@PathVariable Long id) {
-//        BookingResponse resp = bookingStatusService.completeMaintenance(id);
-//        return ResponseEntity.ok(resp);
-//    }
 
     @GetMapping("/slots")
     public ResponseEntity<List<DailyBookedSlot>> getBookedSlots() {

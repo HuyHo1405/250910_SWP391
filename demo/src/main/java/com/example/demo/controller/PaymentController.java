@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -41,6 +42,17 @@ public class PaymentController {
 //        PaymentResponse.VnpayIpn response = paymentService.handleVnpayIpn(vnpayParams);
 //        return ResponseEntity.ok(response);
 //    }
+
+    @GetMapping("/history/{bookingId}")
+    public ResponseEntity<List<PaymentResponse.Transaction>> getPaymentHistoryForBooking(
+            @PathVariable("bookingId") Long bookingId
+    ) {
+        // 1. Gọi service method mà chúng ta đã định nghĩa
+        List<PaymentResponse.Transaction> historyList = paymentService.getPaymentHistory(bookingId);
+
+        // 2. Trả về HTTP 200 OK cùng với danh sách lịch sử
+        return ResponseEntity.ok(historyList);
+    }
 
     /**
      * API để Frontend gọi (ở trang "Kết quả thanh toán") để kiểm tra trạng thái.

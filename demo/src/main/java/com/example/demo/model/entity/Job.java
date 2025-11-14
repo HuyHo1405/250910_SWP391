@@ -27,7 +27,7 @@ public class Job {
     @Column(name = "actual_end_time")
     private LocalDateTime actualEndTime;
 
-    @Column(name = "notes", columnDefinition = "TEXT")
+    @Column(name = "notes", columnDefinition = "NVARCHAR(255)")
     private String notes;
 
     @Column(name = "created_at", nullable = false, updatable = false)

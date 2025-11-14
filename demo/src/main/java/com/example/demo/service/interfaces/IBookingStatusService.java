@@ -6,7 +6,6 @@ public interface IBookingStatusService {
      boolean checkEnoughPartForBooking(Long bookingId);
     BookingResponse confirmBooking(Long id);
     BookingResponse startMaintenance(Long id);
-    BookingResponse completeMaintenance(Long id);
-    BookingResponse cancelBooking(Long id, String reason);
-    BookingResponse rejectBooking(Long id, String reason);
+    BookingResponse cancelBooking(Long id);
+    BookingResponse rejectBooking(Long id);
 }

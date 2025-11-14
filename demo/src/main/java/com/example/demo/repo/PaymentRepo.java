@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface PaymentRepo extends JpaRepository<Payment, Long> {
@@ -23,4 +24,8 @@ public interface PaymentRepo extends JpaRepository<Payment, Long> {
             "AND p.paidAt >= :startDate AND p.paidAt < :endDate")
     BigDecimal sumSuccessfulRevenueBetween(@Param("startDate") LocalDateTime startDate,
                                            @Param("endDate") LocalDateTime endDate);
+
+
+    @Query("SELECT p FROM Payment p WHERE p.invoice.booking.id = :bookingId ORDER BY p.createdAt DESC")
+    List<Payment> findByBookingId(@Param("bookingId") Long bookingId);
 }

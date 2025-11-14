@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.dto.*;
 import com.example.demo.service.impl.AuthService;
+import com.example.demo.service.interfaces.IAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "Authentication")
 public class AuthController {
-    private final AuthService authService;
+    private final IAuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<MessageResponse> register(@RequestBody @Valid AuthRequest.Register request) {
@@ -34,6 +36,11 @@ public class AuthController {
     @PostMapping("/verify")
     public ResponseEntity<MessageResponse> verifyEmail(@RequestBody @Valid AuthRequest.Verify request) {
         return ResponseEntity.ok(authService.verifyEmail(request));
+    }
+
+    @PostMapping("/resend-verification-code")
+    public ResponseEntity<MessageResponse> resendVerificationCode(@RequestParam @Email String email) {
+        return ResponseEntity.ok(authService.resentVerificationCode(email));
     }
 
     @PostMapping("/logout")

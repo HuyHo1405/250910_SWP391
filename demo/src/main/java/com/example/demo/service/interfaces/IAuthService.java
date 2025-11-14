@@ -9,4 +9,6 @@ public interface IAuthService {
     public MessageResponse logout(AuthRequest.Logout logoutRequest);
     public MessageResponse forgotPassword(AuthRequest.ForgotPassword forgotPasswordRequest);
     public MessageResponse resetPassword(AuthRequest.ResetPassword resetPasswordRequest);
+    public MessageResponse resentVerificationCode(String email);
+    public AuthResponse refreshToken(String refreshToken);
 }

@@ -8,7 +8,6 @@ import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.modelEnum.InvoiceStatus;
 import com.example.demo.repo.*;
 import com.example.demo.service.interfaces.IBookingStatusService;
-import com.example.demo.service.interfaces.IInvoiceService;
 import com.example.demo.utils.BookingResponseMapper; // <-- THAY ĐỔI IMPORT
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +84,7 @@ public class BookingStatusService implements IBookingStatusService {
 
     @Override
     @Transactional
-    public BookingResponse cancelBooking(Long id, String reason) {
+    public BookingResponse cancelBooking(Long id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", id));
 
@@ -107,14 +106,14 @@ public class BookingStatusService implements IBookingStatusService {
         // Cập nhật trạng thái thành CANCELLED
         booking.setBookingStatus(BookingStatus.CANCELLED);
 
-        log.info("Booking {} cancelled. Reason: {}", id, reason);
+        log.info("Booking {} cancelled.", id);
 
         // Trả về DTO đầy đủ
         return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
     }
 
     @Override
-    public BookingResponse rejectBooking(Long id, String reason) {
+    public BookingResponse rejectBooking(Long id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", id));
 
@@ -136,7 +135,7 @@ public class BookingStatusService implements IBookingStatusService {
         // Cập nhật trạng thái thành CANCELLED
         booking.setBookingStatus(BookingStatus.REJECTED);
 
-        log.info("Booking {} cancelled. Reason: {}", id, reason);
+        log.info("Booking {} rejected.", id);
 
         // Trả về DTO đầy đủ
         return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
@@ -169,43 +168,6 @@ public class BookingStatusService implements IBookingStatusService {
 
         // Trả về DTO đầy đủ
         return BookingResponseMapper.toDtoFull(booking);
-    }
-
-    @Override
-    @Transactional
-    public BookingResponse completeMaintenance(Long id) {
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new CommonException.NotFound("Booking", id));
-        accessControlService.verifyCanAccessAllResources("BOOKING", "complete");
-
-        // Kiểm tra trạng thái trước khi complete
-        if (booking.getBookingStatus() != BookingStatus.IN_PROGRESS) {
-            throw new CommonException.InvalidOperation(
-                    "Không thể hoàn thành đặt lịch chưa được bắt đầu"
-            );
-        }
-
-        // Kiểm tra job đã hoàn thành chưa
-        Optional<Job> jobOpt = jobRepo.findByBookingId(booking.getId());
-        if (jobOpt.isEmpty()) {
-            throw new CommonException.InvalidOperation("Booking chưa có Job");
-        }
-
-        Job job = jobOpt.get();
-        if(job.getTechnician() == null) {
-            throw new CommonException.InvalidOperation("Job chưa được phân công kỹ thuật viên");
-        }
-
-        if (job.getActualEndTime() == null) {
-            throw new CommonException.InvalidOperation("Job chưa hoàn thành. Technician phải hoàn thành job trước.");
-        }
-
-        // Chuyển sang trạng thái hoàn thành
-        booking.setBookingStatus(BookingStatus.MAINTENANCE_COMPLETE);
-
-        log.info("Booking {} marked as delivered/completed. Invoice was recalculated and finalized.", id);
-        // Trả về DTO đầy đủ (bao gồm cả hóa đơn đã cập nhật trạng thái)
-        return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
     }
 
     @Override
