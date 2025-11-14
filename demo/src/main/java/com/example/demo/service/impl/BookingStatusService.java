@@ -74,7 +74,7 @@ public class BookingStatusService implements IBookingStatusService {
         if(invoice == null || invoice.getStatus() != InvoiceStatus.DRAFT) {
             throw new CommonException.InvalidOperation("Invoice không tồn tại hoặc không ở trạng thái DRAFT");
         }
-        
+
         if(invoice.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
             booking.setBookingStatus(BookingStatus.PAID);
             bookingRepository.save(booking);

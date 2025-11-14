@@ -7,6 +7,7 @@ import com.example.demo.model.dto.ScheduleDateTime;
 import com.example.demo.model.entity.Booking;
 import com.example.demo.model.entity.Invoice;
 import com.example.demo.model.entity.InvoiceLine;
+import com.example.demo.model.entity.Job;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +32,9 @@ public class BookingResponseMapper {
     }
 
     public static BookingResponse toDtoSummary(Booking booking, ScheduleDateTime scheduleDateTime) {
+        Job job = booking.getJob();
+
+
         return BookingResponse.builder()
                 .id(booking.getId())
                 .customerId(booking.getCustomer().getId())
@@ -41,6 +45,10 @@ public class BookingResponseMapper {
                 .bookingStatus(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
                 .createdAt(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())
+                .assignedTechnicianId(job.getTechnician() != null? job.getTechnician().getId() : null)
+                .assignedTechnicianName(job.getTechnician() != null? job.getTechnician().getFullName() : null)
+                // Lưu ý: Ở đây chúng ta KHÔ
+
                 // serviceDetails và invoice sẽ là null
                 // và sẽ bị ẩn đi trong JSON nhờ @JsonInclude(JsonInclude.Include.NON_NULL)
                 .build();
