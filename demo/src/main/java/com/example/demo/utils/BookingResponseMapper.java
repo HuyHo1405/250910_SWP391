@@ -4,11 +4,13 @@ import com.example.demo.model.dto.BookingResponse;
 import com.example.demo.model.dto.InvoiceLineResponse;
 import com.example.demo.model.dto.InvoiceResponse;
 import com.example.demo.model.dto.ScheduleDateTime;
-import com.example.demo.model.entity.Booking;
-import com.example.demo.model.entity.Invoice;
-import com.example.demo.model.entity.InvoiceLine;
-import com.example.demo.model.entity.Job;
+import com.example.demo.model.entity.*; // SỬA: Import thêm các entity
+import com.example.demo.model.entity.Vehicle; // (Giả định)
+import com.example.demo.model.entity.VehicleModel; // (Giả định)
+import com.example.demo.model.entity.MaintenanceCatalog; // (Giả định)
+import com.example.demo.model.entity.MaintenanceCatalogModel; // (Giả định)
 
+import java.util.Collections; // SỬA: Import Collections
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,13 +19,7 @@ public class BookingResponseMapper {
     private static final String DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     // === 1. MAPPER SƠ SƠ (CHO API DANH SÁCH) ===
-    // Chỉ lấy thông tin Booking, KHÔNG lấy serviceDetails, KHÔNG lấy invoice.
 
-    /**
-     * Chuyển đổi Booking entity sang BookingResponse DTO (dạng tóm tắt).
-     * Chỉ bao gồm thông tin cơ bản, không có chi tiết dịch vụ hay hóa đơn.
-     * Dùng cho API lấy danh sách.
-     */
     public static BookingResponse toDtoSummary(Booking booking) {
         return toDtoSummary(
                 booking,
@@ -32,37 +28,36 @@ public class BookingResponseMapper {
     }
 
     public static BookingResponse toDtoSummary(Booking booking, ScheduleDateTime scheduleDateTime) {
+        // === SỬA LỖI NPE (Null-safe checks) ===
+        // Tách các đối tượng con ra và kiểm tra null trước khi dùng
         Job job = booking.getJob();
-
+        User technician = (job != null) ? job.getTechnician() : null;
+        Vehicle vehicle = booking.getVehicle();
+        VehicleModel model = (vehicle != null) ? vehicle.getModel() : null;
+        User customer = booking.getCustomer();
 
         return BookingResponse.builder()
                 .id(booking.getId())
-                .customerId(booking.getCustomer().getId())
-                .customerName(booking.getCustomer().getFullName())
-                .vehicleVin(booking.getVehicle().getVin())
-                .vehicleModel(booking.getVehicle().getModel().getModelName())
+                // Kiểm tra customer (dù là not-null, nhưng đây là cách an toàn)
+                .customerId(customer != null ? customer.getId() : null)
+                .customerName(customer != null ? customer.getFullName() : null)
+                // Kiểm tra vehicle
+                .vehicleVin(vehicle != null ? vehicle.getVin() : null)
+                // Kiểm tra vehicle -> model
+                .vehicleModel(model != null ? model.getModelName() : null)
                 .scheduleDateTime(scheduleDateTime)
                 .bookingStatus(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
                 .createdAt(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())
-                .assignedTechnicianId(job != null? job.getTechnician().getId() : null)
-                .assignedTechnicianName(job != null? job.getTechnician().getFullName() : null)
-                // Lưu ý: Ở đây chúng ta KHÔ
-
-                // serviceDetails và invoice sẽ là null
-                // và sẽ bị ẩn đi trong JSON nhờ @JsonInclude(JsonInclude.Include.NON_NULL)
+                // Kiểm tra technician (job -> technician)
+                .assignedTechnicianId(technician != null ? technician.getId() : null)
+                .assignedTechnicianName(technician != null ? technician.getFullName() : null)
                 .build();
     }
 
 
     // === 2. MAPPER CHI TIẾT (BOOKING + SERVICE DETAILS) ===
-    // (Đây là hàm "toDto" gốc của bạn, được đổi tên cho rõ nghĩa)
 
-    /**
-     * Chuyển đổi Booking entity sang BookingResponse DTO (dạng chi tiết).
-     * Bao gồm thông tin cơ bản + danh sách chi tiết dịch vụ (BookingDetails).
-     * KHÔNG bao gồm hóa đơn.
-     */
     public static BookingResponse toDtoWithDetails(Booking booking) {
         return toDtoWithDetails(
                 booking,
@@ -71,18 +66,29 @@ public class BookingResponseMapper {
     }
 
     public static BookingResponse toDtoWithDetails(Booking booking, ScheduleDateTime scheduleDateTime) {
-        // 1. Lấy thông tin cơ bản (gọi hàm summary)
+        // 1. Lấy thông tin cơ bản (đã được làm an toàn ở trên)
         BookingResponse response = toDtoSummary(booking, scheduleDateTime);
 
         // 2. Map chi tiết dịch vụ (BookingDetail)
-        List<BookingResponse.CatalogDetail> serviceDetails = booking.getBookingDetails().stream()
-                .map(detail -> BookingResponse.CatalogDetail.builder()
-                        .id(detail.getId())
-                        .catalogId(detail.getCatalogModel().getMaintenanceCatalog().getId()) // Giả định: detail.getCatalog()
-                        .serviceName(detail.getCatalogModel().getMaintenanceCatalog().getName())
-                        .description(detail.getDescription()) // Giả định: detail.getDescription()
-                        .build())
-                .collect(Collectors.toList());
+        // SỬA: Thêm kiểm tra null cho danh sách (dù đã init, đây là cách phòng vệ tốt)
+        List<BookingResponse.CatalogDetail> serviceDetails = Collections.emptyList();
+        if (booking.getBookingDetails() != null) {
+            serviceDetails = booking.getBookingDetails().stream()
+                    .map(detail -> {
+                        // === SỬA LỖI NPE (Null-safe checks) ===
+                        // Kiểm tra chuỗi truy cập: detail -> catalogModel -> maintenanceCatalog
+                        MaintenanceCatalogModel catalogModel = detail.getCatalogModel();
+                        MaintenanceCatalog catalog = (catalogModel != null) ? catalogModel.getMaintenanceCatalog() : null;
+
+                        return BookingResponse.CatalogDetail.builder()
+                                .id(detail.getId())
+                                .catalogId(catalog != null ? catalog.getId() : null) // An toàn
+                                .serviceName(catalog != null ? catalog.getName() : null) // An toàn
+                                .description(detail.getDescription())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+        }
 
         response.setCatalogDetails(serviceDetails);
         return response;
@@ -90,13 +96,7 @@ public class BookingResponseMapper {
 
 
     // === 3. MAPPER ĐẦY ĐỦ (CHO API CHI TIẾT) ===
-    // Lấy Booking + Service Details + Invoice + Invoice Lines
 
-    /**
-     * Chuyển đổi Booking entity sang BookingResponse DTO (dạng đầy đủ).
-     * Bao gồm thông tin cơ bản + chi tiết dịch vụ + Hóa đơn (và các dòng của hóa đơn).
-     * Dùng cho API lấy chi tiết một Booking.
-     */
     public static BookingResponse toDtoFull(Booking booking) {
         return toDtoFull(
                 booking,
@@ -105,18 +105,21 @@ public class BookingResponseMapper {
     }
 
     public static BookingResponse toDtoFull(Booking booking, ScheduleDateTime scheduleDateTime) {
-        // 1. Lấy Booking + Service Details (gọi hàm số 2)
+        // 1. Lấy Booking + Service Details (đã được làm an toàn ở trên)
         BookingResponse response = toDtoWithDetails(booking, scheduleDateTime);
 
         // 2. Kiểm tra và map Hóa đơn (Invoice) nếu có
-        // (Giả định bạn đã thêm 'private Invoice invoice;' vào Booking.java)
-        if (booking.getInvoice() != null) {
-            Invoice invoice = booking.getInvoice();
+        Invoice invoice = booking.getInvoice(); // An toàn (có thể null)
+        if (invoice != null) {
 
             // 2a. Map các dòng trong hóa đơn (InvoiceLine)
-            List<InvoiceLineResponse> lineResponses = invoice.getLines().stream()
-                    .map(BookingResponseMapper::mapInvoiceLineToDto) // Gọi hàm helper bên dưới
-                    .collect(Collectors.toList());
+            // SỬA: Thêm kiểm tra null cho danh sách (dù đã init)
+            List<InvoiceLineResponse> lineResponses = Collections.emptyList();
+            if (invoice.getLines() != null) {
+                lineResponses = invoice.getLines().stream()
+                        .map(BookingResponseMapper::mapInvoiceLineToDto)
+                        .collect(Collectors.toList());
+            }
 
             // 2b. Map thông tin Invoice
             InvoiceResponse invoiceResponse = InvoiceResponse.builder()
@@ -140,11 +143,11 @@ public class BookingResponseMapper {
 
     // === HÀM HELPER (RIÊNG TƯ) ===
 
-    /**
-     * Hàm nội bộ để map 1 InvoiceLine (Entity) sang 1 InvoiceLineResponse (DTO).
-     * (Dựa trên file InvoiceLineResponse.java bạn đã cung cấp)
-     */
     private static InvoiceLineResponse mapInvoiceLineToDto(InvoiceLine line) {
+        // SỬA: Thêm kiểm tra đầu vào (đề phòng)
+        if (line == null) {
+            return null;
+        }
         return InvoiceLineResponse.builder()
                 .id(line.getId())
                 .itemDescription(line.getItemDescription())
