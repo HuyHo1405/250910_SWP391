@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -27,13 +26,13 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-//    /**
-//     * API để Server VNPAY gọi "ngầm" (Instant Payment Notification - IPN).
-//     * Đây là nơi quan trọng nhất để cập nhật trạng thái đơn hàng (SUCCESSFUL/FAILED).
-//     *
-//     * @param vnpayParams Map chứa tất cả các tham số VNPAY gửi sang.
-//     * @return DTO (VnpayIpn) chứa RspCode và Message để VNPAY biết kết quả.
-//     */
+    /**
+     * API để Server VNPAY gọi "ngầm" (Instant Payment Notification - IPN).
+     * Đây là nơi quan trọng nhất để cập nhật trạng thái đơn hàng (SUCCESSFUL/FAILED).
+     *
+     * @param vnpayParams Map chứa tất cả các tham số VNPAY gửi sang.
+     * @return DTO (VnpayIpn) chứa RspCode và Message để VNPAY biết kết quả.
+     */
 //    @PostMapping("/vnpay-ipn")
 //    public ResponseEntity<PaymentResponse.VnpayIpn> handleVnpayIpn(
 //            @RequestParam Map<String, String> vnpayParams
@@ -42,17 +41,6 @@ public class PaymentController {
 //        PaymentResponse.VnpayIpn response = paymentService.handleVnpayIpn(vnpayParams);
 //        return ResponseEntity.ok(response);
 //    }
-
-    @GetMapping("/history/{bookingId}")
-    public ResponseEntity<List<PaymentResponse.Transaction>> getPaymentHistoryForBooking(
-            @PathVariable("bookingId") Long bookingId
-    ) {
-        // 1. Gọi service method mà chúng ta đã định nghĩa
-        List<PaymentResponse.Transaction> historyList = paymentService.getPaymentHistory(bookingId);
-
-        // 2. Trả về HTTP 200 OK cùng với danh sách lịch sử
-        return ResponseEntity.ok(historyList);
-    }
 
     /**
      * API để Frontend gọi (ở trang "Kết quả thanh toán") để kiểm tra trạng thái.

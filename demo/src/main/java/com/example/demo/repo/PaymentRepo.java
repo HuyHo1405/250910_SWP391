@@ -7,7 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface PaymentRepo extends JpaRepository<Payment, Long> {
@@ -15,8 +16,11 @@ public interface PaymentRepo extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findByInvoiceId(Long invoiceId);
 
-    @Query("SELECT p FROM Payment p WHERE p.invoice.booking.id = :bookingId ORDER BY p.createdAt DESC")
-    List<Payment> findByBookingId(@Param("bookingId") Long bookingId);
-
     Optional<Payment> findByOrderCode(String orderCode);
+
+    @Query("SELECT SUM(p.amount) FROM Payment p " +
+            "WHERE p.responseCode = '00' " +
+            "AND p.paidAt >= :startDate AND p.paidAt < :endDate")
+    BigDecimal sumSuccessfulRevenueBetween(@Param("startDate") LocalDateTime startDate,
+                                           @Param("endDate") LocalDateTime endDate);
 }

@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class PaymentRequest {
     @Data
@@ -15,4 +17,5 @@ public class PaymentRequest {
         @NotNull(message = "ID của hóa đơn không được để trống")
         private Long invoiceId; // ID của hóa đơn (Invoice) cần thanh toán
     }
+
 }

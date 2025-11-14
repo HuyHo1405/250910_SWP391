@@ -52,6 +52,9 @@ public class Invoice {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
     // ================================
     // RELATIONSHIPS
     // ================================

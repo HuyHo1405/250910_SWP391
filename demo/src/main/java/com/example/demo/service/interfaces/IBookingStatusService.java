@@ -7,6 +7,6 @@ public interface IBookingStatusService {
     BookingResponse confirmBooking(Long id);
     BookingResponse startMaintenance(Long id);
     BookingResponse completeMaintenance(Long id);
-    BookingResponse cancelBooking(Long id);
-    BookingResponse rejectBooking(Long id);
+    BookingResponse cancelBooking(Long id, String reason);
+    BookingResponse rejectBooking(Long id, String reason);
 }

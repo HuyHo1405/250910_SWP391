@@ -25,8 +25,6 @@ public class BookingResponse {
     private List<CatalogDetail> catalogDetails;
 
     private InvoiceResponse invoice;
-    private Long assignedTechnicianId;
-    private String assignedTechnicianName;
 
     @Data
     @Builder

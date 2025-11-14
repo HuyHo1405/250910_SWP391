@@ -27,6 +27,7 @@ public class PartRequest {
     private String category;
 
     @NotNull(message = "Đơn giá không được để trống")
+//    @DecimalMax(value = "?", message = "Đơn giá phải bé hơn ?")
     @DecimalMin(value = "0.0", message = "Đơn giá phải lớn hơn hoặc bằng 0")
     private BigDecimal currentUnitPrice;
 

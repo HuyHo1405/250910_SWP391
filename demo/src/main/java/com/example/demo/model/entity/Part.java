@@ -68,4 +68,8 @@ public class Part {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
     }
+
+    public BigDecimal getAvailableQuantity() {
+        return quantity.subtract(reserved);
+    }
 }

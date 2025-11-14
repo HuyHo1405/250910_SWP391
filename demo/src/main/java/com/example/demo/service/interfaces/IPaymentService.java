@@ -3,7 +3,6 @@ package com.example.demo.service.interfaces;
 import com.example.demo.model.dto.PaymentRequest;
 import com.example.demo.model.dto.PaymentResponse;
 
-import java.util.List;
 import java.util.Map;
 
 public interface IPaymentService {
@@ -15,5 +14,4 @@ public interface IPaymentService {
 
     PaymentResponse.VnpayIpn simulateIpnSuccess(String orderCode);
 
-    List<PaymentResponse.Transaction> getPaymentHistory(Long bookingId);
 }

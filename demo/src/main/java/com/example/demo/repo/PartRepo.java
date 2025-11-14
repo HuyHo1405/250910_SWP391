@@ -23,4 +23,6 @@ public interface PartRepo extends JpaRepository<Part, Long> {
     List<Part> findByQuantityLessThanEqual(BigDecimal threshold);
 
     List<Part> findByNameContainingIgnoreCase(String keyword);
+
+
 }

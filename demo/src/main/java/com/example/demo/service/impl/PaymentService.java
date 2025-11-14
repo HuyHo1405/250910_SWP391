@@ -1,7 +1,6 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.config.VnpayConfig;
-import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.PaymentRequest;
 import com.example.demo.model.dto.PaymentResponse;
 import com.example.demo.model.entity.Booking;
@@ -29,7 +28,6 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor // Tự động inject các dependency
@@ -49,10 +47,6 @@ public class PaymentService implements IPaymentService {
         // 1. Tìm hóa đơn
         Invoice invoice = invoiceRepository.findById(request.getInvoiceId())
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hóa đơn với ID: " + request.getInvoiceId()));
-
-        if(invoice.getStatus() == InvoiceStatus.PAID) {
-            throw new CommonException.InvalidOperation("Hóa đơn đã được thanh toán trước đó.");
-        }
 
         BigDecimal amount = invoice.getTotalAmount();
         log.info("VNPAY AMOUNT: {}", amount);
@@ -208,8 +202,10 @@ public class PaymentService implements IPaymentService {
 
             if ("00".equals(vnpResponseCode)) {
                 log.info("IPN: Thanh toán thành công (Success) cho đơn hàng {}", orderCode);
-                payment.getInvoice().setStatus(InvoiceStatus.PAID);
-                Invoice invoice = invoiceRepository.save(payment.getInvoice());
+                Invoice invoice = payment.getInvoice();
+                invoice.setStatus(InvoiceStatus.PAID);
+                invoice.setPaidAt(LocalDateTime.now());
+                invoice = invoiceRepository.save(payment.getInvoice());
 
                 Booking booking = invoice.getBooking();
                 booking.setBookingStatus(BookingStatus.PAID);
@@ -304,24 +300,6 @@ public class PaymentService implements IPaymentService {
         return handleVnpayIpn(fakeVnpayParams);
     }
 
-    @Override
-    public List<PaymentResponse.Transaction> getPaymentHistory(Long bookingId) {
-        log.info("Bắt đầu lấy lịch sử thanh toán cho booking ID: {}", bookingId);
-
-        // 1. Gọi PaymentRepo (sử dụng hàm bạn vừa thêm ở Bước 1)
-        List<Payment> payments = paymentRepository.findByBookingId(bookingId);
-
-        if (payments.isEmpty()) {
-            log.info("Không tìm thấy lịch sử thanh toán nào cho booking ID: {}", bookingId);
-            return Collections.emptyList();
-        }
-
-        // 2. Chuyển đổi (map) từ List<Payment> sang List<PaymentResponse.Transaction>
-        return payments.stream()
-                .map(this::toTransactionDTO) // Gọi hàm helper bên dưới
-                .collect(Collectors.toList());
-    }
-
     // --- CÁC HÀM TIỆN ÍCH (HELPER METHODS) ---
 
     /**
@@ -381,25 +359,5 @@ public class PaymentService implements IPaymentService {
             default:
                 return "Không rõ trạng thái";
         }
-    }
-
-    private PaymentResponse.Transaction toTransactionDTO(Payment payment) {
-        if (payment == null) {
-            return null;
-        }
-
-        // Sử dụng DTO 'Transaction' có sẵn trong file PaymentResponse.java
-        return PaymentResponse.Transaction.builder()
-                .id(payment.getId())
-                .invoiceNumber(payment.getInvoice() != null ? payment.getInvoice().getInvoiceNumber() : null)
-                .orderCode(payment.getOrderCode())
-                .amount(payment.getAmount())
-                .status(payment.getStatus())
-                .paymentMethod(payment.getPaymentMethod())
-                .createdAt(payment.getCreatedAt())
-                .paidAt(payment.getPaidAt())
-                .transactionRef(payment.getTransactionRef())
-                .responseCode(payment.getResponseCode())
-                .build();
     }
 }

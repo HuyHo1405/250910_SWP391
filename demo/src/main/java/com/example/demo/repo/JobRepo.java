@@ -16,6 +16,8 @@ public interface JobRepo extends JpaRepository<Job, Long> {
      */
     Optional<Job> findByBookingId(Long bookingId);
 
+    List<Job> findByTechnicianIsNotNullAndActualEndTimeIsNotNullAndEstEndTimeIsNotNull();
+
     @Query("SELECT j FROM Job j " +
             "WHERE j.technician.id = :technicianId " +
             "AND j.actualEndTime IS NULL")

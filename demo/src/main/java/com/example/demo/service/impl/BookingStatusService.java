@@ -75,15 +75,6 @@ public class BookingStatusService implements IBookingStatusService {
             throw new CommonException.InvalidOperation("Invoice không tồn tại hoặc không ở trạng thái DRAFT");
         }
 
-        if(invoice.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            booking.setBookingStatus(BookingStatus.PAID);
-            bookingRepository.save(booking);
-            invoice.setStatus(InvoiceStatus.PAID);
-            invoiceRepo.save(invoice);
-            log.info("Invoice {} auto-marked as PAID due to zero total amount.", invoice.getId());
-            return BookingResponseMapper.toDtoFull(booking);
-        }
-
         invoice.setStatus(InvoiceStatus.UNPAID);
         invoice.setDueDate(booking.getScheduleDate());
         invoiceRepo.save(invoice);
@@ -94,7 +85,7 @@ public class BookingStatusService implements IBookingStatusService {
 
     @Override
     @Transactional
-    public BookingResponse cancelBooking(Long id) {
+    public BookingResponse cancelBooking(Long id, String reason) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", id));
 
@@ -116,14 +107,14 @@ public class BookingStatusService implements IBookingStatusService {
         // Cập nhật trạng thái thành CANCELLED
         booking.setBookingStatus(BookingStatus.CANCELLED);
 
-        log.info("Booking {} cancelled.", id);
+        log.info("Booking {} cancelled. Reason: {}", id, reason);
 
         // Trả về DTO đầy đủ
         return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));
     }
 
     @Override
-    public BookingResponse rejectBooking(Long id) {
+    public BookingResponse rejectBooking(Long id, String reason) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", id));
 
@@ -145,7 +136,7 @@ public class BookingStatusService implements IBookingStatusService {
         // Cập nhật trạng thái thành CANCELLED
         booking.setBookingStatus(BookingStatus.REJECTED);
 
-        log.info("Booking {} cancelled.", id);
+        log.info("Booking {} cancelled. Reason: {}", id, reason);
 
         // Trả về DTO đầy đủ
         return BookingResponseMapper.toDtoFull(bookingRepository.save(booking));

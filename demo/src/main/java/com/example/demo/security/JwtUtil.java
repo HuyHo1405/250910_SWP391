@@ -32,10 +32,10 @@ public class JwtUtil {
     private final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     /** Access token expiration time: 15 minutes = 900000 ms */
-    private final long accessTokenExpiration = 900000 * 4; // 15 * 4 minutes
+    private final long accessTokenExpiration = 900000 * 10; // 15 * 10 minutes
 
     /** Refresh token expiration time: 7 days = 604800000 ms */
-    private final long refreshTokenExpiration = 604800000; // 7 days
+    private final long refreshTokenExpiration = 604800000L; // 7 days
 
     /**
      * Generates an ACCESS TOKEN for the given user.

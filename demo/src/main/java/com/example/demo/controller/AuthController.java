@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,11 +20,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Authentication")
 public class AuthController {
     private final AuthService authService;
-
-    @PostMapping("/resend-verification-code")
-    public ResponseEntity<MessageResponse> resendVerificationCode(@RequestParam @Email String email) {
-        return ResponseEntity.ok(authService.resentVerificationCode(email));
-    }
 
     @PostMapping("/register")
     public ResponseEntity<MessageResponse> register(@RequestBody @Valid AuthRequest.Register request) {

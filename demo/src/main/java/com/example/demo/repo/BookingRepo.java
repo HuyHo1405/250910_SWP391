@@ -57,5 +57,7 @@ public interface BookingRepo extends JpaRepository<Booking, Long> {
             Long customerId, String vin, BookingStatus bookingStatus
     );
 
-
+    long countByBookingStatus(BookingStatus status);
+    long countByBookingStatusNot(BookingStatus status);
 }
+

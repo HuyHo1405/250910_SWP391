@@ -20,5 +20,6 @@ public class InvoiceResponse {
     private BigDecimal totalAmount;
     private InvoiceStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime paidAt;
     private List<InvoiceLineResponse> invoiceLines;
 }
