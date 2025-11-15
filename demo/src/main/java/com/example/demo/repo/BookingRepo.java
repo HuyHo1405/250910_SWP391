@@ -61,15 +61,6 @@ public interface BookingRepo extends JpaRepository<Booking, Long> {
     long countByBookingStatus(BookingStatus status);
     long countByBookingStatusNot(BookingStatus status);
 
-
-    @Query("SELECT b FROM Booking b WHERE b.customer.id = :customerId AND CAST(b.scheduleDate AS DATE) = :searchDate")
-    List<Booking> findByCustomerIdAndDate(
-            @Param("customerId") Long customerId,
-            @Param("searchDate") LocalDate searchDate
-    );
-}
-
-
     @Query("SELECT b FROM Booking b WHERE b.customer.id = :customerId AND CAST(b.scheduleDate AS DATE) = :searchDate")
     List<Booking> findByCustomerIdAndDate(
             @Param("customerId") Long customerId,
