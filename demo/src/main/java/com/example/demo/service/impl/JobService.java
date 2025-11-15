@@ -290,7 +290,8 @@ public class JobService implements IJobService {
      * @param excludeJobId Job ID cần loại trừ khi update (nullable)
      * @return true nếu rảnh, false nếu bận
      */
-    private boolean isTechnicianAvailableAtTime(Long technicianId, LocalDateTime scheduleTime, Long excludeJobId) {
+    @Override
+    public boolean isTechnicianAvailableAtTime(Long technicianId, LocalDateTime scheduleTime, Long excludeJobId) {
         // Lấy tất cả jobs của technician này (chưa complete)
         List<Job> technicianJobs = jobRepo.findByTechnicianIdAndNotComplete(technicianId);
 

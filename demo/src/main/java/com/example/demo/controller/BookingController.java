@@ -95,7 +95,7 @@ public class BookingController {
         return ResponseEntity.ok(resp);
     }
 
-    @PutMapping("/{id}/start-maintenance")
+    @PutMapping("/{id}/assign-technician")
     public ResponseEntity<BookingResponse> startMaintenance(@PathVariable Long id, @RequestParam Long technicianId) {
         BookingResponse resp = bookingStatusService.startMaintenance(id, technicianId);
         return ResponseEntity.ok(resp);

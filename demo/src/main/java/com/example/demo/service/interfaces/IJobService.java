@@ -7,6 +7,7 @@ import com.example.demo.model.dto.TechnicianResponse;
 import com.example.demo.model.modelEnum.JobStatus;
 import io.micrometer.common.lang.Nullable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface IJobService {
@@ -28,6 +29,8 @@ public interface IJobService {
     JobResponse getJobByBooking(Long bookingId);
 
     List<JobResponse> getTechnicianTasks(Long technicianId);
+
+    boolean isTechnicianAvailableAtTime(Long technicianId, LocalDateTime scheduleTime, Long excludeJobId);
 
     void deleteJob(Long jobId);
 

@@ -433,6 +433,8 @@ INSERT INTO permissions
 VALUES
 -- SYSTEM
 ('SYSTEM', 'bypass_ownership', 1, 'Bypass ownership checks for all resources'),
+-- DASHBOARD
+('DASHBOARD', 'read', 1, 'Read dashboard metrics and summaries'),
 -- USER
 ('USER', 'create', 1, 'Create user'),
 ('USER', 'delete', 1, 'Delete user'),

@@ -8,7 +8,7 @@ import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.modelEnum.InvoiceStatus;
 import com.example.demo.repo.*;
 import com.example.demo.service.interfaces.IBookingStatusService;
-import com.example.demo.utils.BookingResponseMapper; // <-- THAY ĐỔI IMPORT
+import com.example.demo.utils.BookingResponseMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +43,7 @@ public class BookingStatusService implements IBookingStatusService {
 
     private final JobRepo jobRepo;
     private final UserRepo userRepo;
+    private final JobService jobService;
 
     @Override
     @Transactional
@@ -160,6 +160,14 @@ public class BookingStatusService implements IBookingStatusService {
 
         User technician = userRepo.findById(technicianId)
                 .orElseThrow(() -> new CommonException.NotFound("User Technician", technicianId));
+
+        boolean checkAvailable = jobService.isTechnicianAvailableAtTime(technicianId, booking.getScheduleDate(), null);
+
+        if (!checkAvailable) {
+            throw new CommonException.InvalidOperation(
+                    "Kỹ thuật viên không có sẵn vào thời gian đã lên lịch: " + booking.getScheduleDate()
+            );
+        }
 
         booking.setBookingStatus(BookingStatus.IN_PROGRESS);
 
