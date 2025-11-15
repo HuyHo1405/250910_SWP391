@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -59,5 +60,11 @@ public interface BookingRepo extends JpaRepository<Booking, Long> {
 
     long countByBookingStatus(BookingStatus status);
     long countByBookingStatusNot(BookingStatus status);
+
+    @Query("SELECT b FROM Booking b WHERE b.customer.id = :customerId AND CAST(b.scheduleDate AS DATE) = :searchDate")
+    List<Booking> findByCustomerIdAndDate(
+            @Param("customerId") Long customerId,
+            @Param("searchDate") LocalDate searchDate
+    );
 }
 
