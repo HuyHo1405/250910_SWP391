@@ -43,6 +43,7 @@ public class BookingStatusService implements IBookingStatusService {
     );
 
     private final JobRepo jobRepo;
+    private final UserRepo userRepo;
 
     @Override
     @Transactional
@@ -144,7 +145,7 @@ public class BookingStatusService implements IBookingStatusService {
 
     @Override
     @Transactional
-    public BookingResponse startMaintenance(Long id) {
+    public BookingResponse startMaintenance(Long id, Long technicianId) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", id));
 
@@ -157,12 +158,15 @@ public class BookingStatusService implements IBookingStatusService {
             );
         }
 
+        User technician = userRepo.findById(technicianId)
+                .orElseThrow(() -> new CommonException.NotFound("User Technician", technicianId));
+
         booking.setBookingStatus(BookingStatus.IN_PROGRESS);
 
         usePartsForMaintenance(booking);
 
         // Tạo Job duy nhất cho Booking (One-to-One)
-        createJobForBooking(booking);
+        createJobForBooking(booking, technician);
 
         log.info("Booking {} started maintenance. Created job.", id);
 
@@ -252,7 +256,7 @@ public class BookingStatusService implements IBookingStatusService {
         }
     }
 
-    private void createJobForBooking(Booking booking) {
+    private void createJobForBooking(Booking booking, User technician) {
         // Kiểm tra xem Booking đã có Job chưa
         if (jobRepo.findByBookingId(booking.getId()).isPresent()) {
             log.warn("Booking {} already has a Job, skipping creation", booking.getId());
@@ -262,7 +266,7 @@ public class BookingStatusService implements IBookingStatusService {
         // Tạo Job mới với technician = null (unassigned)
         Job job = Job.builder()
                 .booking(booking)
-                .technician(null) // chưa assign technician
+                .technician(technician)
                 .notes("Auto-created job for booking #" + booking.getId())
                 .build();
 

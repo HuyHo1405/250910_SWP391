@@ -200,7 +200,7 @@ public class ReportService implements IReportService {
         // Điểm % cao nhất (tốt nhất) sẽ ở trên cùng
         performanceList.sort((p1, p2) -> p2.getPerformanceScorePercentage().compareTo(p1.getPerformanceScorePercentage()));
 
-        // 5. Trả về kết quả
+        // 5. Trả top 3 về kết quả
         return performanceList.subList(0, 3);
     }
 
