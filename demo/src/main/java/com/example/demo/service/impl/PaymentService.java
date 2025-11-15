@@ -82,7 +82,6 @@ public class PaymentService implements IPaymentService {
         vnpParams.put("vnp_OrderType", "other");
         vnpParams.put("vnp_Locale", "vn");
         vnpParams.put("vnp_ReturnUrl", vnpayConfig.getReturnUrl());
-//        vnpParams.put("vnp_IpnUrl", vnpayConfig.getIpnUrl());
 
         String ipAddr = getIpAddress(httpServletRequest);
         vnpParams.put("vnp_IpAddr", ipAddr);
@@ -324,6 +323,132 @@ public class PaymentService implements IPaymentService {
                 .collect(Collectors.toList());
     }
 
+//    @Override
+    @Transactional
+    public PaymentResponse.VnpayIpn simulateRefund(String orderCode) {
+        log.warn("!!! BẮT ĐẦU GIẢ LẬP REFUND CHO ĐƠN HÀNG: {} !!!", orderCode);
+        Payment payment = paymentRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy giao dịch với mã: " + orderCode));
+        Invoice invoice = payment.getInvoice();
+        // Chỉ refund nếu đã thanh toán thành công và invoice đang PAID
+        if (payment.getStatus() == PaymentStatus.SUCCESSFUL && invoice != null && invoice.getStatus() == InvoiceStatus.PAID) {
+            payment.setStatus(PaymentStatus.REFUNDED); // hoặc tạo thêm REFUNDED nếu có
+            payment.setResponseCode("REFUND");
+            payment.setPaidAt(LocalDateTime.now());
+            paymentRepository.save(payment);
+            invoice.setStatus(InvoiceStatus.REFUNDED);
+            invoiceRepository.save(invoice);
+            log.info("Đã giả lập refund cho orderCode {}: Payment FAILED, Invoice REFUNDED", orderCode);
+            return new PaymentResponse.VnpayIpn("00", "Refund simulated successfully");
+        } else {
+            log.warn("Không thể refund: trạng thái payment/invoice không hợp lệ");
+            return new PaymentResponse.VnpayIpn("99", "Refund failed: trạng thái không hợp lệ");
+        }
+    }
+
+    /**
+     * Happy flow refund step 1: Tạo yêu cầu refund
+     */
+    @Transactional
+    public PaymentResponse.RefundResult createRefund(String orderCode) {
+        log.info("Bắt đầu tạo yêu cầu refund cho orderCode: {}", orderCode);
+        Payment payment = paymentRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy giao dịch với mã: " + orderCode));
+        Invoice invoice = payment.getInvoice();
+        // Chỉ tạo refund nếu đã thanh toán thành công và invoice đang PAID
+        if (payment.getStatus() == PaymentStatus.SUCCESSFUL && invoice != null && invoice.getStatus() == InvoiceStatus.PAID) {
+            payment.setStatus(PaymentStatus.PENDING); // Đánh dấu đang chờ refund
+            payment.setResponseCode("REF_REQ");
+            paymentRepository.save(payment);
+            log.info("Đã tạo yêu cầu refund cho orderCode {}: Payment PENDING REFUND", orderCode);
+            return new PaymentResponse.RefundResult(orderCode, true, "Refund request created successfully");
+        } else {
+            log.warn("Không thể tạo refund: trạng thái payment/invoice không hợp lệ");
+            return new PaymentResponse.RefundResult(orderCode, false, "Refund request failed: trạng thái không hợp lệ");
+        }
+    }
+
+    /**
+     * Happy flow refund step 2: Xử lý IPN/callback refund
+     */
+    @Transactional
+    public PaymentResponse.VnpayIpn handleRefundIpn(Map<String, String> vnpayParams) {
+        log.info("Bắt đầu xử lý IPN/callback refund từ VNPAY");
+        try {
+            String orderCode = vnpayParams.get("vnp_TxnRef");
+            String vnpResponseCode = vnpayParams.get("vnp_ResponseCode");
+            Payment payment = paymentRepository.findByOrderCode(orderCode)
+                    .orElse(null);
+            if (payment == null) {
+                log.warn("IPN REFUND: Không tìm thấy đơn hàng (Order not found): {}", orderCode);
+                return new PaymentResponse.VnpayIpn("01", "Order not found");
+            }
+            Invoice invoice = payment.getInvoice();
+            // Chỉ xử lý refund nếu payment đang chờ refund
+            if ("REF_REQ".equals(payment.getResponseCode()) && invoice != null && invoice.getStatus() == InvoiceStatus.PAID) {
+                if ("00".equals(vnpResponseCode)) {
+                    payment.setStatus(PaymentStatus.REFUNDED);
+                    payment.setResponseCode("REFUNDED");
+                    payment.setPaidAt(LocalDateTime.now());
+                    paymentRepository.save(payment);
+                    invoice.setStatus(InvoiceStatus.REFUNDED);
+                    invoiceRepository.save(invoice);
+                    log.info("IPN REFUND: Refund thành công cho orderCode {}", orderCode);
+                    return new PaymentResponse.VnpayIpn("00", "Refund confirmed successfully");
+                } else {
+                    payment.setStatus(PaymentStatus.FAILED);
+                    payment.setResponseCode("REF_FAIL");
+                    paymentRepository.save(payment);
+                    log.warn("IPN REFUND: Refund thất bại cho orderCode {}", orderCode);
+                    return new PaymentResponse.VnpayIpn("99", "Refund failed");
+                }
+            } else {
+                log.warn("IPN REFUND: Không thể xử lý refund cho orderCode {}: trạng thái không hợp lệ", orderCode);
+                return new PaymentResponse.VnpayIpn("99", "Refund failed: trạng thái không hợp lệ");
+            }
+        } catch (Exception e) {
+            log.error("IPN REFUND: Lỗi không xác định", e);
+            return new PaymentResponse.VnpayIpn("99", "Unknown error");
+        }
+    }
+
+    /**
+     * Happy flow refund step 3: Kiểm tra trạng thái refund
+     */
+    public PaymentResponse.RefundResult checkRefundStatus(String orderCode) {
+        Payment payment = paymentRepository.findByOrderCode(orderCode)
+                .orElse(null);
+        if (payment == null) {
+            return new PaymentResponse.RefundResult(orderCode, false, "Order not found");
+        }
+        boolean isRefunded = payment.getStatus() == PaymentStatus.REFUNDED;
+        return new PaymentResponse.RefundResult(orderCode, isRefunded, payment.getResponseCode());
+    }
+
+    /**
+     * Happy flow refund step 4: Giả lập refund (stimulate)
+     */
+    @Override
+    @Transactional
+    public PaymentResponse.VnpayIpn stimulateRefund(String orderCode) {
+        log.info("Bắt đầu giả lập refund cho orderCode: {}", orderCode);
+        Payment payment = paymentRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy giao dịch với mã: " + orderCode));
+        Invoice invoice = payment.getInvoice();
+        // Chỉ giả lập refund nếu đã tạo yêu cầu refund (PENDING, REFUND_REQUESTED)
+        if (payment.getStatus() == PaymentStatus.PENDING && "REF_REQ".equals(payment.getResponseCode()) && invoice != null && invoice.getStatus() == InvoiceStatus.PAID) {
+            // Tạo dữ liệu giả lập IPN refund thành công
+            Map<String, String> fakeRefundParams = new TreeMap<>();
+            fakeRefundParams.put("vnp_TxnRef", orderCode);
+            fakeRefundParams.put("vnp_ResponseCode", "00"); // 00 = Refund thành công
+            // Gọi handleRefundIpn với dữ liệu giả lập
+            return handleRefundIpn(fakeRefundParams);
+        } else {
+            log.warn("Không thể giả lập refund: trạng thái payment/invoice không hợp lệ hoặc chưa tạo yêu cầu refund");
+            return new PaymentResponse.VnpayIpn("99", "Stimulate refund failed: trạng thái không hợp lệ");
+        }
+    }
+
     // --- CÁC HÀM TIỆN ÍCH (HELPER METHODS) ---
 
     /**
@@ -404,4 +529,14 @@ public class PaymentService implements IPaymentService {
                 .responseCode(payment.getResponseCode())
                 .build();
     }
+
+    @Override
+    public PaymentResponse.RefundResult createRefundByInvoiceId(Long invoiceId) {
+        invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hóa đơn với ID: " + invoiceId));
+        Payment payment = paymentRepository.findFirstByInvoiceIdOrderByCreatedAtDesc(invoiceId)
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy payment cho hóa đơn: " + invoiceId));
+        return createRefund(payment.getOrderCode());
+    }
 }
+

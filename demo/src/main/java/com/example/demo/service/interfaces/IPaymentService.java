@@ -17,4 +17,10 @@ public interface IPaymentService {
 
     List<PaymentResponse.Transaction> getPaymentHistory(Long bookingId);
 
+    PaymentResponse.RefundResult createRefundByInvoiceId(Long invoiceId);
+
+    PaymentResponse.VnpayIpn stimulateRefund(String orderCode);
+
+    PaymentResponse.RefundResult checkRefundStatus(String orderCode);
+
 }

@@ -28,4 +28,6 @@ public interface PaymentRepo extends JpaRepository<Payment, Long> {
 
     @Query("SELECT p FROM Payment p WHERE p.invoice.booking.id = :bookingId ORDER BY p.createdAt DESC")
     List<Payment> findByBookingId(@Param("bookingId") Long bookingId);
+
+    Optional<Payment> findFirstByInvoiceIdOrderByCreatedAtDesc(Long invoiceId);
 }

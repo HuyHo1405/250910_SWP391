@@ -21,6 +21,9 @@ public class AppConfig {
     @Value("${app.ngrok-url}")
     private String ngrokUrl;
 
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
     @Value("${app.use-ngrok:false}")
     private boolean useNgrok;
 

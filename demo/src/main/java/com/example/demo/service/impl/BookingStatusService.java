@@ -2,6 +2,7 @@ package com.example.demo.service.impl;
 
 import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.BookingResponse;
+import com.example.demo.model.dto.PaymentResponse;
 import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.model.modelEnum.EntityStatus;
@@ -11,10 +12,12 @@ import com.example.demo.service.interfaces.IBookingStatusService;
 import com.example.demo.utils.BookingResponseMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,6 +47,7 @@ public class BookingStatusService implements IBookingStatusService {
     private final JobRepo jobRepo;
     private final UserRepo userRepo;
     private final JobService jobService;
+    private final PaymentService paymentService;
 
     @Override
     @Transactional
@@ -216,6 +220,39 @@ public class BookingStatusService implements IBookingStatusService {
             }
         }
         return true; // đủ hết part
+    }
+
+    // Scheduled job: cancel & refund PAID bookings quá hạn chưa start
+    @Scheduled(cron = "0 0 * * * *") // Chạy mỗi giờ
+    @Transactional
+    public void cancelAndRefundOverduePaidBookings() {
+        int additionalMinutes = 30; // Có thể lấy từ config
+        LocalDateTime now = LocalDateTime.now();
+        // Lấy tất cả booking PAID có scheduleDate <= now
+        List<Booking> paidBookings = bookingRepository.findByBookingStatus(BookingStatus.PAID);
+        for (Booking booking : paidBookings) {
+            // Nếu đã quá hạn: scheduleDate + additionalMinutes < now
+            LocalDateTime deadline = booking.getScheduleDate().plusMinutes(additionalMinutes);
+            if (deadline.isBefore(now) && booking.getBookingStatus() == BookingStatus.PAID) {
+                // Cancel booking
+                booking.setBookingStatus(BookingStatus.CANCELLED);
+                bookingRepository.save(booking);
+                // Refund invoice
+                Invoice invoice = booking.getInvoice();
+                if (invoice != null && invoice.getStatus() == InvoiceStatus.PAID) {
+                    invoice.setStatus(InvoiceStatus.REFUNDED);
+                    invoiceRepo.save(invoice);
+                    PaymentResponse.RefundResult result = paymentService.createRefundByInvoiceId(invoice.getId());
+                    paymentService.simulateRefund(result.getOrderCode());
+                    log.info("[Scheduler] Đã tạo yêu cầu refund cho invoice ID {} của booking ID {}.", invoice.getId(), booking.getId());
+                }
+
+
+                // Giải phóng linh kiện đã reserved
+                unreserveParts(booking);
+                log.info("[Scheduler] Đã cancel & refund booking ID {} do quá hạn chưa start.", booking.getId());
+            }
+        }
     }
 
     private void updateReservedParts(Booking booking) {

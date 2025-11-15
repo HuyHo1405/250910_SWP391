@@ -27,6 +27,7 @@ public class BookingSlotService implements IBookingSlotService {
 
     private static final int WORKING_HOUR_START = 7;
     private static final int WORKING_HOUR_END = 17;
+    private static final int MAX_BOOKING_PER_SLOT = 5; // Số booking tối đa cho 1 slot
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
@@ -60,12 +61,16 @@ public class BookingSlotService implements IBookingSlotService {
                         WORKING_HOUR_END
                 );
 
-        // 6. Nhóm (group) các LocalDateTime thành Map<String, List<Integer>>
-        // (Kết quả: {"2025-11-05": [9, 11, 14], "2025-11-06": [7, 17]})
-        Map<String, List<Integer>> slotsByDateString = bookedDateTimes.stream()
+        // 6. Nhóm (group) các LocalDateTime thành Map<String, Map<Integer, Long>>
+        // Đếm số lượng booking cho mỗi cặp (ngày, giờ)
+        // VD: {"2025-11-05": {9: 3, 11: 2, 14: 1}, "2025-11-06": {7: 1, 17: 2}}
+        Map<String, Map<Integer, Long>> slotCountsByDate = bookedDateTimes.stream()
                 .collect(Collectors.groupingBy(
                         ldt -> ldt.format(DATE_FORMATTER), // Nhóm theo "yyyy-MM-dd"
-                        Collectors.mapping(LocalDateTime::getHour, Collectors.toList()) // Lấy giờ
+                        Collectors.groupingBy(
+                                LocalDateTime::getHour,    // Nhóm theo giờ
+                                Collectors.counting()       // Đếm số lượng
+                        )
                 ));
 
         // 7. Xây dựng DTO Response (đảm bảo đủ số ngày, kể cả ngày trống)
@@ -73,12 +78,14 @@ public class BookingSlotService implements IBookingSlotService {
 
         for (int i = 0; i < daysToCheck; i++) {
             String dateKey = startDate.plusDays(i).format(DATE_FORMATTER);
+            Map<Integer, Long> hourCounts = slotCountsByDate.getOrDefault(dateKey, Map.of());
 
-            // Lấy list giờ đã book (nếu có), nếu không (chưa ai book) thì lấy list rỗng
-            List<Integer> bookedHours = slotsByDateString.getOrDefault(dateKey, new ArrayList<>());
-
-            // Sắp xếp giờ cho đẹp (ví dụ: [11, 7, 9] -> [7, 9, 11])
-            bookedHours.sort(Integer::compareTo);
+            // Chỉ lấy các giờ đã full slot
+            List<Integer> bookedHours = hourCounts.entrySet().stream()
+                .filter(e -> e.getValue() >= MAX_BOOKING_PER_SLOT)
+                .map(Map.Entry::getKey)
+                .sorted()
+                .collect(Collectors.toList());
 
             dailySlotsList.add(new DailyBookedSlot(dateKey, bookedHours));
         }

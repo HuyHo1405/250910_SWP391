@@ -4,5 +4,6 @@ package com.example.demo.model.modelEnum;
 public enum PaymentStatus {
     PENDING,      // Chưa thanh toán
     SUCCESSFUL,  // Đã thanh toán thành công
-    FAILED      // Thanh toán lỗi
+    FAILED,// Thanh toán lỗi
+    REFUNDED    // Đã hoàn tiền
 }

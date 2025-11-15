@@ -81,4 +81,14 @@ public class PaymentResponse {
         // Mã lỗi/phản hồi từ cổng thanh toán ('00' là thành công)
         private String responseCode;
     }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class RefundResult {
+        private String orderCode;
+        private boolean success;
+        private String message;
+    }
 }

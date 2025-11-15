@@ -27,13 +27,13 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * API để Server VNPAY gọi "ngầm" (Instant Payment Notification - IPN).
-     * Đây là nơi quan trọng nhất để cập nhật trạng thái đơn hàng (SUCCESSFUL/FAILED).
-     *
-     * @param vnpayParams Map chứa tất cả các tham số VNPAY gửi sang.
-     * @return DTO (VnpayIpn) chứa RspCode và Message để VNPAY biết kết quả.
-     */
+//    /**
+//     * API để Server VNPAY gọi "ngầm" (Instant Payment Notification - IPN).
+//     * Đây là nơi quan trọng nhất để cập nhật trạng thái đơn hàng (SUCCESSFUL/FAILED).
+//     *
+//     * @param vnpayParams Map chứa tất cả các tham số VNPAY gửi sang.
+//     * @return DTO (VnpayIpn) chứa RspCode và Message để VNPAY biết kết quả.
+//     */
 //    @PostMapping("/vnpay-ipn")
 //    public ResponseEntity<PaymentResponse.VnpayIpn> handleVnpayIpn(
 //            @RequestParam Map<String, String> vnpayParams
@@ -73,6 +73,24 @@ public class PaymentController {
     @GetMapping("/simulate-ipn-success")
     public ResponseEntity<?> testIpn(@RequestParam String orderCode) {
         PaymentResponse.VnpayIpn response = paymentService.simulateIpnSuccess(orderCode);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refund-request")
+    public ResponseEntity<PaymentResponse.RefundResult> createRefundRequest(@RequestParam Long invoiceId) {
+        PaymentResponse.RefundResult response = paymentService.createRefundByInvoiceId(invoiceId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/simulate-ipn-refund")
+    public ResponseEntity<PaymentResponse.VnpayIpn> simulateRefund(@RequestParam String orderCode) {
+        PaymentResponse.VnpayIpn response = paymentService.stimulateRefund(orderCode);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/refund-status")
+    public ResponseEntity<PaymentResponse.RefundResult> checkRefundStatus(@RequestParam String orderCode) {
+        PaymentResponse.RefundResult response = paymentService.checkRefundStatus(orderCode);
         return ResponseEntity.ok(response);
     }
 }

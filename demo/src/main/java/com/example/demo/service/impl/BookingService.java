@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,6 +59,8 @@ BookingService implements IBookingService {
 
         checkAvailableSlot(scheduleDate);
 
+        checkBookingSingleDayLimit(customer.getId(), scheduleDate.toLocalDate());
+
         Booking booking = Booking.builder()
                 .customer(customer)
                 .vehicle(vehicle)
@@ -82,6 +85,13 @@ BookingService implements IBookingService {
 
         // Trả về DTO có chi tiết dịch vụ và invoice
         return BookingResponseMapper.toDtoFull(booking, request.getScheduleDateTime());
+    }
+
+    private void checkBookingSingleDayLimit(Long id, LocalDate localDate) {
+        List<Booking> bookingsOnDate = bookingRepository.findByCustomerIdAndDate(id, localDate);
+        if(!bookingsOnDate.isEmpty()) {
+            throw new CommonException.InvalidOperation("Khách hàng đã đạt giới hạn đặt lịch trong ngày: " + localDate);
+        }
     }
 
     @Override
@@ -278,8 +288,14 @@ BookingService implements IBookingService {
             throw new CommonException.InvalidOperation("Thời gian đặt lịch không hỗ trợ");
         }
 
-        if(bookingRepository.isSlotBooked(bookingDate)) {
-            throw new CommonException.InvalidOperation("Thời gian đặt đơn đã bị trùng");
+        List<Booking> existingBookings = bookingRepository.findByScheduleDate(bookingDate)
+                .stream()
+                .filter(b -> b.getBookingStatus() != BookingStatus.CANCELLED && b.getBookingStatus() != BookingStatus.REJECTED)
+                .collect(Collectors.toList());
+
+
+        if(existingBookings.size() == 5) {
+            throw new CommonException.InvalidOperation("Thời gian đặt đơn đã bị đầy");
         }
     }
 
