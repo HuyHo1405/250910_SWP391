@@ -44,7 +44,7 @@ public class ReportService implements IReportService {
     @Override
     public ReportResponse.DashboardRevenue getReportDashboardRevenue() {
 
-        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "VIEW");
+        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "read");
 
         // 1. Xác định kỳ hiện tại và kỳ trước (ví dụ: theo tháng)
         LocalDate now = LocalDate.now();
@@ -100,7 +100,7 @@ public class ReportService implements IReportService {
     @Override
     public ReportResponse.DashboardActiveUserCount getReportDashboardUserCounts() {
 
-        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "VIEW");
+        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "read");
 
         // 1. Đếm tổng số user "truy cập" (đang ACTIVE)
         long activeCustomer = userRepository.countByRole_DisplayNameAndStatus("Khách hàng", EntityStatus.ACTIVE);
@@ -116,8 +116,7 @@ public class ReportService implements IReportService {
     @Override
     public ReportResponse.DashboardActiveBookingCount getReportDashboardBookingCounts() {
 
-        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "VIEW");
-
+        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "read");
         long completeBooking = bookingRepository.countByBookingStatus(BookingStatus.MAINTENANCE_COMPLETE);
         long notCompleteBooking = bookingRepository.countByBookingStatusNot(BookingStatus.MAINTENANCE_COMPLETE);
         return ReportResponse.DashboardActiveBookingCount.builder()
@@ -129,8 +128,7 @@ public class ReportService implements IReportService {
     @Override
     public ReportResponse.DashboardAlertCount getReportDashboardAlertCounts() {
 
-        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "VIEW");
-
+        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "read");
         // Hiện tại chưa có entity Alert, tạm thời trả về 0
         long totalAlert = 0L;
 
@@ -147,8 +145,7 @@ public class ReportService implements IReportService {
 
     @Override
     public List<ReportResponse.Alerts> getAlerts() {
-        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "VIEW");
-
+        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "read");
         List<Part> lowStock = partRepository.findByQuantityLessThanEqual(LOW_STOCK_THRESHOLD);
 
         return lowStock.stream()
@@ -159,8 +156,7 @@ public class ReportService implements IReportService {
     @Override
     public List<ReportResponse.TopPerformance> getTopPerformance() {
 
-        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "VIEW");
-
+        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "read");
         // 1. Lấy dữ liệu
         List<Job> completedJobs = jobRepository.findByTechnicianIsNotNullAndActualEndTimeIsNotNullAndEstEndTimeIsNotNull();
 
@@ -228,8 +224,7 @@ public class ReportService implements IReportService {
     @Override
     public List<ReportResponse.MonthlyRevenueData> getRevenueReportLast6Months_Loop() {
 
-        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "VIEW");
-
+        accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "read");
         List<ReportResponse.MonthlyRevenueData> finalReport = new ArrayList<>();
         YearMonth currentMonth = YearMonth.now();
 
