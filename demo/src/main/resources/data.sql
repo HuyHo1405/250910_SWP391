@@ -546,7 +546,7 @@ WHERE
     (p.resource = 'BOOKING' AND p.action IN ('start-maintenance', 'complete'))
    OR
 -- Quyền thao tác kho (chỉ đọc và xem cảnh báo)
-    (p.resource = 'PART' AND p.action IN ('read', 'view_low_stock'))
+    (p.resource = 'PART' AND p.action IN ('read'))
    OR
 -- Quyền tự xem và cập nhật thông tin cá nhân
     (p.resource = 'USER' AND p.action IN ('read', 'update'))
@@ -682,8 +682,18 @@ VALUES
 -- BẢNG BOOKINGS - Định nghĩa các đơn bảo dưỡng xe của khách hàng
 -- BẢNG BOOKING DETAILS - Định nghĩa dịch vụ được khách hàng đặt trong đơn
 -- ================================================================================================================== --
+-- ================================================================================================================== --
+-- BẢNG BOOKINGS - Định nghĩa các đơn bảo dưỡng xe của khách hàng
+-- BẢNG BOOKING DETAILS - Định nghĩa dịch vụ được khách hàng đặt trong đơn
+-- BẢNG INVOICES - Định nghĩa các hoá đơn của đơn bảo dưỡng
+-- BẢNG INVOICE LINES - Định nghĩa chi tiết các dịch vụ + linh kiện
+-- BẢNG JOBS - Định nghĩa các công việc phân công cho kỹ thuật viên
+-- BẢNG PAYMENTS - Định nghĩa các giao dịch thanh toán
+-- BẢNG BOOKING COMMENTS - Định nghĩa các ghi chú/bình luận của booking
+-- ================================================================================================================== --
+
 -- ================================================================
--- Bảng BOOKINGS (Không dùng DECLARE, giờ chẵn)
+-- Bảng BOOKINGS (25 records)
 -- ================================================================
 IF NOT EXISTS (SELECT 1 FROM bookings)
 INSERT INTO bookings
@@ -702,16 +712,19 @@ VALUES
 (25, 'VFVF51BC3PA000701', DATEADD(HOUR, 9, DATEADD(DAY, -2, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'MAINTENANCE_COMPLETE', DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -2, GETDATE())),
 
 -- === 2. Đang thực hiện (IN_PROGRESS) - 3 đơn (Hôm nay) ===
-(19, 'VFVF82AD3PA000101', DATEADD(HOUR, 8, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'IN_PROGRESS', DATEADD(DAY, -2, GETDATE()), GETDATE()), -- Hôm nay 8:00:00
-(20, 'VFVFE34D3PA000201', DATEADD(HOUR, 9, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'IN_PROGRESS', DATEADD(DAY, -3, GETDATE()), GETDATE()), -- Hôm nay 9:00:00
-(21, 'VFVF71GH3PA000302', DATEADD(HOUR, 10, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'IN_PROGRESS', DATEADD(DAY, -2, GETDATE()), GETDATE()), -- Hôm nay 10:00:00
+(19, 'VFVF82AD3PA000101', DATEADD(HOUR, 8, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'IN_PROGRESS', DATEADD(DAY, -2, GETDATE()), GETDATE()),
+(20, 'VFVFE34D3PA000201', DATEADD(HOUR, 9, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'IN_PROGRESS', DATEADD(DAY, -3, GETDATE()), GETDATE()),
+(21, 'VFVF71GH3PA000302', DATEADD(HOUR, 10, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'IN_PROGRESS', DATEADD(DAY, -2, GETDATE()), GETDATE()),
+
+-- === (MỚI) Đã thanh toán - Chờ đến giờ hẹn (Hôm nay) ===
+(26, 'VFVF62KL3PA000801', DATEADD(HOUR, DATEPART(hour, GETDATE()), CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'PAID', DATEADD(DAY, -1, GETDATE()), GETDATE()),
 
 -- === 3. Đã xác nhận (CONFIRMED) - 5 đơn (Tương lai gần) ===
-(21, 'VFVF93EF3PA000301', DATEADD(HOUR, 9, DATEADD(DAY, 1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CONFIRMED', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE())), -- Ngày mai 9:00:00
-(19, 'VFVF51BC3PA000102', DATEADD(HOUR, 14, DATEADD(DAY, 1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CONFIRMED', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE())), -- Ngày mai 14:00:00
-(24, 'VFVF82AD3PA000601', DATEADD(HOUR, 9, DATEADD(DAY, 2, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CONFIRMED', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE())), -- Ngày mốt 9:00:00
-(25, 'VFVF51BC3PA000701', DATEADD(HOUR, 15, DATEADD(DAY, 2, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CONFIRMED', GETDATE(), GETDATE()), -- Ngày mốt 15:00:00
-(26, 'VFVF62KL3PA000801', DATEADD(HOUR, 9, DATEADD(DAY, 3, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CONFIRMED', GETDATE(), GETDATE()), -- 3 ngày nữa 9:00:00
+(21, 'VFVF93EF3PA000301', DATEADD(HOUR, 9, DATEADD(DAY, 1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CONFIRMED', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE())),
+(19, 'VFVF51BC3PA000102', DATEADD(HOUR, 14, DATEADD(DAY, 1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CONFIRMED', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE())),
+(24, 'VFVF82AD3PA000601', DATEADD(HOUR, 9, DATEADD(DAY, 2, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CONFIRMED', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE())),
+(25, 'VFVF51BC3PA000701', DATEADD(HOUR, 15, DATEADD(DAY, 2, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CONFIRMED', GETDATE(), GETDATE()),
+(26, 'VFVF62KL3PA000801', DATEADD(HOUR, 9, DATEADD(DAY, 3, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CONFIRMED', GETDATE(), GETDATE()),
 
 -- === 4. Đang chờ (PENDING) - 4 đơn (Tương lai xa) ===
 (22, 'VFVF62KL3PA000401', DATEADD(HOUR, 9, DATEADD(DAY, 4, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'PENDING', GETDATE(), GETDATE()),
@@ -720,142 +733,63 @@ VALUES
 (38, 'VFVFE34D3PA001101', DATEADD(HOUR, 9, DATEADD(DAY, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'PENDING', GETDATE(), GETDATE()),
 
 -- === 5. Đã hủy (CANCELLED) - 3 đơn ===
-(23, 'VFVFE34D3PA000501', DATEADD(HOUR, 9, DATEADD(DAY, -1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CANCELLED', DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -1, GETDATE())), -- Lẽ ra là 9:00 hôm qua
-(25, 'VFVF93EF3PA000702', DATEADD(HOUR, 14, DATEADD(DAY, -1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CANCELLED', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -1, GETDATE())), -- Lẽ ra là 14:00 hôm qua
-(26, 'VFVF62KL3PA000801', DATEADD(HOUR, 9, DATEADD(DAY, -10, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CANCELLED', DATEADD(DAY, -15, GETDATE()), DATEADD(DAY, -11, GETDATE())); -- Hủy từ 10 ngày trước
+(23, 'VFVFE34D3PA000501', DATEADD(HOUR, 9, DATEADD(DAY, -1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CANCELLED', DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -1, GETDATE())),
+(25, 'VFVF93EF3PA000702', DATEADD(HOUR, 14, DATEADD(DAY, -1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CANCELLED', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -1, GETDATE())),
+(26, 'VFVF62KL3PA000801', DATEADD(HOUR, 9, DATEADD(DAY, -10, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'CANCELLED', DATEADD(DAY, -15, GETDATE()), DATEADD(DAY, -11, GETDATE()));
 
-IF
-NOT EXISTS (SELECT 1 FROM booking_details)
+-- ================================================================
+-- Bảng BOOKING_DETAILS
+-- ================================================================
+IF NOT EXISTS (SELECT 1 FROM booking_details)
 INSERT INTO booking_details
 (booking_id, maintenance_catalog_model_id, description)
 VALUES
--- === 1. Đã hoàn thành (MAINTENANCE_COMPLETE) ===
--- Booking 1 (VF 8, model_id=5)
-(1, 5, N'Kiểm tra pin'),
-(1, 12, N'Đảo lốp'),
-(1, 33, N'Thay lọc gió cabin'),
-(1, 103, N'Bổ sung nước rửa kính'),
+-- === 1. MAINTENANCE_COMPLETE (Bookings 1-10) ===
+(1, 5, N'Kiểm tra pin'), (1, 12, N'Đảo lốp'), (1, 33, N'Thay lọc gió cabin'), (1, 103, N'Bổ sung nước rửa kính'),
+(2, 9, N'Đảo lốp'), (2, 16, N'Kiểm tra hệ thống phanh'),
+(3, 42, N'Dịch vụ hệ thống làm mát'), (3, 56, N'Cân chỉnh bánh xe'), (3, 70, N'Thay dầu phanh'),
+(4, 48, N'Kiểm tra hệ thống treo'), (4, 76, N'Kiểm tra ắc quy 12V'),
+(5, 18, N'Kiểm tra hệ thống phanh'), (5, 95, N'Thay gạt mưa'),
+(6, 8, N'Đảo lốp'), (6, 99, N'Bổ sung nước rửa kính'), (6, 71, N'Kiểm tra ắc quy 12V'),
+(7, 87, N'Bảo dưỡng hệ thống điều hòa'), (7, 31, N'Thay lọc gió cabin'),
+(8, 84, N'Thay thế ắc quy 12V'), (8, 28, N'Cập nhật phần mềm'),
+(9, 68, N'Thay dầu phanh'), (9, 33, N'Thay lọc gió cabin'), (9, 47, N'Kiểm tra hệ thống treo'),
+(10, 16, N'Kiểm tra hệ thống phanh'), (10, 100, N'Bổ sung nước rửa kính'),
 
--- Booking 2 (VF 5 Plus, model_id=2)
-(2, 9, N'Đảo lốp'),
-(2, 16, N'Kiểm tra hệ thống phanh'),
+-- === 2. IN_PROGRESS (Bookings 11-13) ===
+(11, 61, N'Chẩn đoán tổng thể xe'), (11, 26, N'Cập nhật phần mềm'), (11, 75, N'Kiểm tra ắc quy 12V'), (11, 96, N'Thay gạt mưa'),
+(12, 7, N'Kiểm tra pin điện áp cao'), (12, 35, N'Thay lọc gió cabin'),
+(13, 95, N'Thay gạt mưa'), (13, 102, N'Bổ sung nước rửa kính'), (13, 11, N'Đảo lốp'),
 
--- Booking 3 (VF e34, model_id=7)
-(3, 42, N'Dịch vụ hệ thống làm mát'),
-(3, 56, N'Cân chỉnh bánh xe'),
-(3, 70, N'Thay dầu phanh'),
+-- === 3. CONFIRMED (Bookings 14-18) ===
+(14, 34, N'Thay lọc gió cabin'), (14, 76, N'Kiểm tra ắc quy 12V'), (14, 13, N'Đảo lốp'), (14, 48, N'Kiểm tra hệ thống treo'),
+(15, 9, N'Đảo lốp'), (15, 16, N'Kiểm tra hệ thống phanh'),
+(16, 47, N'Kiểm tra hệ thống treo'), (16, 103, N'Bổ sung nước rửa kính'),
+(17, 51, N'Cân chỉnh góc đặt bánh xe'), (17, 30, N'Thay lọc gió cabin'),
+(18, 87, N'Bảo dưỡng hệ thống điều hòa'), (18, 66, N'Thay dầu phanh'),
 
--- Booking 4 (VF 9, model_id=6)
-(4, 48, N'Kiểm tra hệ thống treo'),
-(4, 76, N'Kiểm tra ắc quy 12V'),
+-- === (MỚI) PAID chờ đến giờ (Booking 22) ===
+(22, 15, N'Kiểm tra pin điện áp cao'), (22, 31, N'Thay lọc gió cabin'),
 
--- Booking 5 (VF 7, model_id=4)
-(5, 18, N'Kiểm tra hệ thống phanh'),
-(5, 95, N'Thay gạt mưa'),
+-- === 4. PENDING (Bookings 19-21, 23) ===
+(19, 66, N'Thay dầu phanh'), (19, 17, N'Kiểm tra hệ thống phanh'),
+(20, 7, N'Kiểm tra pin điện áp cao'), (20, 105, N'Bổ sung nước rửa kính'), (20, 77, N'Kiểm tra ắc quy 12V'),
+(21, 9, N'Đảo lốp'), (21, 2, N'Kiểm tra pin điện áp cao'),
+(23, 84, N'Thay thế ắc quy 12V'), (23, 63, N'Chẩn đoán tổng thể xe'),
 
--- Booking 6 (VF 3, model_id=1)
-(6, 8, N'Đảo lốp'),
-(6, 99, N'Bổ sung nước rửa kính'),
-(6, 71, N'Kiểm tra ắc quy 12V'),
+-- === 5. CANCELLED (Bookings 24-26) ===
+(24, 7, N'Kiểm tra pin'), (24, 77, N'Kiểm tra ắc quy 12V'),
+(25, 55, N'Cân chỉnh góc đặt bánh xe'),
+(26, 17, N'Kiểm tra hệ thống phanh'), (26, 10, N'Đảo lốp');
 
--- Booking 7 (VF 6, model_id=3)
-(7, 87, N'Bảo dưỡng hệ thống điều hòa'),
-(7, 31, N'Thay lọc gió cabin'),
-
--- Booking 8 (VF e34, model_id=7)
-(8, 84, N'Thay thế ắc quy 12V'),
-(8, 28, N'Cập nhật phần mềm'),
-
--- Booking 9 (VF 8, model_id=5)
-(9, 68, N'Thay dầu phanh'),
-(9, 33, N'Thay lọc gió cabin'),
-(9, 47, N'Kiểm tra hệ thống treo'),
-
--- Booking 10 (VF 5 Plus, model_id=2)
-(10, 16, N'Kiểm tra hệ thống phanh'),
-(10, 100, N'Bổ sung nước rửa kính'),
-
--- === 2. Đang thực hiện (IN_PROGRESS) ===
--- Booking 11 (VF 8, model_id=5)
-(11, 61, N'Chẩn đoán tổng thể xe'),
-(11, 26, N'Cập nhật phần mềm'),
-(11, 75, N'Kiểm tra ắc quy 12V'),
-(11, 96, N'Thay gạt mưa'),
-
--- Booking 12 (VF e34, model_id=7)
-(12, 7, N'Kiểm tra pin điện áp cao'),
-(12, 35, N'Thay lọc gió cabin'),
-
--- Booking 13 (VF 7, model_id=4)
-(13, 95, N'Thay gạt mưa'),
-(13, 102, N'Bổ sung nước rửa kính'),
-(13, 11, N'Đảo lốp'),
-
--- === 3. Đã xác nhận (CONFIRMED) ===
--- Booking 14 (VF 9, model_id=6)
-(14, 34, N'Thay lọc gió cabin'),
-(14, 76, N'Kiểm tra ắc quy 12V'),
-(14, 13, N'Đảo lốp'),
-(14, 48, N'Kiểm tra hệ thống treo'),
-
--- Booking 15 (VF 5 Plus, model_id=2)
-(15, 9, N'Đảo lốp'),
-(15, 16, N'Kiểm tra hệ thống phanh'),
-
--- Booking 16 (VF 8, model_id=5)
-(16, 47, N'Kiểm tra hệ thống treo'),
-(16, 103, N'Bổ sung nước rửa kính'),
-
--- Booking 17 (VF 5 Plus, model_id=2)
-(17, 51, N'Cân chỉnh góc đặt bánh xe'),
-(17, 30, N'Thay lọc gió cabin'),
-
--- Booking 18 (VF 6, model_id=3)
-(18, 87, N'Bảo dưỡng hệ thống điều hòa'),
-(18, 66, N'Thay dầu phanh'),
-
--- === 4. Đang chờ (PENDING) ===
--- Booking 19 (VF 6, model_id=3)
-(19, 66, N'Thay dầu phanh'),
-(19, 17, N'Kiểm tra hệ thống phanh'),
-
--- Booking 20 (VF e34, model_id=7)
-(20, 7, N'Kiểm tra pin điện áp cao'),
-(20, 105, N'Bổ sung nước rửa kính'),
-(20, 77, N'Kiểm tra ắc quy 12V'),
-
--- Booking 21 (VF 5 Plus, model_id=2)
-(21, 9, N'Đảo lốp'),
-(21, 2, N'Kiểm tra pin điện áp cao'),
-
--- Booking 22 (VF e34, model_id=7)
-(22, 84, N'Thay thế ắc quy 12V'),
-(22, 63, N'Chẩn đoán tổng thể xe'),
-
--- === 5. Đã hủy (CANCELLED) ===
--- Booking 23 (VF e34, model_id=7)
-(23, 7, N'Kiểm tra pin'),
-(23, 77, N'Kiểm tra ắc quy 12V'), -- (Hủy gói 2 dịch vụ)
-
--- Booking 24 (VF 9, model_id=6)
-(24, 55, N'Cân chỉnh góc đặt bánh xe'),
-
--- Booking 25 (VF 6, model_id=3)
-(25, 17, N'Kiểm tra hệ thống phanh'),
-(25, 10, N'Đảo lốp');
-
--- ================================================================================================================== --
--- BẢNG INVOICES - Định nghĩa các hoá đơn của đơn bảo dưỡng
--- BẢNG INVOICE LINES - Định nghĩa chi tiết các dịch vụ + linh kiện dùng trong đơn
--- ================================================================================================================== --
--- ================================================================================================================== --
--- BẢNG INVOICES - SỬA LẠI TOÀN BỘ LOGIC STATUS VÀ DUE_DATE
--- ================================================================================================================== --
+-- ================================================================
+-- Bảng INVOICES (25 records)
+-- ================================================================
 IF NOT EXISTS (SELECT 1 FROM invoices)
 INSERT INTO invoices
 (booking_id, invoice_number, issue_date, due_date, total_amount, status, created_at, updated_at, paid_at)
 VALUES
--- === 1. Đã hoàn thành (MAINTENANCE_COMPLETE) -> 'PAID' ===
+-- === MAINTENANCE_COMPLETE (1-10) -> PAID ===
 (1, 'INV-2025-00001', DATEADD(DAY, -30, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, -30, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 1080000, 'PAID', DATEADD(DAY, -35, GETDATE()), DATEADD(DAY, -30, GETDATE()), DATEADD(DAY, -30, GETDATE())),
 (2, 'INV-2025-00002', DATEADD(DAY, -25, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, -25, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 300000, 'PAID', DATEADD(DAY, -26, GETDATE()), DATEADD(DAY, -25, GETDATE()), DATEADD(DAY, -25, GETDATE())),
 (3, 'INV-2025-00003', DATEADD(DAY, -20, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, -20, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 1880000, 'PAID', DATEADD(DAY, -22, GETDATE()), DATEADD(DAY, -20, GETDATE()), DATEADD(DAY, -20, GETDATE())),
@@ -867,218 +801,197 @@ VALUES
 (9, 'INV-2025-00009', DATEADD(DAY, -3, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, -3, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 1340000, 'PAID', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -3, GETDATE())),
 (10, 'INV-2025-00010', DATEADD(DAY, -2, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, -2, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 200000, 'PAID', DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -2, GETDATE()), DATEADD(DAY, -2, GETDATE())),
 
--- === 2. Đang thực hiện (IN_PROGRESS) -> 'PAID' ===
+-- === IN_PROGRESS (11-13) -> PAID ===
 (11, 'INV-2025-00011', GETDATE(), DATEADD(HOUR, 8, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 1030000, 'PAID', DATEADD(DAY, -2, GETDATE()), GETDATE(), GETDATE()),
 (12, 'INV-2025-00012', GETDATE(), DATEADD(HOUR, 9, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 500000, 'PAID', DATEADD(DAY, -3, GETDATE()), GETDATE(), GETDATE()),
 (13, 'INV-2025-00013', GETDATE(), DATEADD(HOUR, 10, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 660000, 'PAID', DATEADD(DAY, -2, GETDATE()), GETDATE(), GETDATE()),
 
--- === 3. Đã xác nhận (CONFIRMED) -> 'UNPAID' ===
+-- === CONFIRMED (14-18) -> UNPAID ===
 (14, 'INV-2025-00014', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, 1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 1080000, 'UNPAID', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE()), NULL),
 (15, 'INV-2025-00015', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, 14, DATEADD(DAY, 1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 300000, 'UNPAID', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE()), NULL),
 (16, 'INV-2025-00016', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, 2, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 350000, 'UNPAID', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE()), NULL),
 (17, 'INV-2025-00017', GETDATE(), DATEADD(HOUR, 15, DATEADD(DAY, 2, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 600000, 'UNPAID', GETDATE(), GETDATE(), NULL),
 (18, 'INV-2025-00018', GETDATE(), DATEADD(HOUR, 9, DATEADD(DAY, 3, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 880000, 'UNPAID', GETDATE(), GETDATE(), NULL),
 
--- === 4. Đang chờ (PENDING) -> 'DRAFT' ===
+-- === (MỚI) PAID chờ đến giờ (22) -> PAID ===
+(22, 'INV-2025-00022', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, DATEPART(HOUR, GETDATE()) + 2, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 570000, 'PAID', DATEADD(DAY, -1, GETDATE()), GETDATE(), GETDATE()),
+
+-- === PENDING (19-21, 23) -> DRAFT ===
 (19, 'INV-2025-00019', GETDATE(), DATEADD(HOUR, 9, DATEADD(DAY, 4, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 610000, 'DRAFT', GETDATE(), GETDATE(), NULL),
 (20, 'INV-2025-00020', GETDATE(), DATEADD(HOUR, 9, DATEADD(DAY, 5, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 450000, 'DRAFT', GETDATE(), GETDATE(), NULL),
 (21, 'INV-2025-00021', GETDATE(), DATEADD(HOUR, 9, DATEADD(DAY, 6, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 450000, 'DRAFT', GETDATE(), GETDATE(), NULL),
-(22, 'INV-2025-00022', GETDATE(), DATEADD(HOUR, 9, DATEADD(DAY, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 2200000, 'DRAFT', GETDATE(), GETDATE(), NULL),
+(23, 'INV-2025-00023', GETDATE(), DATEADD(HOUR, 9, DATEADD(DAY, 7, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 2200000, 'DRAFT', GETDATE(), GETDATE(), NULL),
 
--- === 5. Đã hủy (CANCELLED) -> 'CANCELLED' (GIỮ NGUYÊN TỔNG TIỀN GỐC) ===
-(23, 'INV-2025-00023', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, -1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 400000, 'CANCELLED', DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -1, GETDATE()), NULL),
-(24, 'INV-2025-00024', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, 14, DATEADD(DAY, -1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 700000, 'CANCELLED', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -1, GETDATE()), NULL),
-(25, 'INV-2025-00025', DATEADD(DAY, -11, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, -10, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 360000, 'CANCELLED', DATEADD(DAY, -15, GETDATE()), DATEADD(DAY, -11, GETDATE()), NULL);
--- ================================================================================================================== --
--- BẢNG INVOICE LINES - SỬA LẠI (GIỮ GIÁ GỐC CHO ĐƠN HỦY)
--- ================================================================================================================== --
-IF
-NOT EXISTS (SELECT 1 FROM invoice_lines)
+-- === CANCELLED (24-26) -> CANCELLED ===
+(24, 'INV-2025-00024', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, -1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 400000, 'CANCELLED', DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -1, GETDATE()), NULL),
+(25, 'INV-2025-00025', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, 14, DATEADD(DAY, -1, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 700000, 'CANCELLED', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -1, GETDATE()), NULL),
+(26, 'INV-2025-00026', DATEADD(DAY, -11, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, -10, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 360000, 'CANCELLED', DATEADD(DAY, -15, GETDATE()), DATEADD(DAY, -11, GETDATE()), NULL);
+
+-- ================================================================
+-- Bảng INVOICE_LINES
+-- ================================================================
+IF NOT EXISTS (SELECT 1 FROM invoice_lines)
 INSERT INTO invoice_lines
 (invoice_id, item_description, item_type, quantity, unit_price, line_total)
 VALUES
--- (Hóa đơn 1-18 giữ nguyên)
+-- Invoice 1
 (1, N'DV: Kiểm tra pin điện áp cao', 'SERVICE', 1, 450000, 450000),
 (1, N'DV: Đảo lốp', 'SERVICE', 1, 200000, 200000),
 (1, N'DV: Thay lọc gió cabin', 'SERVICE', 1, 80000, 80000),
 (1, N'LK: Lọc gió cabin (Loại L)', 'PART', 1, 300000, 300000),
 (1, N'DV: Bổ sung nước rửa kính', 'SERVICE', 1, 0, 0),
 (1, N'LK: Nước rửa kính (2L)', 'PART', 1, 50000, 50000),
+-- Invoice 2
 (2, N'DV: Đảo lốp', 'SERVICE', 1, 150000, 150000),
 (2, N'DV: Kiểm tra hệ thống phanh', 'SERVICE', 1, 150000, 150000),
+-- Invoice 3
 (3, N'DV: Dịch vụ hệ thống làm mát pin', 'SERVICE', 1, 350000, 350000),
 (3, N'LK: Nước làm mát pin (EV Coolant) (5L)', 'PART', 1, 750000, 750000),
 (3, N'DV: Cân chỉnh góc đặt bánh xe', 'SERVICE', 1, 400000, 400000),
 (3, N'DV: Thay dầu phanh', 'SERVICE', 1, 200000, 200000),
 (3, N'LK: Dầu phanh DOT 4 (1L)', 'PART', 1, 180000, 180000),
+-- Invoice 4
 (4, N'DV: Kiểm tra hệ thống treo', 'SERVICE', 1, 350000, 350000),
 (4, N'DV: Kiểm tra ắc quy 12V', 'SERVICE', 1, 100000, 100000),
+-- Invoice 5
 (5, N'DV: Kiểm tra hệ thống phanh', 'SERVICE', 1, 180000, 180000),
 (5, N'DV: Thay gạt mưa', 'SERVICE', 1, 50000, 50000),
 (5, N'LK: Gạt mưa Bosch 24"', 'PART', 1, 180000, 180000),
 (5, N'LK: Gạt mưa Bosch 26"', 'PART', 1, 200000, 200000),
+-- Invoice 6
 (6, N'DV: Đảo lốp', 'SERVICE', 1, 150000, 150000),
 (6, N'DV: Bổ sung nước rửa kính', 'SERVICE', 1, 0, 0),
 (6, N'LK: Nước rửa kính (2L)', 'PART', 1, 50000, 50000),
 (6, N'DV: Kiểm tra ắc quy 12V', 'SERVICE', 1, 100000, 100000),
+-- Invoice 7
 (7, N'DV: Bảo dưỡng hệ thống điều hòa', 'SERVICE', 1, 450000, 450000),
 (7, N'DV: Thay lọc gió cabin', 'SERVICE', 1, 50000, 50000),
 (7, N'LK: Lọc gió cabin (Loại M)', 'PART', 1, 220000, 220000),
+-- Invoice 8
 (8, N'DV: Thay thế ắc quy 12V', 'SERVICE', 1, 100000, 100000),
 (8, N'LK: Ắc quy 12V 45Ah (AGM)', 'PART', 1, 1800000, 1800000),
 (8, N'DV: Cập nhật phần mềm', 'SERVICE', 1, 0, 0),
+-- Invoice 9
 (9, N'DV: Thay dầu phanh', 'SERVICE', 1, 300000, 300000),
 (9, N'LK: Dầu phanh DOT 4 (1L)', 'PART', 2, 180000, 360000),
 (9, N'DV: Thay lọc gió cabin', 'SERVICE', 1, 80000, 80000),
 (9, N'LK: Lọc gió cabin (Loại L)', 'PART', 1, 300000, 300000),
 (9, N'DV: Kiểm tra hệ thống treo', 'SERVICE', 1, 300000, 300000),
+-- Invoice 10
 (10, N'DV: Kiểm tra hệ thống phanh', 'SERVICE', 1, 150000, 150000),
 (10, N'DV: Bổ sung nước rửa kính', 'SERVICE', 1, 0, 0),
 (10, N'LK: Nước rửa kính (2L)', 'PART', 1, 50000, 50000),
+-- Invoice 11
 (11, N'DV: Chẩn đoán tổng thể xe', 'SERVICE', 1, 500000, 500000),
 (11, N'DV: Cập nhật phần mềm', 'SERVICE', 1, 0, 0),
 (11, N'DV: Kiểm tra ắc quy 12V', 'SERVICE', 1, 100000, 100000),
 (11, N'DV: Thay gạt mưa', 'SERVICE', 1, 50000, 50000),
 (11, N'LK: Gạt mưa Bosch 24"', 'PART', 1, 180000, 180000),
 (11, N'LK: Gạt mưa Bosch 26"', 'PART', 1, 200000, 200000),
+-- Invoice 12
 (12, N'DV: Kiểm tra pin điện áp cao', 'SERVICE', 1, 300000, 300000),
 (12, N'DV: Thay lọc gió cabin', 'SERVICE', 1, 50000, 50000),
 (12, N'LK: Lọc gió cabin (Loại S)', 'PART', 1, 150000, 150000),
+-- Invoice 13
 (13, N'DV: Thay gạt mưa', 'SERVICE', 1, 50000, 50000),
 (13, N'LK: Gạt mưa Bosch 24"', 'PART', 1, 180000, 180000),
 (13, N'LK: Gạt mưa Bosch 26"', 'PART', 1, 200000, 200000),
 (13, N'DV: Bổ sung nước rửa kính', 'SERVICE', 1, 0, 0),
 (13, N'LK: Nước rửa kính (2L)', 'PART', 1, 50000, 50000),
 (13, N'DV: Đảo lốp', 'SERVICE', 1, 180000, 180000),
+-- Invoice 14
 (14, N'DV: Thay lọc gió cabin', 'SERVICE', 1, 80000, 80000),
 (14, N'LK: Lọc gió cabin (Loại L)', 'PART', 1, 300000, 300000),
 (14, N'DV: Kiểm tra ắc quy 12V', 'SERVICE', 1, 100000, 100000),
 (14, N'DV: Đảo lốp', 'SERVICE', 1, 250000, 250000),
 (14, N'DV: Kiểm tra hệ thống treo', 'SERVICE', 1, 350000, 350000),
+-- Invoice 15
 (15, N'DV: Đảo lốp', 'SERVICE', 1, 150000, 150000),
 (15, N'DV: Kiểm tra hệ thống phanh', 'SERVICE', 1, 150000, 150000),
+-- Invoice 16
 (16, N'DV: Kiểm tra hệ thống treo', 'SERVICE', 1, 300000, 300000),
 (16, N'DV: Bổ sung nước rửa kính', 'SERVICE', 1, 0, 0),
 (16, N'LK: Nước rửa kính (2L)', 'PART', 1, 50000, 50000),
+-- Invoice 17
 (17, N'DV: Cân chỉnh góc đặt bánh xe', 'SERVICE', 1, 400000, 400000),
 (17, N'DV: Thay lọc gió cabin', 'SERVICE', 1, 50000, 50000),
 (17, N'LK: Lọc gió cabin (Loại S)', 'PART', 1, 150000, 150000),
+-- Invoice 18
 (18, N'DV: Bảo dưỡng hệ thống điều hòa', 'SERVICE', 1, 450000, 450000),
 (18, N'DV: Thay dầu phanh', 'SERVICE', 1, 250000, 250000),
 (18, N'LK: Dầu phanh DOT 4 (1L)', 'PART', 1, 180000, 180000),
-
--- === Hóa đơn 19-22 (Booking 19-22) - DRAFT (Bổ sung) ===
+-- Invoice 19
 (19, N'DV: Thay dầu phanh', 'SERVICE', 1, 250000, 250000),
 (19, N'LK: Dầu phanh DOT 4 (1L)', 'PART', 1, 180000, 180000),
 (19, N'DV: Kiểm tra hệ thống phanh', 'SERVICE', 1, 180000, 180000),
+-- Invoice 20
 (20, N'DV: Kiểm tra pin điện áp cao', 'SERVICE', 1, 300000, 300000),
 (20, N'DV: Bổ sung nước rửa kính', 'SERVICE', 1, 0, 0),
 (20, N'LK: Nước rửa kính (2L)', 'PART', 1, 50000, 50000),
 (20, N'DV: Kiểm tra ắc quy 12V', 'SERVICE', 1, 100000, 100000),
+-- Invoice 21
 (21, N'DV: Đảo lốp', 'SERVICE', 1, 150000, 150000),
 (21, N'DV: Kiểm tra pin điện áp cao', 'SERVICE', 1, 300000, 300000),
-(22, N'DV: Thay thế ắc quy 12V', 'SERVICE', 1, 100000, 100000),
-(22, N'LK: Ắc quy 12V 45Ah (AGM)', 'PART', 1, 1800000, 1800000),
-(22, N'DV: Chẩn đoán tổng thể xe', 'SERVICE', 1, 300000, 300000),
+-- Invoice 22 (MỚI - PAID chờ đến giờ)
+(22, N'DV: Kiểm tra pin điện áp cao', 'SERVICE', 1, 300000, 300000),
+(22, N'DV: Thay lọc gió cabin', 'SERVICE', 1, 50000, 50000),
+(22, N'LK: Lọc gió cabin (Loại M)', 'PART', 1, 220000, 220000),
+-- Invoice 23
+(23, N'DV: Thay thế ắc quy 12V', 'SERVICE', 1, 100000, 100000),
+(23, N'LK: Ắc quy 12V 45Ah (AGM)', 'PART', 1, 1800000, 1800000),
+(23, N'DV: Chẩn đoán tổng thể xe', 'SERVICE', 1, 300000, 300000),
+-- Invoice 24 (CANCELLED)
+(24, N'DV: Kiểm tra pin', 'SERVICE', 1, 300000, 300000),
+(24, N'DV: Kiểm tra ắc quy 12V', 'SERVICE', 1, 100000, 100000),
+-- Invoice 25 (CANCELLED)
+(25, N'DV: Cân chỉnh góc đặt bánh xe', 'SERVICE', 1, 700000, 700000),
+-- Invoice 26 (CANCELLED)
+(26, N'DV: Kiểm tra hệ thống phanh', 'SERVICE', 1, 180000, 180000),
+(26, N'DV: Đảo lốp', 'SERVICE', 1, 180000, 180000);
 
--- === SỬA: BỔ SUNG INVOICE LINES CHO HÓA ĐƠN 23, 24, 25 (CANCELLED) - GIỮ GIÁ GỐC ===
-(23, N'DV: Kiểm tra pin', 'SERVICE', 1, 300000, 300000),
-(23, N'DV: Kiểm tra ắc quy 12V', 'SERVICE', 1, 100000, 100000),
-(24, N'DV: Cân chỉnh góc đặt bánh xe', 'SERVICE', 1, 700000, 700000),
-(25, N'DV: Kiểm tra hệ thống phanh', 'SERVICE', 1, 180000, 180000),
-(25, N'DV: Đảo lốp', 'SERVICE', 1, 180000, 180000);
-
--- ================================================================================================================== --
--- BẢNG JOBS - Định nghĩa các công việc được phân công cho kỹ thuật viên
--- ================================================================================================================== --
--- Chú thích:
--- Booking 11-13 đang ở trạng thái IN_PROGRESS → Hệ thống tự động tạo Jobs
--- Mỗi BookingDetail sẽ có 1 Job tương ứng
--- Staff sẽ assign technician cho các Job này
-
--- CÁC ID ĐÃ ĐƯỢC SỬA LẠI (TỪ 26-34) THAY VÌ (78-86) ĐỂ KHỚP VỚI BOOKING_DETAILS
+-- ================================================================
+-- Bảng JOBS (13 records)
+-- ================================================================
 IF NOT EXISTS (SELECT 1 FROM jobs)
 INSERT INTO jobs
 (booking_id, technician_id, start_time, est_end_time, actual_end_time, notes, created_at, updated_at)
 VALUES
--- === 10 JOBS CHO 10 BOOKING "MAINTENANCE_COMPLETE" (ID 1-10) ===
--- (Est: 9h-11h (2 tiếng), Actual: > 2 tiếng)
+-- === 10 JOBS cho MAINTENANCE_COMPLETE (Bookings 1-10) ===
+(1, 9, DATEADD(HOUR, 9, DATEADD(DAY, -30, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -30, GETDATE())), DATEADD(MINUTE, 150, DATEADD(HOUR, 9, DATEADD(DAY, -30, GETDATE()))), N'Hoàn thành bảo dưỡng đầy đủ', DATEADD(DAY, -35, GETDATE()), DATEADD(DAY, -30, GETDATE())),
+(2, 10, DATEADD(HOUR, 9, DATEADD(DAY, -25, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -25, GETDATE())), DATEADD(MINUTE, 180, DATEADD(HOUR, 9, DATEADD(DAY, -25, GETDATE()))), N'Hoàn thành đảo lốp và kiểm tra phanh', DATEADD(DAY, -26, GETDATE()), DATEADD(DAY, -25, GETDATE())),
+(3, 11, DATEADD(HOUR, 9, DATEADD(DAY, -20, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -20, GETDATE())), DATEADD(MINUTE, 135, DATEADD(HOUR, 9, DATEADD(DAY, -20, GETDATE()))), N'Hoàn thành bảo dưỡng hệ thống làm mát', DATEADD(DAY, -22, GETDATE()), DATEADD(DAY, -20, GETDATE())),
+(4, 12, DATEADD(HOUR, 9, DATEADD(DAY, -15, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -15, GETDATE())), DATEADD(MINUTE, 150, DATEADD(HOUR, 9, DATEADD(DAY, -15, GETDATE()))), N'Hoàn thành kiểm tra hệ thống treo', DATEADD(DAY, -16, GETDATE()), DATEADD(DAY, -15, GETDATE())),
+(5, 13, DATEADD(HOUR, 9, DATEADD(DAY, -10, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -10, GETDATE())), DATEADD(MINUTE, 180, DATEADD(HOUR, 9, DATEADD(DAY, -10, GETDATE()))), N'Hoàn thành thay gạt mưa và kiểm tra', DATEADD(DAY, -11, GETDATE()), DATEADD(DAY, -10, GETDATE())),
+(6, 14, DATEADD(HOUR, 9, DATEADD(DAY, -7, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -7, GETDATE())), DATEADD(MINUTE, 135, DATEADD(HOUR, 9, DATEADD(DAY, -7, GETDATE()))), N'Hoàn thành bảo dưỡng cơ bản', DATEADD(DAY, -8, GETDATE()), DATEADD(DAY, -7, GETDATE())),
+(7, 15, DATEADD(HOUR, 9, DATEADD(DAY, -5, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -5, GETDATE())), DATEADD(MINUTE, 150, DATEADD(HOUR, 9, DATEADD(DAY, -5, GETDATE()))), N'Hoàn thành bảo dưỡng điều hòa', DATEADD(DAY, -6, GETDATE()), DATEADD(DAY, -5, GETDATE())),
+(8, 16, DATEADD(HOUR, 9, DATEADD(DAY, -4, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -4, GETDATE())), DATEADD(MINUTE, 180, DATEADD(HOUR, 9, DATEADD(DAY, -4, GETDATE()))), N'Hoàn thành thay ắc quy 12V', DATEADD(DAY, -5, GETDATE()), DATEADD(DAY, -4, GETDATE())),
+(9, 17, DATEADD(HOUR, 9, DATEADD(DAY, -3, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -3, GETDATE())), DATEADD(MINUTE, 135, DATEADD(HOUR, 9, DATEADD(DAY, -3, GETDATE()))), N'Hoàn thành thay dầu phanh và lọc gió', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -3, GETDATE())),
+(10, 18, DATEADD(HOUR, 9, DATEADD(DAY, -2, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -2, GETDATE())), DATEADD(MINUTE, 150, DATEADD(HOUR, 9, DATEADD(DAY, -2, GETDATE()))), N'Hoàn thành kiểm tra phanh', DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -2, GETDATE())),
 
--- (Job 1) Est: 2h, Actual: 2.5h (11:30) -> Perf = 80%
-(1, 9, DATEADD(HOUR, 9, DATEADD(DAY, -30, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -30, GETDATE())), DATEADD(MINUTE, 150, DATEADD(HOUR, 9, DATEADD(DAY, -30, GETDATE()))), N'Hoàn thành bảo dưỡng (Job for Booking 1)', DATEADD(DAY, -35, GETDATE()), DATEADD(DAY, -30, GETDATE())),
--- (Job 2) Est: 2h, Actual: 3h (12:00) -> Perf = 66.7%
-(2, 10, DATEADD(HOUR, 9, DATEADD(DAY, -25, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -25, GETDATE())), DATEADD(MINUTE, 180, DATEADD(HOUR, 9, DATEADD(DAY, -25, GETDATE()))), N'Hoàn thành thay lốp (Job for Booking 2)', DATEADD(DAY, -26, GETDATE()), DATEADD(DAY, -25, GETDATE())),
--- (Job 3) Est: 2h, Actual: 2.25h (11:15) -> Perf = 88.9%
-(3, 11, DATEADD(HOUR, 9, DATEADD(DAY, -20, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -20, GETDATE())), DATEADD(MINUTE, 135, DATEADD(HOUR, 9, DATEADD(DAY, -20, GETDATE()))), N'Hoàn thành kiểm tra pin (Job for Booking 3)', DATEADD(DAY, -22, GETDATE()), DATEADD(DAY, -20, GETDATE())),
--- (Job 4) Est: 2h, Actual: 2.5h (11:30) -> Perf = 80%
-(4, 12, DATEADD(HOUR, 9, DATEADD(DAY, -15, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -15, GETDATE())), DATEADD(MINUTE, 150, DATEADD(HOUR, 9, DATEADD(DAY, -15, GETDATE()))), N'Hoàn thành sửa lỗi phần mềm (Job for Booking 4)', DATEADD(DAY, -16, GETDATE()), DATEADD(DAY, -15, GETDATE())),
--- (Job 5) Est: 2h, Actual: 3h (12:00) -> Perf = 66.7%
-(5, 13, DATEADD(HOUR, 9, DATEADD(DAY, -10, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -10, GETDATE())), DATEADD(MINUTE, 180, DATEADD(HOUR, 9, DATEADD(DAY, -10, GETDATE()))), N'Hoàn thành bảo dưỡng (Job for Booking 5)', DATEADD(DAY, -11, GETDATE()), DATEADD(DAY, -10, GETDATE())),
--- (Job 6) Est: 2h, Actual: 2.25h (11:15) -> Perf = 88.9%
-(6, 14, DATEADD(HOUR, 9, DATEADD(DAY, -7, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -7, GETDATE())), DATEADD(MINUTE, 135, DATEADD(HOUR, 9, DATEADD(DAY, -7, GETDATE()))), N'Hoàn thành thay dầu phanh (Job for Booking 6)', DATEADD(DAY, -8, GETDATE()), DATEADD(DAY, -7, GETDATE())),
--- (Job 7) Est: 2h, Actual: 2.5h (11:30) -> Perf = 80%
-(7, 15, DATEADD(HOUR, 9, DATEADD(DAY, -5, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -5, GETDATE())), DATEADD(MINUTE, 150, DATEADD(HOUR, 9, DATEADD(DAY, -5, GETDATE()))), N'Hoàn thành (Job for Booking 7)', DATEADD(DAY, -6, GETDATE()), DATEADD(DAY, -5, GETDATE())),
--- (Job 8) Est: 2h, Actual: 3h (12:00) -> Perf = 66.7%
-(8, 16, DATEADD(HOUR, 9, DATEADD(DAY, -4, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -4, GETDATE())), DATEADD(MINUTE, 180, DATEADD(HOUR, 9, DATEADD(DAY, -4, GETDATE()))), N'Hoàn thành (Job for Booking 8)', DATEADD(DAY, -5, GETDATE()), DATEADD(DAY, -4, GETDATE())),
--- (Job 9) Est: 2h, Actual: 2.25h (11:15) -> Perf = 88.9%
-(9, 17, DATEADD(HOUR, 9, DATEADD(DAY, -3, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -3, GETDATE())), DATEADD(MINUTE, 135, DATEADD(HOUR, 9, DATEADD(DAY, -3, GETDATE()))), N'Hoàn thành (Job for Booking 9)', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -3, GETDATE())),
--- (Job 10) Est: 2h, Actual: 2.5h (11:30) -> Perf = 80%
-(10, 18, DATEADD(HOUR, 9, DATEADD(DAY, -2, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -2, GETDATE())), DATEADD(MINUTE, 150, DATEADD(HOUR, 9, DATEADD(DAY, -2, GETDATE()))), N'Hoàn thành (Job for Booking 10)', DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -2, GETDATE())),
+-- === 3 JOBS cho IN_PROGRESS (Bookings 11-13) ===
+(11, 9, DATEADD(HOUR, 8, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), DATEADD(HOUR, 10, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), NULL, N'Đang thực hiện chẩn đoán tổng thể hệ thống điện', DATEADD(HOUR, 8, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), DATEADD(HOUR, 8, CAST(CAST(GETDATE() AS DATE) AS DATETIME))),
+(12, 10, DATEADD(HOUR, 9, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), DATEADD(HOUR, 11, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), NULL, N'Đang kiểm tra pin, SoH hiện tại 97.2%, dự kiến hoàn thành 11:00', DATEADD(HOUR, 9, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), DATEADD(HOUR, 9, CAST(CAST(GETDATE() AS DATE) AS DATETIME))),
+(13, 11, DATEADD(HOUR, 10, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), DATEADD(HOUR, 12, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), NULL, N'Đang thực hiện thay gạt mưa và đảo lốp', DATEADD(HOUR, 10, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), DATEADD(HOUR, 10, CAST(CAST(GETDATE() AS DATE) AS DATETIME)));
 
--- === 3 JOBS CHO 3 BOOKING "IN_PROGRESS" (ID 11-13) ===
--- (Phần này giữ nguyên, vì nó không được tính vào bảng xếp hạng)
-(11, 9,
-    DATEADD(HOUR, 8, DATEDIFF(DAY, 0, GETDATE())),
-    DATEADD(HOUR, 10, DATEDIFF(DAY, 0, GETDATE())),
-    NULL,
-    N'Đang thực hiện chẩn đoán hệ thống điện (Job for Booking 11)',
-    DATEADD(HOUR, 8, DATEDIFF(DAY, 0, GETDATE())),
-    DATEADD(HOUR, 8, DATEDIFF(DAY, 0, GETDATE()))
-),
-(12, 10,
-    DATEADD(HOUR, 9, DATEDIFF(DAY, 0, GETDATE())),
-    DATEADD(HOUR, 11, DATEDIFF(DAY, 0, GETDATE())),
-    NULL,
-    N'Đang kiểm tra tình trạng pin, SoH hiện tại 97.2% (Job for Booking 12)',
-    DATEADD(HOUR, 9, DATEDIFF(DAY, 0, GETDATE())),
-    DATEADD(HOUR, 9, DATEDIFF(DAY, 0, GETDATE()))
-),
-(13, 11,
-    DATEADD(HOUR, 10, DATEDIFF(DAY, 0, GETDATE())),
-    DATEADD(HOUR, 12, DATEDIFF(DAY, 0, GETDATE())),
-    NULL,
-    N'Công việc cho lịch hẹn #13, đang kiểm tra phanh (Job for Booking 13)',
-    DATEADD(HOUR, 10, DATEDIFF(DAY, 0, GETDATE())),
-    DATEADD(HOUR, 10, DATEDIFF(DAY, 0, GETDATE()))
-);
-
--- ================================================================================================================== --
--- BẢNG PAYMENTS - (CẬP NHẬT) Dùng PENDING, SUCCESSFUL, FAILED
--- ================================================================================================================== --
+-- ================================================================
+-- Bảng PAYMENTS (14 records - ĐÃ SỬA + THÊM BOOKING 22)
+-- ================================================================
 IF NOT EXISTS (SELECT 1 FROM payments)
 INSERT INTO payments
 (invoice_id, payment_method, amount, status, order_code, transaction_ref, response_code, paid_at, raw_response_data, created_at, updated_at)
 VALUES
--- === Các hóa đơn đã PAID (1-8) -> Trạng thái: SUCCESSFUL ===
--- HĐ 1 (VNPAY, 1,080,000)
-(1, 'VNPAY', 1080000.00, 'SUCCESSFUL', 'PAY-INV-00001', '14523456', '00', DATEADD(DAY, -30, GETDATE()), N'{"vnp_Amount":"108000000", "vnp_BankCode":"NCB", "vnp_ResponseCode":"00"}', DATEADD(DAY, -30, GETDATE()), DATEADD(DAY, -30, GETDATE())),
--- HĐ 2 (CASH, 300,000)
-(2, 'VNPAY', 300000.00, 'SUCCESSFUL', 'PAY-INV-00002', NULL, NULL, DATEADD(DAY, -25, GETDATE()), NULL, DATEADD(DAY, -25, GETDATE()), DATEADD(DAY, -25, GETDATE())),
--- HĐ 3 (CASH, 1,880,000)
-(3, 'VNPAY', 1880000.00, 'SUCCESSFUL', 'PAY-INV-00003', NULL, NULL, DATEADD(DAY, -20, GETDATE()), NULL, DATEADD(DAY, -20, GETDATE()), DATEADD(DAY, -20, GETDATE())),
--- HĐ 4 (CASH, 450,000)
-(4, 'VNPAY', 450000.00, 'SUCCESSFUL', 'PAY-INV-00004', NULL, NULL, DATEADD(DAY, -15, GETDATE()), NULL, DATEADD(DAY, -15, GETDATE()), DATEADD(DAY, -15, GETDATE())),
--- HĐ 5 (CASH, 610,000)
-(5, 'VNPAY', 610000.00, 'SUCCESSFUL', 'PAY-INV-00005', NULL, NULL, DATEADD(DAY, -10, GETDATE()), NULL, DATEADD(DAY, -10, GETDATE()), DATEADD(DAY, -10, GETDATE())),
--- HĐ 6 (VNPAY, 300,000)
-(6, 'VNPAY', 300000.00, 'SUCCESSFUL', 'PAY-INV-00006', '14529876', '00', DATEADD(DAY, -7, GETDATE()), NULL, DATEADD(DAY, -7, GETDATE()), DATEADD(DAY, -7, GETDATE())),
--- HĐ 7 (CASH, 720,000)
-(7, 'VNPAY', 720000.00, 'SUCCESSFUL', 'PAY-INV-00007', NULL, NULL, DATEADD(DAY, -5, GETDATE()), NULL, DATEADD(DAY, -5, GETDATE()), DATEADD(DAY, -5, GETDATE())),
--- HĐ 8 (VNPAY, 1,900,000)
-(8, 'VNPAY', 1900000.00, 'SUCCESSFUL', 'PAY-INV-00008', '14530001', '00', DATEADD(DAY, -4, GETDATE()), N'{"vnp_Amount":"190000000", "vnp_BankCode":"QR", "vnp_ResponseCode":"00"}', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -4, GETDATE())),
-
--- === Các hóa đơn UNPAID (9-10) -> Trạng thái: PENDING / FAILED ===
--- HĐ 9 (1,340,000) - VNPAY PENDING
-(9, 'VNPAY', 1340000.00, 'PENDING', 'PAY-INV-00009', NULL, NULL, NULL, NULL, GETDATE(), GETDATE()),
--- HĐ 10 (200,000) - VNPAY FAILED
-(10, 'VNPAY', 200000.00, 'FAILED', 'PAY-INV-00010', '14531122', '09', NULL, N'{"vnp_ResponseCode":"09", "vnp_Message":"Invalid card number"}', DATEADD(DAY, -1, GETDATE()), DATEADD(DAY, -1, GETDATE()));
+-- === PAID Invoices (1-13 + 22) -> SUCCESSFUL ===
+(1, 'VNPAY', 1080000.00, 'SUCCESSFUL', 'PAY-INV-00001', '14523456', '00', DATEADD(DAY, -30, GETDATE()), N'{"vnp_Amount":"108000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -30, GETDATE()), DATEADD(DAY, -30, GETDATE())),
+(2, 'VNPAY', 300000.00, 'SUCCESSFUL', 'PAY-INV-00002', '14523789', '00', DATEADD(DAY, -25, GETDATE()), N'{"vnp_Amount":"30000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -25, GETDATE()), DATEADD(DAY, -25, GETDATE())),
+(3, 'VNPAY', 1880000.00, 'SUCCESSFUL', 'PAY-INV-00003', '14524001', '00', DATEADD(DAY, -20, GETDATE()), N'{"vnp_Amount":"188000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -20, GETDATE()), DATEADD(DAY, -20, GETDATE())),
+(4, 'VNPAY', 450000.00, 'SUCCESSFUL', 'PAY-INV-00004', '14525123', '00', DATEADD(DAY, -15, GETDATE()), N'{"vnp_Amount":"45000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -15, GETDATE()), DATEADD(DAY, -15, GETDATE())),
+(5, 'VNPAY', 610000.00, 'SUCCESSFUL', 'PAY-INV-00005', '14526456', '00', DATEADD(DAY, -10, GETDATE()), N'{"vnp_Amount":"61000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -10, GETDATE()), DATEADD(DAY, -10, GETDATE())),
+(6, 'VNPAY', 300000.00, 'SUCCESSFUL', 'PAY-INV-00006', '14527789', '00', DATEADD(DAY, -7, GETDATE()), N'{"vnp_Amount":"30000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -7, GETDATE()), DATEADD(DAY, -7, GETDATE())),
+(7, 'VNPAY', 720000.00, 'SUCCESSFUL', 'PAY-INV-00007', '14528012', '00', DATEADD(DAY, -5, GETDATE()), N'{"vnp_Amount":"72000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -5, GETDATE()), DATEADD(DAY, -5, GETDATE())),
+(8, 'VNPAY', 1900000.00, 'SUCCESSFUL', 'PAY-INV-00008', '14529345', '00', DATEADD(DAY, -4, GETDATE()), N'{"vnp_Amount":"190000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -4, GETDATE())),
+(9, 'VNPAY', 1340000.00, 'SUCCESSFUL', 'PAY-INV-00009', '14530678', '00', DATEADD(DAY, -3, GETDATE()), N'{"vnp_Amount":"134000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -3, GETDATE())),
+(10, 'VNPAY', 200000.00, 'SUCCESSFUL', 'PAY-INV-00010', '14530901', '00', DATEADD(DAY, -2, GETDATE()), N'{"vnp_Amount":"20000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -2, GETDATE()), DATEADD(DAY, -2, GETDATE())),
+(11, 'VNPAY', 1030000.00, 'SUCCESSFUL', 'PAY-INV-00011', '14531234', '00', GETDATE(), N'{"vnp_Amount":"103000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE()),
+(12, 'VNPAY', 500000.00, 'SUCCESSFUL', 'PAY-INV-00012', '14531567', '00', GETDATE(), N'{"vnp_Amount":"50000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE()),
+(13, 'VNPAY', 660000.00, 'SUCCESSFUL', 'PAY-INV-00013', '14531890', '00', GETDATE(), N'{"vnp_Amount":"66000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE()),
+(22, 'VNPAY', 570000.00, 'SUCCESSFUL', 'PAY-INV-00022', '14532123', '00', GETDATE(), N'{"vnp_Amount":"57000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE());

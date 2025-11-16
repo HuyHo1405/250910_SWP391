@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 public class VehicleService implements IVehicleService {
 
     private final AccessControlService accessControlService;
+    private final UserContextService userContextService;
+
     private final VehicleRepo vehicleRepo;
     private final UserRepo userRepo;
     private final VehicleModelRepo vehicleModelRepo;
@@ -151,8 +153,12 @@ public class VehicleService implements IVehicleService {
     }
 
     private User getUserOrThrow(Long userId) {
-        return userRepo.findById(userId)
+        User user = userRepo.findById(userId)
                 .orElseThrow(() -> new CommonException.NotFound("User", userId));
+
+        userContextService.checkRoleEditable(user.getRole().getDisplayName());
+
+        return user;
     }
 
     private VehicleModel getVehicleModelOrThrow(Long modelId) {

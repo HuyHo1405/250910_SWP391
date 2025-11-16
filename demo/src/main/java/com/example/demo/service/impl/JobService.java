@@ -12,6 +12,7 @@ import com.example.demo.model.modelEnum.JobStatus;
 import com.example.demo.repo.BookingRepo;
 import com.example.demo.repo.JobRepo;
 import com.example.demo.repo.UserRepo;
+import com.example.demo.service.interfaces.IBookingStatusService;
 import com.example.demo.service.interfaces.IJobService;
 import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class JobService implements IJobService {
     private final JobRepo jobRepo;
     private final BookingRepo bookingRepo;
     private final UserRepo userRepo;
+    private final IBookingStatusService bookingStatusService;
 
     @Override
     @Transactional
@@ -87,8 +89,18 @@ public class JobService implements IJobService {
         Job job = jobRepo.findById(jobId).orElseThrow(() -> new CommonException.NotFound("Job", jobId));
         accessControlService.verifyResourceAccess(job.getTechnician().getId(), "JOB", "START");
 
+        if(job.getTechnician() == null){
+            throw new CommonException.InvalidOperation("NO_TECHNICIAN_ASSIGNED", "Không thể bắt đầu Job chưa được gán kỹ thuật viên");
+        }
+
         if (job.getStartTime() != null)
             throw new CommonException.Conflict("JOB_ALREADY_STARTED", "Job đã được bắt đầu");
+
+        if(job.getBooking().getScheduleDate().isAfter(LocalDateTime.now())){
+            throw new CommonException.InvalidOperation("CANNOT_START_EARLY", "Không thể bắt đầu Job trước thời gian đã lên lịch");
+        }
+
+        bookingStatusService.startMaintenance(job.getBooking().getId());
 
         // Calculate total estimated time from all booking details
         Double totalEstTimeMinutes = job.getBooking().getBookingDetails().stream()
@@ -99,6 +111,7 @@ public class JobService implements IJobService {
         // Set start time and estimated end time
         job.setStartTime(LocalDateTime.now());
         job.setEstEndTime(LocalDateTime.now().plusMinutes(totalEstTimeMinutes.longValue()));
+
 
         // Update booking status to IN_PROGRESS
         job.getBooking().setBookingStatus(BookingStatus.IN_PROGRESS);

@@ -46,7 +46,7 @@ public class BookingStatusService implements IBookingStatusService {
 
     private final JobRepo jobRepo;
     private final UserRepo userRepo;
-    private final JobService jobService;
+//    private final JobService jobService;
     private final PaymentService paymentService;
 
     @Override
@@ -149,11 +149,11 @@ public class BookingStatusService implements IBookingStatusService {
 
     @Override
     @Transactional
-    public BookingResponse startMaintenance(Long id, Long technicianId) {
+    public BookingResponse startMaintenance(Long id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CommonException.NotFound("Booking", id));
 
-        accessControlService.verifyCanAccessAllResources( "BOOKING", "start-maintenance");
+//        accessControlService.verifyCanAccessAllResources( "BOOKING", "start-maintenance");
 
         // 🔄 THAY ĐỔI: Phải PAID mới được bắt đầu
         if (booking.getBookingStatus() != BookingStatus.PAID) {
@@ -162,10 +162,36 @@ public class BookingStatusService implements IBookingStatusService {
             );
         }
 
+        booking.setBookingStatus(BookingStatus.IN_PROGRESS);
+        usePartsForMaintenance(booking);
+
+        // Tạo Job duy nhất cho Booking (One-to-One)
+//        createJobForBooking(booking, technician);
+
+        log.info("Booking {} started maintenance. Created job.", id);
+
+        // Trả về DTO đầy đủ
+        return BookingResponseMapper.toDtoFull(booking);
+    }
+
+    @Override
+    public BookingResponse assignTechnician(Long id, Long technicianId) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new CommonException.NotFound("Booking", id));
+
+        accessControlService.verifyCanAccessAllResources( "JOB", "create");
+
+        // 🔄 THAY ĐỔI: Phải PAID mới được bắt đầu
+        if (booking.getBookingStatus() != BookingStatus.PAID) {
+            throw new CommonException.InvalidOperation(
+                    "Chưa thanh toán, không thể phân công. Trạng thái hiện tại: " + booking.getBookingStatus()
+            );
+        }
+
         User technician = userRepo.findById(technicianId)
                 .orElseThrow(() -> new CommonException.NotFound("User Technician", technicianId));
 
-        boolean checkAvailable = jobService.isTechnicianAvailableAtTime(technicianId, booking.getScheduleDate(), null);
+        boolean checkAvailable = isTechnicianAvailableAtTime(technicianId, booking.getScheduleDate(), null);
 
         if (!checkAvailable) {
             throw new CommonException.InvalidOperation(
@@ -173,16 +199,8 @@ public class BookingStatusService implements IBookingStatusService {
             );
         }
 
-        booking.setBookingStatus(BookingStatus.IN_PROGRESS);
-
-        usePartsForMaintenance(booking);
-
-        // Tạo Job duy nhất cho Booking (One-to-One)
         createJobForBooking(booking, technician);
 
-        log.info("Booking {} started maintenance. Created job.", id);
-
-        // Trả về DTO đầy đủ
         return BookingResponseMapper.toDtoFull(booking);
     }
 
@@ -308,6 +326,8 @@ public class BookingStatusService implements IBookingStatusService {
             throw new CommonException.InvalidOperation("Booking đã có Job, không thể tạo thêm");
         }
 
+
+
         // Tạo Job mới với technician = null (unassigned)
         Job job = Job.builder()
                 .booking(booking)
@@ -316,6 +336,9 @@ public class BookingStatusService implements IBookingStatusService {
                 .build();
 
         jobRepo.save(job);
+
+        booking.setJob(job);
+        bookingRepository.save(booking); // Cập nhật lại booking nếu cần
         log.info("Created unassigned Job for Booking #{}", booking.getId());
     }
 
@@ -336,5 +359,29 @@ public class BookingStatusService implements IBookingStatusService {
                     part.getName(), mp.getQuantityRequired(), part.getReserved());
             }
         }
+    }
+
+    private boolean isTechnicianAvailableAtTime(Long technicianId, LocalDateTime scheduleTime, Long excludeJobId) {
+        // Lấy tất cả jobs của technician này (chưa complete)
+        List<Job> technicianJobs = jobRepo.findByTechnicianIdAndNotComplete(technicianId);
+
+        // Lọc ra jobs trùng giờ
+        for (Job job : technicianJobs) {
+            // Bỏ qua job đang update
+            if (excludeJobId != null && job.getId().equals(excludeJobId)) {
+                continue;
+            }
+
+            // Lấy schedule time của booking
+            LocalDateTime jobScheduleTime = job.getBooking().getScheduleDate();
+
+            // Kiểm tra trùng giờ (cùng giờ tròn)
+            // VD: 09:00:00 == 09:00:00
+            if (jobScheduleTime.withMinute(0).withSecond(0).equals(scheduleTime.withMinute(0).withSecond(0))) {
+                return false; // Technician bận vào giờ này
+            }
+        }
+
+        return true; // Technician rảnh
     }
 }
