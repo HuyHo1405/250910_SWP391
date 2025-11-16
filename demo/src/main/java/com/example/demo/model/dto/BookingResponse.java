@@ -26,6 +26,9 @@ public class BookingResponse {
 
     private InvoiceResponse invoice;
 
+    private Long technicianId;
+    private String technicianName;
+
     @Data
     @Builder
     @NoArgsConstructor

@@ -31,7 +31,7 @@ public class BookingResponseMapper {
     }
 
     public static BookingResponse toDtoSummary(Booking booking, ScheduleDateTime scheduleDateTime) {
-        return BookingResponse.builder()
+        BookingResponse response = BookingResponse.builder()
                 .id(booking.getId())
                 .customerId(booking.getCustomer().getId())
                 .customerName(booking.getCustomer().getFullName())
@@ -41,9 +41,13 @@ public class BookingResponseMapper {
                 .bookingStatus(booking.getBookingStatus() != null ? booking.getBookingStatus().name() : null)
                 .createdAt(booking.getCreatedAt())
                 .updatedAt(booking.getUpdatedAt())
-                // serviceDetails và invoice sẽ là null
-                // và sẽ bị ẩn đi trong JSON nhờ @JsonInclude(JsonInclude.Include.NON_NULL)
                 .build();
+        // Thêm technician nếu có Job liên kết
+        if (booking.getJob() != null && booking.getJob().getTechnician() != null) {
+            response.setTechnicianId(booking.getJob().getTechnician().getId());
+            response.setTechnicianName(booking.getJob().getTechnician().getFullName());
+        }
+        return response;
     }
 
 
@@ -63,7 +67,6 @@ public class BookingResponseMapper {
     }
 
     public static BookingResponse toDtoWithDetails(Booking booking, ScheduleDateTime scheduleDateTime) {
-        // 1. Lấy thông tin cơ bản (gọi hàm summary)
         BookingResponse response = toDtoSummary(booking, scheduleDateTime);
 
         // 2. Map chi tiết dịch vụ (BookingDetail)
@@ -77,6 +80,7 @@ public class BookingResponseMapper {
                 .collect(Collectors.toList());
 
         response.setCatalogDetails(serviceDetails);
+        // Thêm technician nếu có Job liên kết (đã có ở toDtoSummary, giữ nguyên)
         return response;
     }
 
@@ -97,7 +101,6 @@ public class BookingResponseMapper {
     }
 
     public static BookingResponse toDtoFull(Booking booking, ScheduleDateTime scheduleDateTime) {
-        // 1. Lấy Booking + Service Details (gọi hàm số 2)
         BookingResponse response = toDtoWithDetails(booking, scheduleDateTime);
 
         // 2. Kiểm tra và map Hóa đơn (Invoice) nếu có
@@ -127,6 +130,7 @@ public class BookingResponseMapper {
             response.setInvoice(invoiceResponse);
         }
 
+        // Thêm technician nếu có Job liên kết (đã có ở toDtoSummary, giữ nguyên)
         return response;
     }
 
