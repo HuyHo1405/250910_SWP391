@@ -207,14 +207,14 @@ public class PaymentService implements IPaymentService {
 
             if ("00".equals(vnpResponseCode)) {
                 log.info("IPN: Thanh toán thành công (Success) cho đơn hàng {}", orderCode);
-                payment.getInvoice().setStatus(InvoiceStatus.PAID);
-                Invoice invoice = invoiceRepository.save(payment.getInvoice());
 
+                payment.getInvoice().setStatus(InvoiceStatus.PAID);
+                payment.getInvoice().setPaidAt(LocalDateTime.now());
+                Invoice invoice = invoiceRepository.save(payment.getInvoice());
 
 
                 Booking booking = invoice.getBooking();
                 booking.setBookingStatus(BookingStatus.PAID);
-
 
                 payment.setStatus(PaymentStatus.SUCCESSFUL);
                 payment.setPaidAt(LocalDateTime.now());
