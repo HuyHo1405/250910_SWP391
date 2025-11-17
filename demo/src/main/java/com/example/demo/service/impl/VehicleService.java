@@ -156,8 +156,9 @@ public class VehicleService implements IVehicleService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new CommonException.NotFound("User", userId));
 
-        userContextService.checkRoleEditable(user.getRole().getDisplayName());
-
+        if(!userContextService.isCustomer()) {
+            userContextService.checkRoleEditable(user.getRole().getDisplayName());
+        }
         return user;
     }
 

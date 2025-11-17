@@ -941,7 +941,7 @@ VALUES
 (23, N'LK: Ắc quy 12V 45Ah (AGM)', 'PART', 1, 1800000, 1800000),
 (23, N'DV: Chẩn đoán tổng thể xe', 'SERVICE', 1, 300000, 300000),
 -- Invoice 24 (CANCELLED)
-(24, N'DV: Kiểm tra pin', 'SERVICE', 1, 300000, 300000),
+(24, N'DV: Kiểm tra pin', 'SERVICE', 1, 300000, 300000), 
 (24, N'DV: Kiểm tra ắc quy 12V', 'SERVICE', 1, 100000, 100000),
 -- Invoice 25 (CANCELLED)
 (25, N'DV: Cân chỉnh góc đặt bánh xe', 'SERVICE', 1, 700000, 700000),
