@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/parts")
 @RequiredArgsConstructor
-@Tag(name = "Part Management")
+@Tag(name = "Part")
 public class PartController {
 
     private final IPartService partService;

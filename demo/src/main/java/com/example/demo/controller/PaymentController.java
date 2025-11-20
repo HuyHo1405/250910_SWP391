@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.model.dto.PaymentRequest;
 import com.example.demo.model.dto.PaymentResponse;
 import com.example.demo.service.interfaces.IPaymentService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payments")
-@RequiredArgsConstructor // Tự động inject IPaymentService qua constructor
+@RequiredArgsConstructor
+@Tag(name = "Payment")
 public class PaymentController {
 
     private final IPaymentService paymentService;
@@ -54,13 +56,6 @@ public class PaymentController {
         return ResponseEntity.ok(historyList);
     }
 
-    /**
-     * API để Frontend gọi (ở trang "Kết quả thanh toán") để kiểm tra trạng thái.
-     * Frontend sẽ lấy orderCode (vnp_TxnRef) từ URL và gọi API này.
-     *
-     * @param orderCode Mã đơn hàng (vnp_TxnRef)
-     * @return DTO chứa trạng thái chi tiết (PENDING, SUCCESSFUL, FAILED).
-     */
     @GetMapping("/status")
     public ResponseEntity<PaymentResponse.PaymentStatusDetail> checkPaymentStatus(
             @RequestParam("orderCode") String orderCode
@@ -76,21 +71,21 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/refund-request")
-    public ResponseEntity<PaymentResponse.RefundResult> createRefundRequest(@RequestParam Long invoiceId) {
-        PaymentResponse.RefundResult response = paymentService.createRefundByInvoiceId(invoiceId);
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/simulate-ipn-refund")
-    public ResponseEntity<PaymentResponse.VnpayIpn> simulateRefund(@RequestParam String orderCode) {
-        PaymentResponse.VnpayIpn response = paymentService.stimulateRefund(orderCode);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/refund-status")
-    public ResponseEntity<PaymentResponse.RefundResult> checkRefundStatus(@RequestParam String orderCode) {
-        PaymentResponse.RefundResult response = paymentService.checkRefundStatus(orderCode);
-        return ResponseEntity.ok(response);
-    }
+//    @PostMapping("/refund-request")
+//    public ResponseEntity<PaymentResponse.RefundResult> createRefundRequest(@RequestParam Long invoiceId) {
+//        PaymentResponse.RefundResult response = paymentService.createRefundByInvoiceId(invoiceId);
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    @PostMapping("/simulate-ipn-refund")
+//    public ResponseEntity<PaymentResponse.VnpayIpn> simulateRefund(@RequestParam String orderCode) {
+//        PaymentResponse.VnpayIpn response = paymentService.stimulateRefund(orderCode);
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    @GetMapping("/refund-status")
+//    public ResponseEntity<PaymentResponse.RefundResult> checkRefundStatus(@RequestParam String orderCode) {
+//        PaymentResponse.RefundResult response = paymentService.checkRefundStatus(orderCode);
+//        return ResponseEntity.ok(response);
+//    }
 }

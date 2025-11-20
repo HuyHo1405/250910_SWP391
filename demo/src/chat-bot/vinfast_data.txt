@@ -1,0 +1,140 @@
+# VINFAST SERVICE KNOWLEDGE BASE (GOLDEN DATASET)
+# Generated from SQL Database: Nov 2025
+# Contains: Service Rules, Pricing, Part Requirements, and Descriptions.
+
+### SECTION 1: VEHICLE SPECIFIC SERVICE RULES ###
+
+# --- VinFast VF 3 ---
+Service Rule: For VF 3, the service 'Kiểm tra pin điện áp cao (Battery Inspection)' costs 250,000 VND total. Time: 45 mins. Note: Check SoH.
+Service Rule: For VF 3, the service 'Đảo lốp (Tire Rotation)' costs 150,000 VND total. Time: 30 mins.
+Service Rule: For VF 3, the service 'Kiểm tra hệ thống phanh (Brake Check)' costs 150,000 VND total. (Note: Brake Pads Part-Brake-Pad-F-S charged extra if replacement needed).
+Service Rule: For VF 3, the service 'Cập nhật phần mềm (Software Update)' costs 0 VND (Free).
+Service Rule: For VF 3, the service 'Thay lọc gió cabin (Air Filter)' costs 200,000 VND total. (Breakdown: Labor 50,000 + Part 'Lọc gió cabin S' x1 at 150,000).
+Service Rule: For VF 3, the service 'Hệ thống làm mát pin (Coolant Service)' costs 1,050,000 VND total. (Breakdown: Labor 300,000 + Part 'Prestone EV Coolant 5L' x1 at 750,000).
+Service Rule: For VF 3, the service 'Kiểm tra hệ thống treo (Suspension)' costs 200,000 VND total.
+Service Rule: For VF 3, the service 'Cân chỉnh góc đặt bánh xe (Alignment)' costs 350,000 VND total.
+Service Rule: For VF 3, the service 'Chẩn đoán tổng thể xe (Diagnostics)' costs 300,000 VND total.
+Service Rule: For VF 3, the service 'Thay dầu phanh (Brake Fluid)' costs 380,000 VND total. (Breakdown: Labor 200,000 + Part 'Castrol DOT 4' x1 at 180,000).
+Service Rule: For VF 3, the service 'Kiểm tra ắc quy 12V' costs 100,000 VND total.
+Service Rule: For VF 3, the service 'Thay thế ắc quy 12V' costs 1,900,000 VND total. (Breakdown: Labor 100,000 + Part 'Battery 12V 45Ah' x1 at 1,800,000).
+Service Rule: For VF 3, the service 'Bảo dưỡng điều hòa (AC Service)' costs 400,000 VND (Labor Only). (Note: Gas R-1234yf and Oil charged based on actual usage).
+Service Rule: For VF 3, the service 'Thay gạt mưa (Wiper Replacement)' costs 350,000 VND total. (Breakdown: Labor 50,000 + Wiper 16" x1 + Wiper 24" x1).
+Service Rule: For VF 3, the service 'Bổ sung nước rửa kính' costs 0 VND (Free up to 1L).
+
+# --- VinFast VF 5 Plus ---
+Service Rule: For VF 5 Plus, the service 'Kiểm tra pin điện áp cao (Battery Inspection)' costs 300,000 VND total. Time: 60 mins.
+Service Rule: For VF 5 Plus, the service 'Đảo lốp (Tire Rotation)' costs 150,000 VND total.
+Service Rule: For VF 5 Plus, the service 'Kiểm tra hệ thống phanh (Brake Check)' costs 150,000 VND total.
+Service Rule: For VF 5 Plus, the service 'Cập nhật phần mềm' costs 0 VND.
+Service Rule: For VF 5 Plus, the service 'Thay lọc gió cabin (Air Filter)' costs 200,000 VND total. (Breakdown: Labor 50,000 + Part 'Lọc gió cabin S' x1 at 150,000).
+Service Rule: For VF 5 Plus, the service 'Hệ thống làm mát pin (Coolant Service)' costs 1,100,000 VND total. (Breakdown: Labor 350,000 + Part 'Prestone EV Coolant 5L' x1 at 750,000).
+Service Rule: For VF 5 Plus, the service 'Kiểm tra hệ thống treo' costs 200,000 VND total.
+Service Rule: For VF 5 Plus, the service 'Cân chỉnh góc đặt bánh xe' costs 400,000 VND total.
+Service Rule: For VF 5 Plus, the service 'Chẩn đoán tổng thể xe' costs 300,000 VND total.
+Service Rule: For VF 5 Plus, the service 'Thay dầu phanh' costs 380,000 VND total. (Breakdown: Labor 200,000 + Part 'Castrol DOT 4' x1 at 180,000).
+Service Rule: For VF 5 Plus, the service 'Kiểm tra ắc quy 12V' costs 100,000 VND total.
+Service Rule: For VF 5 Plus, the service 'Thay thế ắc quy 12V' costs 1,900,000 VND total. (Breakdown: Labor 100,000 + Part 'Battery 12V 45Ah' x1 at 1,800,000).
+Service Rule: For VF 5 Plus, the service 'Bảo dưỡng điều hòa' costs 400,000 VND (Labor Only).
+Service Rule: For VF 5 Plus, the service 'Thay gạt mưa' costs 350,000 VND total. (Breakdown: Labor 50,000 + Wiper 16" x1 + Wiper 24" x1).
+Service Rule: For VF 5 Plus, the service 'Bổ sung nước rửa kính' costs 0 VND.
+
+# --- VinFast VF 6 ---
+Service Rule: For VF 6, the service 'Kiểm tra pin điện áp cao' costs 350,000 VND total. Time: 60 mins.
+Service Rule: For VF 6, the service 'Đảo lốp' costs 180,000 VND total.
+Service Rule: For VF 6, the service 'Kiểm tra hệ thống phanh' costs 180,000 VND total.
+Service Rule: For VF 6, the service 'Cập nhật phần mềm' costs 0 VND.
+Service Rule: For VF 6, the service 'Thay lọc gió cabin (Air Filter)' costs 270,000 VND total. (Breakdown: Labor 50,000 + Part 'Lọc gió cabin M' x1 at 220,000).
+Service Rule: For VF 6, the service 'Hệ thống làm mát pin (Coolant Service)' costs 1,900,000 VND total. (Breakdown: Labor 400,000 + Part 'Prestone EV Coolant 5L' x2 at 750,000).
+Service Rule: For VF 6, the service 'Kiểm tra hệ thống treo' costs 250,000 VND total.
+Service Rule: For VF 6, the service 'Cân chỉnh góc đặt bánh xe' costs 450,000 VND total.
+Service Rule: For VF 6, the service 'Chẩn đoán tổng thể xe' costs 400,000 VND total.
+Service Rule: For VF 6, the service 'Thay dầu phanh' costs 430,000 VND total. (Breakdown: Labor 250,000 + Part 'Castrol DOT 4' x1 at 180,000).
+Service Rule: For VF 6, the service 'Kiểm tra ắc quy 12V' costs 100,000 VND total.
+Service Rule: For VF 6, the service 'Thay thế ắc quy 12V' costs 1,900,000 VND total. (Breakdown: Labor 100,000 + Part 'Battery 12V 45Ah' x1 at 1,800,000).
+Service Rule: For VF 6, the service 'Bảo dưỡng điều hòa' costs 450,000 VND (Labor Only).
+Service Rule: For VF 6, the service 'Thay gạt mưa' costs 430,000 VND total. (Breakdown: Labor 50,000 + Wiper 24" x1 + Wiper 26" x1).
+Service Rule: For VF 6, the service 'Bổ sung nước rửa kính' costs 0 VND.
+
+# --- VinFast VF 7 ---
+Service Rule: For VF 7, the service 'Kiểm tra pin điện áp cao' costs 400,000 VND total. Time: 60 mins.
+Service Rule: For VF 7, the service 'Đảo lốp' costs 180,000 VND total.
+Service Rule: For VF 7, the service 'Kiểm tra hệ thống phanh' costs 180,000 VND total.
+Service Rule: For VF 7, the service 'Cập nhật phần mềm' costs 0 VND.
+Service Rule: For VF 7, the service 'Thay lọc gió cabin' costs 290,000 VND total. (Breakdown: Labor 70,000 + Part 'Lọc gió cabin M' x1 at 220,000).
+Service Rule: For VF 7, the service 'Hệ thống làm mát pin' costs 1,950,000 VND total. (Breakdown: Labor 450,000 + Part 'Prestone EV Coolant 5L' x2 at 750,000).
+Service Rule: For VF 7, the service 'Kiểm tra hệ thống treo' costs 250,000 VND total.
+Service Rule: For VF 7, the service 'Cân chỉnh góc đặt bánh xe' costs 500,000 VND total.
+Service Rule: For VF 7, the service 'Chẩn đoán tổng thể xe' costs 400,000 VND total.
+Service Rule: For VF 7, the service 'Thay dầu phanh' costs 610,000 VND total. (Breakdown: Labor 250,000 + Part 'Castrol DOT 4' x2 at 180,000).
+Service Rule: For VF 7, the service 'Kiểm tra ắc quy 12V' costs 100,000 VND total.
+Service Rule: For VF 7, the service 'Thay thế ắc quy 12V' costs 2,620,000 VND total. (Breakdown: Labor 120,000 + Part 'Battery 12V 60Ah' x1 at 2,500,000).
+Service Rule: For VF 7, the service 'Bảo dưỡng điều hòa' costs 450,000 VND (Labor Only).
+Service Rule: For VF 7, the service 'Thay gạt mưa' costs 430,000 VND total. (Breakdown: Labor 50,000 + Wiper 24" x1 + Wiper 26" x1).
+Service Rule: For VF 7, the service 'Bổ sung nước rửa kính' costs 0 VND.
+
+# --- VinFast VF 8 ---
+Service Rule: For VF 8, the service 'Kiểm tra pin điện áp cao' costs 450,000 VND total. Time: 60 mins.
+Service Rule: For VF 8, the service 'Đảo lốp' costs 200,000 VND total.
+Service Rule: For VF 8, the service 'Kiểm tra hệ thống phanh' costs 200,000 VND total.
+Service Rule: For VF 8, the service 'Cập nhật phần mềm' costs 0 VND.
+Service Rule: For VF 8, the service 'Thay lọc gió cabin' costs 380,000 VND total. (Breakdown: Labor 80,000 + Part 'Lọc gió cabin L' x1 at 300,000).
+Service Rule: For VF 8, the service 'Hệ thống làm mát pin' costs 2,000,000 VND total. (Breakdown: Labor 500,000 + Part 'Prestone EV Coolant 5L' x2 at 750,000).
+Service Rule: For VF 8, the service 'Kiểm tra hệ thống treo' costs 300,000 VND total.
+Service Rule: For VF 8, the service 'Cân chỉnh góc đặt bánh xe' costs 600,000 VND total.
+Service Rule: For VF 8, the service 'Chẩn đoán tổng thể xe' costs 500,000 VND total.
+Service Rule: For VF 8, the service 'Thay dầu phanh' costs 660,000 VND total. (Breakdown: Labor 300,000 + Part 'Castrol DOT 4' x2 at 180,000).
+Service Rule: For VF 8, the service 'Kiểm tra ắc quy 12V' costs 100,000 VND total.
+Service Rule: For VF 8, the service 'Thay thế ắc quy 12V' costs 2,650,000 VND total. (Breakdown: Labor 150,000 + Part 'Battery 12V 60Ah' x1 at 2,500,000).
+Service Rule: For VF 8, the service 'Bảo dưỡng điều hòa' costs 500,000 VND (Labor Only).
+Service Rule: For VF 8, the service 'Thay gạt mưa' costs 430,000 VND total. (Breakdown: Labor 50,000 + Wiper 24" x1 + Wiper 26" x1).
+Service Rule: For VF 8, the service 'Bổ sung nước rửa kính' costs 0 VND.
+
+# --- VinFast VF 9 ---
+Service Rule: For VF 9, the service 'Kiểm tra pin điện áp cao' costs 500,000 VND total. Time: 75 mins.
+Service Rule: For VF 9, the service 'Đảo lốp' costs 250,000 VND total.
+Service Rule: For VF 9, the service 'Kiểm tra hệ thống phanh' costs 250,000 VND total.
+Service Rule: For VF 9, the service 'Cập nhật phần mềm' costs 0 VND.
+Service Rule: For VF 9, the service 'Thay lọc gió cabin' costs 380,000 VND total. (Breakdown: Labor 80,000 + Part 'Lọc gió cabin L' x1 at 300,000).
+Service Rule: For VF 9, the service 'Hệ thống làm mát pin' costs 2,800,000 VND total. (Breakdown: Labor 550,000 + Part 'Prestone EV Coolant 5L' x3 at 750,000).
+Service Rule: For VF 9, the service 'Kiểm tra hệ thống treo' costs 350,000 VND total.
+Service Rule: For VF 9, the service 'Cân chỉnh góc đặt bánh xe' costs 700,000 VND total.
+Service Rule: For VF 9, the service 'Chẩn đoán tổng thể xe' costs 500,000 VND total.
+Service Rule: For VF 9, the service 'Thay dầu phanh' costs 660,000 VND total. (Breakdown: Labor 300,000 + Part 'Castrol DOT 4' x2 at 180,000).
+Service Rule: For VF 9, the service 'Kiểm tra ắc quy 12V' costs 100,000 VND total.
+Service Rule: For VF 9, the service 'Thay thế ắc quy 12V' costs 2,650,000 VND total. (Breakdown: Labor 150,000 + Part 'Battery 12V 60Ah' x1 at 2,500,000).
+Service Rule: For VF 9, the service 'Bảo dưỡng điều hòa' costs 550,000 VND (Labor Only).
+Service Rule: For VF 9, the service 'Thay gạt mưa' costs 430,000 VND total. (Breakdown: Labor 50,000 + Wiper 24" x1 + Wiper 26" x1).
+Service Rule: For VF 9, the service 'Bổ sung nước rửa kính' costs 0 VND.
+
+# --- VinFast VF e34 ---
+Service Rule: For VF e34, the service 'Kiểm tra pin điện áp cao' costs 300,000 VND total. Time: 60 mins.
+Service Rule: For VF e34, the service 'Đảo lốp' costs 150,000 VND total.
+Service Rule: For VF e34, the service 'Kiểm tra hệ thống phanh' costs 150,000 VND total.
+Service Rule: For VF e34, the service 'Cập nhật phần mềm' costs 0 VND.
+Service Rule: For VF e34, the service 'Thay lọc gió cabin' costs 200,000 VND total. (Breakdown: Labor 50,000 + Part 'Lọc gió cabin S' x1 at 150,000).
+Service Rule: For VF e34, the service 'Hệ thống làm mát pin' costs 1,100,000 VND total. (Breakdown: Labor 350,000 + Part 'Prestone EV Coolant 5L' x1 at 750,000).
+Service Rule: For VF e34, the service 'Kiểm tra hệ thống treo' costs 200,000 VND total.
+Service Rule: For VF e34, the service 'Cân chỉnh góc đặt bánh xe' costs 400,000 VND total.
+Service Rule: For VF e34, the service 'Chẩn đoán tổng thể xe' costs 300,000 VND total.
+Service Rule: For VF e34, the service 'Thay dầu phanh' costs 380,000 VND total. (Breakdown: Labor 200,000 + Part 'Castrol DOT 4' x1 at 180,000).
+Service Rule: For VF e34, the service 'Kiểm tra ắc quy 12V' costs 100,000 VND total.
+Service Rule: For VF e34, the service 'Thay thế ắc quy 12V' costs 1,900,000 VND total. (Breakdown: Labor 100,000 + Part 'Battery 12V 45Ah' x1 at 1,800,000).
+Service Rule: For VF e34, the service 'Bảo dưỡng điều hòa' costs 400,000 VND (Labor Only).
+Service Rule: For VF e34, the service 'Thay gạt mưa' costs 350,000 VND total. (Breakdown: Labor 50,000 + Wiper 16" x1 + Wiper 24" x1).
+Service Rule: For VF e34, the service 'Bổ sung nước rửa kính' costs 0 VND.
+
+# --- VinFast VF Wild ---
+Service Rule: For VF Wild, this vehicle is Status: Inactive / Concept. No service data available.
+
+### SECTION 2: PARTS REFERENCE (LOOKUP TABLE) ###
+Part Info: Lọc gió cabin (Loại S). Price: 150,000 VND. Fits: VF 3, VF 5, VF e34.
+Part Info: Lọc gió cabin (Loại M). Price: 220,000 VND. Fits: VF 6, VF 7.
+Part Info: Lọc gió cabin (Loại L). Price: 300,000 VND. Fits: VF 8, VF 9.
+Part Info: Nước làm mát pin (EV Coolant). Price: 750,000 VND per 5L.
+Part Info: Dầu phanh DOT 4 (1L). Price: 180,000 VND.
+Part Info: Ắc quy 12V 45Ah (AGM). Price: 1,800,000 VND. Fits: VF 3, VF 5, VF 6, VF e34.
+Part Info: Ắc quy 12V 60Ah (AGM). Price: 2,500,000 VND. Fits: VF 7, VF 8, VF 9.
+Part Info: Gạt mưa 16 inch. Price: 120,000 VND.
+Part Info: Gạt mưa 24 inch. Price: 180,000 VND.
+Part Info: Gạt mưa 26 inch. Price: 200,000 VND.
+Part Info: Gas điều hòa R-1234yf. Price: 2,500,000 VND/kg.

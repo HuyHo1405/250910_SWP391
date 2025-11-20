@@ -19,14 +19,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/jobs")
 @RequiredArgsConstructor
-@Tag(name = "Job Management")
+@Tag(name = "Job")
 public class JobController {
     private final IJobService jobService;
-
-//    @PutMapping("/{jobId}")
-//    public ResponseEntity<JobResponse> updateJob(@PathVariable Long jobId, @RequestBody JobRequest.JobUpdate request) {
-//        return ResponseEntity.ok(jobService.updateJob(jobId, request));
-//    }
 
     @PutMapping("/{jobId}/start")
     public ResponseEntity<JobResponse> startJob(@PathVariable Long jobId) {

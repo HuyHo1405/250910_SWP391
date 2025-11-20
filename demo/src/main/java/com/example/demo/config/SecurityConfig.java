@@ -112,6 +112,7 @@ public class SecurityConfig {
                         // Public endpoints - no authentication required
                         .requestMatchers(
                                 "/api/auth/**",        // Authentication endpoints (login, register)
+                                "/api/bot/ask",        // Public chat bot endpoint
                                 "/swagger-ui/**",      // Swagger UI documentation
                                 "/v3/api-docs/**",     // OpenAPI 3.0 specification
                                 "/swagger-resources/**", // Swagger resources
