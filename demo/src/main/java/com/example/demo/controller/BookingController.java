@@ -101,6 +101,12 @@ public class BookingController {
         return ResponseEntity.ok(resp);
     }
 
+    @PutMapping("/{id}/reassign-technician")
+    public ResponseEntity<BookingResponse> reassignTechnician(@PathVariable Long id, @RequestParam Long technicianId, @RequestParam String reason) {
+        BookingResponse resp = bookingStatusService.reassignTechnician(id, technicianId, reason);
+        return ResponseEntity.ok(resp);
+    }
+
     @GetMapping("/slots")
     public ResponseEntity<List<DailyBookedSlot>> getBookedSlots() {
         List<DailyBookedSlot> slots = bookingSlotService.getBookedSlot();

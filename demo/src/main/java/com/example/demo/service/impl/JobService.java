@@ -1,7 +1,6 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.exception.CommonException;
-import com.example.demo.model.dto.JobRequest;
 import com.example.demo.model.dto.JobResponse;
 import com.example.demo.model.dto.ScheduleDateTime;
 import com.example.demo.model.dto.TechnicianResponse;
@@ -9,18 +8,17 @@ import com.example.demo.model.entity.*;
 import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.model.modelEnum.EntityStatus;
 import com.example.demo.model.modelEnum.JobStatus;
-import com.example.demo.repo.BookingRepo;
-import com.example.demo.repo.JobRepo;
-import com.example.demo.repo.UserRepo;
-import com.example.demo.service.interfaces.IBookingStatusService;
+import com.example.demo.repo.*;
 import com.example.demo.service.interfaces.IJobService;
 import io.micrometer.common.lang.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -33,55 +31,14 @@ public class JobService implements IJobService {
     private final JobRepo jobRepo;
     private final BookingRepo bookingRepo;
     private final UserRepo userRepo;
-    private final IBookingStatusService bookingStatusService;
+    private final PartRepo partRepo;
+    private final MaintenanceCatalogModelPartRepo maintenanceCatalogModelPartRepo;
 
-    @Override
-    @Transactional
-    public JobResponse updateJob(Long jobId, JobRequest.JobUpdate request) {
-        accessControlService.verifyCanAccessAllResources("JOB", "UPDATE");
+    // Define the allowed start window (+- 30 minutes)
+    private static final long START_WINDOW_MINUTES = 30;
 
-        Job job = jobRepo.findById(jobId).orElseThrow(() -> new CommonException.NotFound("Job", jobId));
-
-        // chỉ cho update khi chưa start
-        if (job.getStartTime() != null)
-            throw new CommonException.Conflict("JOB_ALREADY_STARTED", "Không thể cập nhật Job đã bắt đầu");
-
-        if (request.getBookingId() != null) {
-            if(job.getBooking() != null && job.getBooking().getId() != null && !job.getBooking().getId().equals(request.getBookingId())){
-                throw new CommonException.InvalidOperation("CANNOT_CHANGE_BOOKING", "Không thể thay đổi Booking của Job đã được gán");
-            }
-
-            Booking booking = bookingRepo.findById(request.getBookingId())
-                    .orElseThrow(() -> new CommonException.NotFound("Booking", request.getBookingId()));
-
-            // Kiểm tra booking này đã có job khác chưa (One-to-One)
-            Job check = jobRepo.findByBookingId(request.getBookingId()).orElse(null);
-            // Đảm bảo nó không báo lỗi "đã tồn tại" với chính nó
-            if (check != null && !check.getId().equals(jobId)) {
-                throw new CommonException.AlreadyExists("Job", "BookingId", request.getBookingId());
-            }
-
-            checkBookingInProgress(request.getBookingId());
-            job.setBooking(booking);
-        }
-
-        if (request.getTechnicianId() != null) {
-            User technician = userRepo.findById(request.getTechnicianId())
-                    .orElseThrow(() -> new CommonException.NotFound("Technician (User)", request.getTechnicianId()));
-            if(!technician.getRole().getName().equals("TECHNICIAN"))
-                throw new CommonException.InvalidOperation("INVALID_ROLE", "Người dùng được gán phải có vai trò là kỹ thuật viên");
-
-            // Kiểm tra technician có rảnh không vào giờ của booking
-            checkTechnicianAvailability(request.getTechnicianId(), job.getBooking().getScheduleDate(), jobId);
-
-            job.setTechnician(technician);
-        }
-
-        if (request.getNotes() != null) job.setNotes(request.getNotes());
-
-        jobRepo.save(job);
-        return mapToResponse(job);
-    }
+    // Constant: 45 mins prep + 15 mins cleaning = 60 minutes buffer
+    private static final long JOB_BUFFER_MINUTES = 60;
 
     @Override
     @Transactional
@@ -96,27 +53,30 @@ public class JobService implements IJobService {
         if (job.getStartTime() != null)
             throw new CommonException.Conflict("JOB_ALREADY_STARTED", "Job đã được bắt đầu");
 
-        if(job.getBooking().getScheduleDate().isAfter(LocalDateTime.now())){
-            throw new CommonException.InvalidOperation("CANNOT_START_EARLY", "Không thể bắt đầu Job trước thời gian đã lên lịch");
+        Booking booking = job.getBooking();
+
+        if(booking.getBookingStatus() != BookingStatus.ASSIGNED){
+            throw new CommonException.InvalidOperation("INVALID_STATUS",
+                    "Booking phải ở trạng thái ASSIGNED mới được bắt đầu. Trạng thái hiện tại: " + booking.getBookingStatus());
         }
 
-        bookingStatusService.startMaintenance(job.getBooking().getId());
+        // ✅ REFACTOR: Gọi hàm validate riêng biệt ở đây
+        validateStartJobTime(job, LocalDateTime.now());
 
-        // Calculate total estimated time from all booking details
-        Double totalEstTimeMinutes = job.getBooking().getBookingDetails().stream()
-                .map(detail -> detail.getCatalogModel().getEstTimeMinutes())
-                .filter(estTime -> estTime != null)
-                .reduce(0.0, Double::sum);
+        // 1. Trừ kho
+        usePartsForMaintenance(booking);
 
-        // Set start time and estimated end time
+        // 2. Update Status
+        booking.setBookingStatus(BookingStatus.IN_PROGRESS);
+        bookingRepo.save(booking);
+
+        // 3. Set Time
+        long totalEstTimeMinutes = calculateTotalDuration(booking);
         job.setStartTime(LocalDateTime.now());
-        job.setEstEndTime(LocalDateTime.now().plusMinutes(totalEstTimeMinutes.longValue()));
-
-
-        // Update booking status to IN_PROGRESS
-        job.getBooking().setBookingStatus(BookingStatus.IN_PROGRESS);
+        job.setEstEndTime(LocalDateTime.now().plusMinutes(totalEstTimeMinutes));
 
         jobRepo.save(job);
+
         return mapToResponse(job);
     }
 
@@ -153,24 +113,6 @@ public class JobService implements IJobService {
             // Job chưa assign, chỉ admin/staff mới xem được
             accessControlService.verifyCanAccessAllResources("JOB", "READ");
         }
-
-        return mapToResponse(job);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public JobResponse getJobByBooking(Long bookingId) {
-        Job job = jobRepo.findByBookingId(bookingId)
-                .orElseThrow(() -> new CommonException.NotFound("Job cho BookingId", bookingId));
-
-        // Check technician trước khi verify access
-        if (job.getTechnician() != null) {
-            accessControlService.verifyResourceAccess(job.getTechnician().getId(), "JOB", "READ");
-        } else {
-            // Job chưa assign, chỉ admin/staff mới xem được
-            accessControlService.verifyCanAccessAllResources("JOB", "READ");
-        }
-
         return mapToResponse(job);
     }
 
@@ -271,66 +213,145 @@ public class JobService implements IJobService {
                 .collect(Collectors.toList());
     }
 
-    private void checkBookingInProgress(Long bookingId){
-        Booking booking = bookingRepo.findById(bookingId)
-                .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId));
-
-        if(booking.getBookingStatus() != BookingStatus.IN_PROGRESS){
-            throw new CommonException.InvalidOperation("BOOKING_NOT_IN_PROGRESS", "Booking không ở trạng thái IN_PROGRESS");
-        }
-    }
-
-    /**
-     * Kiểm tra technician có rảnh vào thời điểm scheduleTime không
-     * @param technicianId ID của technician
-     * @param scheduleTime Thời điểm cần kiểm tra
-     * @param excludeJobId Job ID cần loại trừ (dùng khi update job)
-     * @throws CommonException.InvalidOperation nếu technician không rảnh
-     */
-    private void checkTechnicianAvailability(Long technicianId, LocalDateTime scheduleTime, Long excludeJobId) {
-        if (!isTechnicianAvailableAtTime(technicianId, scheduleTime, excludeJobId)) {
-            throw new CommonException.InvalidOperation(
-                String.format("Kỹ thuật viên không rảnh vào thời điểm %s. Vui lòng chọn người khác hoặc th��i gian khác.",
-                    scheduleTime)
-            );
-        }
-    }
-
-    /**
-     * Kiểm tra technician có rảnh vào thời điểm scheduleTime không
-     * @param technicianId ID của technician
-     * @param scheduleTime Thời điểm cần kiểm tra (giờ hẹn của booking)
-     * @param excludeJobId Job ID cần loại trừ khi update (nullable)
-     * @return true nếu rảnh, false nếu bận
-     */
     @Override
     public boolean isTechnicianAvailableAtTime(Long technicianId, LocalDateTime scheduleTime, Long excludeJobId) {
-        // Lấy tất cả jobs của technician này (chưa complete)
         List<Job> technicianJobs = jobRepo.findByTechnicianIdAndNotComplete(technicianId);
+        LocalDateTime now = LocalDateTime.now();
 
-        // Lọc ra jobs trùng giờ
+        if(technicianJobs.isEmpty()){
+            return true;
+        }
+
         for (Job job : technicianJobs) {
-            // Bỏ qua job đang update
             if (excludeJobId != null && job.getId().equals(excludeJobId)) {
                 continue;
             }
 
-            // Lấy schedule time của booking
-            LocalDateTime jobScheduleTime = job.getBooking().getScheduleDate();
+            LocalDateTime busyFrom;
+            LocalDateTime busyUntil;
 
-            // Kiểm tra trùng giờ (cùng giờ tròn)
-            // VD: 09:00:00 == 09:00:00
-            if (jobScheduleTime.withMinute(0).withSecond(0).equals(scheduleTime.withMinute(0).withSecond(0))) {
-                return false; // Technician bận vào giờ này
+            if (job.getStartTime() != null) {
+                // --- CASE A: Job STARTED ---
+                // Use actual start time.
+                busyFrom = job.getStartTime();
+                LocalDateTime estimatedEnd = job.getEstEndTime();
+
+                // If running late, extend window to NOW so they don't appear free
+                LocalDateTime effectiveEnd = now.isAfter(estimatedEnd) ? now : estimatedEnd;
+                busyUntil = effectiveEnd.plusMinutes(JOB_BUFFER_MINUTES);
+
+            } else {
+                // --- CASE B: Job ASSIGNED (Future or Overdue) ---
+                LocalDateTime scheduled = job.getBooking().getScheduleDate();
+                long duration = calculateTotalDuration(job.getBooking());
+
+                LocalDateTime latestAllowedStart = scheduled.plusMinutes(START_WINDOW_MINUTES);
+
+                if (now.isAfter(latestAllowedStart)) {
+                    // --- SUB-CASE: OVERDUE GHOST JOB ---
+                    // Job should have started but hasn't.
+                    // Assume Technician is busy RIGHT NOW waiting to start.
+                    busyFrom = now;
+                    busyUntil = now.plusMinutes(duration).plusMinutes(JOB_BUFFER_MINUTES);
+
+                } else {
+                    // --- SUB-CASE: STANDARD FUTURE JOB ---
+                    // Reserve window for Early (-30) and Late (+30) start flexibility
+                    busyFrom = scheduled.minusMinutes(START_WINDOW_MINUTES);
+
+                    LocalDateTime worstCaseEnd = scheduled
+                            .plusMinutes(START_WINDOW_MINUTES) // Late start possibility
+                            .plusMinutes(duration);
+
+                    busyUntil = worstCaseEnd.plusMinutes(JOB_BUFFER_MINUTES);
+                }
+            }
+
+            // --- Check Intersection ---
+            if (!scheduleTime.isBefore(busyFrom) && scheduleTime.isBefore(busyUntil)) {
+                return false;
             }
         }
 
-        return true; // Technician rảnh
+        return true;
     }
 
-    /**
-     * Tính toán status của job dựa trên các field
-     */
+    private void validateStartJobTime(Job job, LocalDateTime now) {
+        LocalDateTime scheduleTime = job.getBooking().getScheduleDate();
+
+        LocalDateTime earliestStart = scheduleTime.minusMinutes(START_WINDOW_MINUTES);
+        LocalDateTime standardLatestStart = scheduleTime.plusMinutes(START_WINDOW_MINUTES);
+
+        // 1. Check: Có sớm quá không?
+        if (now.isBefore(earliestStart)) {
+            throw new CommonException.InvalidOperation("CANNOT_START_TOO_EARLY",
+                    String.format("Chưa đến giờ làm việc. Sớm nhất: %s.", earliestStart.toLocalTime()));
+        }
+
+        // 2. Check: Có trễ quá không?
+        if (now.isAfter(standardLatestStart)) {
+            // Logic "Phao cứu sinh":
+            // Nếu quá giờ hẹn, kiểm tra xem Staff có vừa mới gán/update job này không?
+
+            // Lấy thời điểm tương tác cuối cùng (Ưu tiên update, nếu không có thì lấy create)
+            LocalDateTime lastInteractionTime = job.getUpdatedAt() != null ? job.getUpdatedAt() : job.getCreatedAt();
+
+            // Deadline ân hạn = Thời điểm update cuối cùng + 30 phút
+            LocalDateTime extendedDeadline = lastInteractionTime.plusMinutes(START_WINDOW_MINUTES);
+
+            // Nếu hiện tại còn trễ hơn cả deadline ân hạn -> Lỗi do Technician thật.
+            if (now.isAfter(extendedDeadline)) {
+                throw new CommonException.InvalidOperation("CANNOT_START_TOO_LATE",
+                        String.format("Đã quá hạn bắt đầu (Lịch hẹn: %s). Kể cả tính từ lúc phân công gần nhất (%s), bạn cũng đã trễ.",
+                                scheduleTime.toLocalTime(), lastInteractionTime.toLocalTime()));
+            }
+
+            // Nếu code chạy xuống đây nghĩa là: Trễ lịch gốc NHƯNG vẫn trong thời gian ân hạn sau khi Staff update.
+            // -> Hợp lệ, không throw exception.
+        }
+    }
+
+    private long calculateTotalDuration(Booking booking) {
+        if (booking.getBookingDetails() == null) return 0;
+        Double totalMinutes = booking.getBookingDetails().stream()
+                .map(detail -> detail.getCatalogModel().getEstTimeMinutes())
+                .filter(Objects::nonNull)
+                .reduce(0.0, Double::sum);
+        return totalMinutes.longValue();
+    }
+
+    private void usePartsForMaintenance(Booking booking) {
+        for (BookingDetail detail : booking.getBookingDetails()) {
+            Long catalogModelId = detail.getCatalogModel().getId();
+            List<MaintenanceCatalogModelPart> requiredParts =
+                    maintenanceCatalogModelPartRepo.findByMaintenanceCatalogModelId(catalogModelId);
+
+            for (MaintenanceCatalogModelPart mp : requiredParts) {
+                Part part = mp.getPart();
+                BigDecimal qty = mp.getQuantityRequired();
+
+                // 1. Decrease Stock (Available Quantity)
+                if (part.getQuantity().compareTo(qty) < 0) {
+                    throw new CommonException.InvalidOperation("KHO HẾT HÀNG",
+                            "Phụ tùng " + part.getName() + " không đủ trong kho để bắt đầu công việc.");
+                }
+                part.setQuantity(part.getQuantity().subtract(qty));
+
+                // 2. Decrease Reserved (Since we reserved it at Confirm, we now 'consume' the reservation)
+                BigDecimal reservedToDeduct = qty;
+                if(part.getReserved().compareTo(qty) < 0) {
+                    reservedToDeduct = part.getReserved(); // Deduct whatever is there to avoid negative
+                }
+                part.setReserved(part.getReserved().subtract(reservedToDeduct));
+
+                // 3. Increase Used Count
+                part.setUsed(part.getUsed().add(qty));
+
+                partRepo.save(part);
+            }
+        }
+    }
+
     private JobStatus calculateJobStatus(Job job) {
         if (job.getActualEndTime() != null) {
             return JobStatus.COMPLETED;
@@ -343,7 +364,6 @@ public class JobService implements IJobService {
         }
     }
 
-    // ... (mapToResponse không đổi) ...
     private JobResponse mapToResponse(Job job) {
         JobStatus status = calculateJobStatus(job);
 
@@ -362,9 +382,6 @@ public class JobService implements IJobService {
                 .build();
     }
 
-    /**
-     * Map User entity sang TechnicianResponse DTO
-     */
     private TechnicianResponse mapToTechnicianResponse(User user) {
         return TechnicianResponse.builder()
                 .id(user.getId())

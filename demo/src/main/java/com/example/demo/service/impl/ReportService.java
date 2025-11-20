@@ -1,7 +1,7 @@
 package com.example.demo.service.impl;
 
-import com.example.demo.model.dto.BookingResponse;
 import com.example.demo.model.dto.ReportResponse;
+import com.example.demo.model.entity.Booking;
 import com.example.demo.model.entity.Job;
 import com.example.demo.model.entity.Part;
 import com.example.demo.model.entity.User;
@@ -38,6 +38,8 @@ public class ReportService implements IReportService {
     private final UserRepo userRepository;
     private final BookingRepo bookingRepository;
     private final JobRepo jobRepository;
+
+    private static final long LATE_THRESHOLD_MINUTES = 30;
 
     private static final BigDecimal LOW_STOCK_THRESHOLD = BigDecimal.valueOf(50);
 
@@ -127,16 +129,24 @@ public class ReportService implements IReportService {
 
     @Override
     public ReportResponse.DashboardAlertCount getReportDashboardAlertCounts() {
-
         accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "read");
-        // Hiện tại chưa có entity Alert, tạm thời trả về 0
+
         long totalAlert = 0L;
 
+        // 1. Kho
         List<Part> lowStock = partRepository.findByQuantityLessThanEqual(LOW_STOCK_THRESHOLD);
+        totalAlert += lowStock.size();
 
-        if(!lowStock.isEmpty()){
-            totalAlert += lowStock.size();
-        }
+        // 2. Staff quên (Query 1) - Deadline là thời điểm hiện tại
+        List<Booking> urgentBookings = bookingRepository.findPaidBookingsUrgent(LocalDateTime.now());
+        totalAlert += urgentBookings.size();
+
+        // 3. Technician quên (Query 2) - Deadline là (Hiện tại - 30 phút)
+        // Nếu quá giờ hẹn 30p mà vẫn ASSIGNED (chưa IN_PROGRESS) thì báo động
+        List<Booking> overdueBookings = bookingRepository.findAssignedBookingsOverdue(
+                LocalDateTime.now().minusMinutes(30)
+        );
+        totalAlert += overdueBookings.size();
 
         return ReportResponse.DashboardAlertCount.builder()
                 .totalAlert(totalAlert)
@@ -146,11 +156,42 @@ public class ReportService implements IReportService {
     @Override
     public List<ReportResponse.Alerts> getAlerts() {
         accessControlService.verifyResourceAccessWithoutOwnership("DASHBOARD", "read");
-        List<Part> lowStock = partRepository.findByQuantityLessThanEqual(LOW_STOCK_THRESHOLD);
+        List<ReportResponse.Alerts> allAlerts = new ArrayList<>();
 
-        return lowStock.stream()
-                .map(this::createLowStockAlert)
-                .toList();
+        // --- 1. ALERT: KHO ---
+        List<Part> lowStock = partRepository.findByQuantityLessThanEqual(LOW_STOCK_THRESHOLD);
+        allAlerts.addAll(lowStock.stream().map(this::createLowStockAlert).toList());
+
+        // --- 2. ALERT: STAFF (Dùng Query 1) ---
+        List<Booking> urgentBookings = bookingRepository.findPaidBookingsUrgent(LocalDateTime.now());
+
+        allAlerts.addAll(urgentBookings.stream()
+                .map(b -> ReportResponse.Alerts.builder()
+                        .alertMessage("ĐƠN GẤP: Booking #" + b.getId() + " đã đến giờ " + b.getScheduleDate() + " nhưng chưa có thợ!")
+                        .alertType(AlertType.CRITICAL)
+                        .build())
+                .toList());
+
+        // --- 3. ALERT: TECHNICIAN (Dùng Query 2) ---
+        List<Booking> overdueBookings = bookingRepository.findAssignedBookingsOverdue(
+                LocalDateTime.now().minusMinutes(30)
+        );
+
+        allAlerts.addAll(overdueBookings.stream()
+                .map(b -> {
+                    // Lấy tên thợ an toàn (do đã join fetch)
+                    String techName = "Unknown";
+                    if (b.getJob() != null && b.getJob().getTechnician() != null) {
+                        techName = b.getJob().getTechnician().getFullName();
+                    }
+                    return ReportResponse.Alerts.builder()
+                            .alertMessage("TRỄ GIỜ: Thợ " + techName + " chưa bắt đầu Booking #" + b.getId() + " (Lịch: " + b.getScheduleDate() + ")")
+                            .alertType(AlertType.WARNING)
+                            .build();
+                })
+                .toList());
+
+        return allAlerts;
     }
 
     @Override

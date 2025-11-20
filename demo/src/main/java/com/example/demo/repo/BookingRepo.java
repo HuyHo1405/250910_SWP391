@@ -72,4 +72,16 @@ public interface BookingRepo extends JpaRepository<Booking, Long> {
     // Tìm các booking PAID, scheduleDate + additionalTime < now, chưa start
     @Query("SELECT b FROM Booking b WHERE b.bookingStatus = 'PAID' AND b.scheduleDate <= :deadline")
     List<Booking> findPaidBookingsPastDeadline(@Param("deadline") LocalDateTime deadline);
+
+    // ✅ NEW: Alert Query 1 - "Operational Bottleneck (Office)"
+    // Find PAID bookings that are NOT assigned yet, and are getting close to deadline
+    @Query("SELECT b FROM Booking b WHERE b.bookingStatus = 'PAID' AND b.scheduleDate <= :deadline")
+    List<Booking> findPaidBookingsUrgent(@Param("deadline") LocalDateTime deadline);
+
+    // ✅ NEW: Alert Query 2 - "Execution Bottleneck (Technician)"
+    // Find ASSIGNED bookings where the technician is late (Schedule passed but not In Progress)
+    @Query("SELECT b FROM Booking b WHERE b.bookingStatus = 'ASSIGNED' AND b.scheduleDate <= :deadline")
+    List<Booking> findAssignedBookingsOverdue(@Param("deadline") LocalDateTime deadline);
+
 }
+

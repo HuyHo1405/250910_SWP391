@@ -9,6 +9,7 @@ public enum BookingStatus {
     PAID,               // Đã thanh toán trước (bắt buộc)
 
     // ===== MAINTENANCE PHASE =====
+    ASSIGNED,           // Đã được phân công kỹ thuật viên
     IN_PROGRESS,        // Đang sửa/bảo dưỡng
     MAINTENANCE_COMPLETE, // Đã hoàn thiện bảo dưỡng/sửa chữa
 
