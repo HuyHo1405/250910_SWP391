@@ -495,6 +495,11 @@ VALUES
 ('JOB', 'DELETE', 1, 'Delete job'),
 ('JOB', 'START', 1, 'Start doing job'),
 ('JOB', 'COMPLETE', 1, 'Complete jpb'),
+-- FEEDBACK
+('FEEDBACK', 'CREATE', 1, 'Create feedback'),
+('FEEDBACK', 'READ', 1, 'Read feedback'),
+('FEEDBACK', 'UPDATE', 1, 'Update feedback'),
+('FEEDBACK', 'DELETE', 1, 'Delete feedback'),
 -- ROLE
 ('ROLE', 'read', 1, 'Read role');
 
@@ -528,7 +533,8 @@ WHERE
                     'MAINTENANCE_SERVICE',
                     'PART',
                     'JOB',
-                    'ROLE'
+                    'ROLE',
+                   'FEEDBACK'
         ));
 
 -- 3) TECHNICIAN:
@@ -540,7 +546,7 @@ SELECT 3, p.id
 FROM permissions p
 WHERE
 -- Quyền đọc thông tin chung (xe, mẫu xe, dịch vụ, booking)
-    (p.resource IN ('VEHICLE', 'VEHICLE_MODEL', 'MAINTENANCE_SERVICE', 'BOOKING') AND p.action = 'read')
+    (p.resource IN ('VEHICLE', 'VEHICLE_MODEL', 'MAINTENANCE_SERVICE', 'BOOKING', 'FEEDBACK') AND p.action = 'read')
    OR
 -- Quyền kỹ thuật trên quy trình (Ánh xạ sang BOOKING)
     (p.resource = 'BOOKING' AND p.action IN ('start-maintenance', 'complete'))
@@ -579,6 +585,8 @@ WHERE
    OR
 -- Quyền thanh toán
     (p.resource = 'PAYMENT' AND p.action = 'pay')
+   OR
+    (p.resource = 'FEEDBACK' AND p.action IN ('create', 'read', 'update', 'delete'))
    OR
 -- Quyền quản lý tài khoản cá nhân
     (p.resource = 'USER' AND p.action IN ('read', 'update', 'disable'));
@@ -678,10 +686,6 @@ VALUES
 -- Tài Khoản Cũ 1 (user_id=38) - 1 xe (ARCHIVED)
 (N'VF e34', '51A-999.00', N'Đen', 'VFVFE34D3PA001101', 38, 7, 'INACTIVE', '2022-01-15', 75000, 88.0, '2022-01-15 08:00:00');
 
--- ================================================================================================================== --
--- BẢNG BOOKINGS - Định nghĩa các đơn bảo dưỡng xe của khách hàng
--- BẢNG BOOKING DETAILS - Định nghĩa dịch vụ được khách hàng đặt trong đơn
--- ================================================================================================================== --
 -- ================================================================================================================== --
 -- BẢNG BOOKINGS - Định nghĩa các đơn bảo dưỡng xe của khách hàng
 -- BẢNG BOOKING DETAILS - Định nghĩa dịch vụ được khách hàng đặt trong đơn
@@ -995,3 +999,109 @@ VALUES
 (12, 'VNPAY', 500000.00, 'SUCCESSFUL', 'PAY-INV-00012', '14531567', '00', GETDATE(), N'{"vnp_Amount":"50000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE()),
 (13, 'VNPAY', 660000.00, 'SUCCESSFUL', 'PAY-INV-00013', '14531890', '00', GETDATE(), N'{"vnp_Amount":"66000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE()),
 (22, 'VNPAY', 570000.00, 'SUCCESSFUL', 'PAY-INV-00022', '14532123', '00', GETDATE(), N'{"vnp_Amount":"57000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE());
+
+-- ================================================================
+-- Bảng FEEDBACK TAGS
+-- ================================================================
+IF NOT EXISTS (SELECT 1 FROM feedback_tags)
+INSERT INTO feedback_tags (content, target_rating)
+VALUES
+-- Tag cho 1 Sao (Tiêu cực)
+(N'Thái độ phục vụ tệ', 1),     -- ID 1
+(N'Thời gian chờ quá lâu', 1),   -- ID 2
+(N'Chất lượng sửa chữa kém', 1), -- ID 3
+
+-- Tag cho 2 Sao (Kém)
+(N'Vệ sinh xe chưa sạch', 2),    -- ID 4
+(N'Giá dịch vụ quá cao', 2),     -- ID 5
+(N'Phụ tùng không có sẵn', 2),   -- ID 6
+
+-- Tag cho 3 Sao (Trung bình)
+(N'Dịch vụ tạm ổn', 3),          -- ID 7
+(N'Cần cải thiện quy trình', 3), -- ID 8
+(N'Không gian chờ hơi hẹp', 3),  -- ID 9
+
+-- Tag cho 4 Sao (Tốt)
+(N'Nhân viên nhiệt tình', 4),    -- ID 10
+(N'Tư vấn chuyên nghiệp', 4),    -- ID 11
+(N'Quy trình nhanh gọn', 4),     -- ID 12
+
+-- Tag cho 5 Sao (Tuyệt vời)
+(N'Tuyệt vời', 5),               -- ID 13
+(N'Xe chạy êm ái hơn hẳn', 5),   -- ID 14
+(N'Giá cả hợp lý', 5),           -- ID 15
+(N'Cơ sở vật chất tốt', 5);      -- ID 16
+
+-- ================================================================
+-- Bảng FEEDBACKS
+-- ================================================================
+IF NOT EXISTS (SELECT 1 FROM feedbacks)
+INSERT INTO feedbacks (booking_id, customer_id, rating, comment, created_at)
+VALUES
+-- Booking 2 (Khách 19 - Nguyễn Thu Thảo): 4 Sao
+(2, 19, 4, N'Nhân viên nhiệt tình, nhưng chờ thanh toán hơi lâu một chút.', DATEADD(DAY, -25, GETDATE())),
+
+-- Booking 3 (Khách 20 - Trần Văn Nam): 5 Sao
+(3, 20, 5, N'Cân chỉnh bánh xe xong đi cao tốc rất đầm. Tuyệt vời!', DATEADD(DAY, -20, GETDATE())),
+
+-- Booking 4 (Khách 21 - Lê Thị Mai): 3 Sao (Hơi khó tính)
+(4, 21, 3, N'Bảo dưỡng ổn nhưng phòng chờ hôm nay điều hòa hơi nóng.', DATEADD(DAY, -15, GETDATE())),
+
+-- Booking 5 (Khách 21 - Lê Thị Mai): 5 Sao
+(5, 21, 5, N'Thay gạt mưa nhanh, hàng chính hãng nhìn xịn sò.', DATEADD(DAY, -10, GETDATE())),
+
+-- Booking 6 (Khách 21 - Lê Thị Mai): 4 Sao
+(6, 21, 4, N'Mọi thứ đều ổn, kỹ thuật viên giải thích kỹ.', DATEADD(DAY, -7, GETDATE())),
+
+-- Booking 7 (Khách 22 - Phạm Hùng Dũng): 5 Sao
+(7, 22, 5, N'Lần đầu làm dịch vụ ở đây, rất hài lòng về cách phục vụ.', DATEADD(DAY, -5, GETDATE())),
+
+-- Booking 8 (Khách 23 - Hoàng Thị Lan Anh): 1 Sao (Phàn nàn)
+(8, 23, 1, N'Hẹn 9h mà 9h30 mới được làm. Rất thất vọng về thời gian.', DATEADD(DAY, -4, GETDATE())),
+
+-- Booking 9 (Khách 24 - Vũ Minh Hiếu): 5 Sao
+(9, 24, 5, N'Xe bảo dưỡng xong sạch sẽ, thơm tho. 10 điểm.', DATEADD(DAY, -3, GETDATE())),
+
+-- Booking 10 (Khách 25 - Đỗ Gia Hân): 2 Sao (Phàn nàn nhẹ)
+(10, 25, 2, N'Giá công thợ hơi cao so với mặt bằng chung.', DATEADD(DAY, -2, GETDATE()));
+
+-- ================================================================
+-- Bảng FEEDBACK TAG MAPPING
+-- ================================================================
+IF NOT EXISTS (SELECT 1 FROM feedback_tag_mapping)
+INSERT INTO feedback_tag_mapping (feedback_id, tag_id)
+VALUES
+-- Feedback 1 (thuộc Booking 2 - 4 Sao) -> Chọn tag 4 sao
+(1, 10), -- Nhân viên nhiệt tình
+(1, 12), -- Quy trình nhanh gọn
+
+-- Feedback 2 (thuộc Booking 3 - 5 Sao) -> Chọn tag 5 sao
+(2, 13), -- Tuyệt vời
+(2, 15), -- Giá cả hợp lý
+
+-- Feedback 3 (thuộc Booking 4 - 3 Sao) -> Chọn tag 3 sao
+(3, 7),  -- Dịch vụ tạm ổn
+(3, 9),  -- Không gian chờ hơi hẹp
+
+-- Feedback 4 (thuộc Booking 5 - 5 Sao) -> Chọn tag 5 sao
+(4, 15), -- Giá cả hợp lý
+(4, 16), -- Cơ sở vật chất tốt
+
+-- Feedback 5 (thuộc Booking 6 - 4 Sao) -> Chọn tag 4 sao
+(5, 11), -- Tư vấn chuyên nghiệp
+
+-- Feedback 6 (thuộc Booking 7 - 5 Sao) -> Chọn tag 5 sao
+(6, 13), -- Tuyệt vời
+(6, 14), -- Xe chạy êm ái hơn hẳn
+(6, 16), -- Cơ sở vật chất tốt
+
+-- Feedback 7 (thuộc Booking 8 - 1 Sao) -> Chọn tag 1 sao
+(7, 2),  -- Thời gian chờ quá lâu
+(7, 1),  -- Thái độ phục vụ tệ
+
+-- Feedback 8 (thuộc Booking 9 - 5 Sao) -> Chọn tag 5 sao
+(8, 13), -- Tuyệt vời
+(8, 16), -- Cơ sở vật chất tốt
+
+-- Feedback 9 (thuộc Booking 10 - 2 Sao) -> Chọn tag 2 sao
+(9, 5);  -- Giá dịch vụ quá cao
