@@ -66,26 +66,15 @@ public class PaymentController {
     }
 
     @GetMapping("/simulate-ipn-success")
-    public ResponseEntity<?> testIpn(@RequestParam String orderCode) {
+    public ResponseEntity<?> testSuccessIpn(@RequestParam String orderCode) {
         PaymentResponse.VnpayIpn response = paymentService.simulateIpnSuccess(orderCode);
         return ResponseEntity.ok(response);
     }
 
-//    @PostMapping("/refund-request")
-//    public ResponseEntity<PaymentResponse.RefundResult> createRefundRequest(@RequestParam Long invoiceId) {
-//        PaymentResponse.RefundResult response = paymentService.createRefundByInvoiceId(invoiceId);
-//        return ResponseEntity.ok(response);
-//    }
-//
-//    @PostMapping("/simulate-ipn-refund")
-//    public ResponseEntity<PaymentResponse.VnpayIpn> simulateRefund(@RequestParam String orderCode) {
-//        PaymentResponse.VnpayIpn response = paymentService.stimulateRefund(orderCode);
-//        return ResponseEntity.ok(response);
-//    }
-//
-//    @GetMapping("/refund-status")
-//    public ResponseEntity<PaymentResponse.RefundResult> checkRefundStatus(@RequestParam String orderCode) {
-//        PaymentResponse.RefundResult response = paymentService.checkRefundStatus(orderCode);
-//        return ResponseEntity.ok(response);
-//    }
+    @GetMapping("/simulate-ipn-fail")
+    public ResponseEntity<?> testFailIpn(@RequestParam String orderCode) {
+        PaymentResponse.VnpayIpn response = paymentService.simulateIpnFail(orderCode);
+        return ResponseEntity.ok(response);
+    }
+
 }

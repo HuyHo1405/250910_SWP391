@@ -218,14 +218,16 @@ public class PaymentService implements IPaymentService {
 
                 payment.setStatus(PaymentStatus.SUCCESSFUL);
                 payment.setPaidAt(LocalDateTime.now());
+
+                paymentRepository.save(payment);
+                return new PaymentResponse.VnpayIpn("00", "Payment Success");
             } else {
                 log.warn("IPN: Thanh toán thất bại (Failed) cho đơn hàng {}. Mã lỗi: {}", orderCode, vnpResponseCode);
                 payment.setStatus(PaymentStatus.FAILED);
+
+                paymentRepository.save(payment);
+                return new PaymentResponse.VnpayIpn(vnpResponseCode, "Payment Failed");
             }
-
-            paymentRepository.save(payment);
-
-            return new PaymentResponse.VnpayIpn("00", "Confirm Success");
 
         } catch (Exception e) {
             log.error("IPN: Lỗi không xác định", e);
@@ -306,6 +308,78 @@ public class PaymentService implements IPaymentService {
     }
 
     @Override
+    @Transactional
+    public PaymentResponse.VnpayIpn simulateIpnFail(String orderCode) {
+        log.warn("!!! BẮT ĐẦU CHẠY GIẢ LẬP IPN THẤT BẠI CHO ĐƠN HÀNG: {} !!!", orderCode);
+
+        // 1. Tìm payment trong DB
+        Payment payment = paymentRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new EntityNotFoundException("Test: Không tìm thấy " + orderCode));
+
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            log.warn("Test: Đơn hàng {} đã được xử lý rồi (Status: {})", orderCode, payment.getStatus());
+            return new PaymentResponse.VnpayIpn("02", "Order already confirmed");
+        }
+
+        // 2. Tạo Map<String, String> y hệt VNPAY sẽ gửi khi THẤT BẠI
+        // Dùng TreeMap để nó tự sắp xếp theo A-Z
+        Map<String, String> fakeVnpayParams = new TreeMap<>();
+        fakeVnpayParams.put("vnp_Amount", payment.getAmount().multiply(new BigDecimal("100")).toBigInteger().toString());
+        fakeVnpayParams.put("vnp_BankCode", "NCB"); // Ngân hàng test
+        fakeVnpayParams.put("vnp_BankTranNo", ""); // Không có số giao dịch khi thất bại
+        fakeVnpayParams.put("vnp_CardType", "ATM");
+        fakeVnpayParams.put("vnp_OrderInfo", "Thanh toan don hang " + orderCode);
+        fakeVnpayParams.put("vnp_PayDate", "20251121153000"); // Thời gian giả
+
+        // Các mã lỗi phổ biến của VNPAY:
+        // "07" = Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).
+        // "09" = Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking tại ngân hàng.
+        // "10" = Giao dịch không thành công do: Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần
+        // "11" = Giao dịch không thành công do: Đã hết hạn chờ thanh toán. Xin quý khách vui lòng thực hiện lại giao dịch.
+        // "12" = Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng bị khóa.
+        // "13" = Giao dịch không thành công do Quý khách nhập sai mật khẩu xác thực giao dịch (OTP).
+        // "24" = Giao dịch không thành công do: Khách hàng hủy giao dịch
+        // "51" = Giao dịch không thành công do: Tài khoản của quý khách không đủ số dư để thực hiện giao dịch.
+        // "65" = Giao dịch không thành công do: Tài khoản của Quý khách đã vượt quá hạn mức giao dịch trong ngày.
+        // "75" = Ngân hàng thanh toán đang bảo trì.
+        // "79" = Giao dịch không thành công do: KH nhập sai mật khẩu thanh toán quá số lần quy định.
+
+        fakeVnpayParams.put("vnp_ResponseCode", "24"); // 24 = Khách hàng hủy giao dịch (phổ biến nhất)
+        fakeVnpayParams.put("vnp_TmnCode", vnpayConfig.getTmnCode());
+        fakeVnpayParams.put("vnp_TransactionNo", ""); // Không có số giao dịch khi thất bại
+        fakeVnpayParams.put("vnp_TransactionStatus", "02"); // 02 = Thất bại
+        fakeVnpayParams.put("vnp_TxnRef", orderCode); // Mã đơn hàng của bạn
+
+        // 3. Tự tạo hashData (Vì dùng TreeMap nên đã tự sắp xếp A-Z)
+        StringBuilder hashData = new StringBuilder();
+        try {
+            for (Map.Entry<String, String> entry : fakeVnpayParams.entrySet()) {
+                String fieldName = entry.getKey();
+                String fieldValue = entry.getValue();
+                if ((fieldValue != null) && (fieldValue.length() > 0)) {
+                    hashData.append(fieldName);
+                    hashData.append('=');
+                    hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                    hashData.append('&');
+                }
+            }
+            hashData.deleteCharAt(hashData.length() - 1); // Xóa dấu & cuối
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi tạo test hashData cho failed payment", e);
+        }
+
+        // 4. Tự tạo chữ ký HỢP LỆ bằng hàm private có sẵn
+        String secureHash = createVnpayHash(hashData.toString(), vnpayConfig.getHashSecret());
+
+        // Thêm chữ ký vào map
+        fakeVnpayParams.put("vnp_SecureHash", secureHash);
+
+        // 5. Gọi hàm IPN thật với dữ liệu giả lập chuẩn 100%
+        log.info("Đang gọi hàm handleVnpayIpn với dữ liệu giả lập THẤT BẠI...");
+        return handleVnpayIpn(fakeVnpayParams);
+    }
+
+    @Override
     public List<PaymentResponse.Transaction> getPaymentHistory(Long bookingId) {
         log.info("Bắt đầu lấy lịch sử thanh toán cho booking ID: {}", bookingId);
 
@@ -323,133 +397,6 @@ public class PaymentService implements IPaymentService {
                 .collect(Collectors.toList());
     }
 
-//    @Override
-    @Transactional
-    public PaymentResponse.VnpayIpn simulateRefund(String orderCode) {
-        log.warn("!!! BẮT ĐẦU GIẢ LẬP REFUND CHO ĐƠN HÀNG: {} !!!", orderCode);
-        Payment payment = paymentRepository.findByOrderCode(orderCode)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy giao dịch với mã: " + orderCode));
-        Invoice invoice = payment.getInvoice();
-        // Chỉ refund nếu đã thanh toán thành công và invoice đang PAID
-        if (payment.getStatus() == PaymentStatus.SUCCESSFUL && invoice != null && invoice.getStatus() == InvoiceStatus.PAID) {
-            payment.setStatus(PaymentStatus.REFUNDED); // hoặc tạo thêm REFUNDED nếu có
-            payment.setResponseCode("REFUND");
-            payment.setPaidAt(LocalDateTime.now());
-            paymentRepository.save(payment);
-            invoice.setStatus(InvoiceStatus.REFUNDED);
-            invoiceRepository.save(invoice);
-            log.info("Đã giả lập refund cho orderCode {}: Payment FAILED, Invoice REFUNDED", orderCode);
-            return new PaymentResponse.VnpayIpn("00", "Refund simulated successfully");
-        } else {
-            log.warn("Không thể refund: trạng thái payment/invoice không hợp lệ");
-            return new PaymentResponse.VnpayIpn("99", "Refund failed: trạng thái không hợp lệ");
-        }
-    }
-
-    /**
-     * Happy flow refund step 1: Tạo yêu cầu refund
-     */
-    @Transactional
-    public PaymentResponse.RefundResult createRefund(String orderCode) {
-        log.info("Bắt đầu tạo yêu cầu refund cho orderCode: {}", orderCode);
-        Payment payment = paymentRepository.findByOrderCode(orderCode)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy giao dịch với mã: " + orderCode));
-        Invoice invoice = payment.getInvoice();
-        // Chỉ tạo refund nếu đã thanh toán thành công và invoice đang PAID
-        if (payment.getStatus() == PaymentStatus.SUCCESSFUL && invoice != null && invoice.getStatus() == InvoiceStatus.PAID) {
-            payment.setStatus(PaymentStatus.PENDING); // Đánh dấu đang chờ refund
-            payment.setResponseCode("REF_REQ");
-            paymentRepository.save(payment);
-            log.info("Đã tạo yêu cầu refund cho orderCode {}: Payment PENDING REFUND", orderCode);
-            return new PaymentResponse.RefundResult(orderCode, true, "Refund request created successfully");
-        } else {
-            log.warn("Không thể tạo refund: trạng thái payment/invoice không hợp lệ");
-            return new PaymentResponse.RefundResult(orderCode, false, "Refund request failed: trạng thái không hợp lệ");
-        }
-    }
-
-    /**
-     * Happy flow refund step 2: Xử lý IPN/callback refund
-     */
-    @Transactional
-    public PaymentResponse.VnpayIpn handleRefundIpn(Map<String, String> vnpayParams) {
-        log.info("Bắt đầu xử lý IPN/callback refund từ VNPAY");
-        try {
-            String orderCode = vnpayParams.get("vnp_TxnRef");
-            String vnpResponseCode = vnpayParams.get("vnp_ResponseCode");
-            Payment payment = paymentRepository.findByOrderCode(orderCode)
-                    .orElse(null);
-            if (payment == null) {
-                log.warn("IPN REFUND: Không tìm thấy đơn hàng (Order not found): {}", orderCode);
-                return new PaymentResponse.VnpayIpn("01", "Order not found");
-            }
-            Invoice invoice = payment.getInvoice();
-            // Chỉ xử lý refund nếu payment đang chờ refund
-            if ("REF_REQ".equals(payment.getResponseCode()) && invoice != null && invoice.getStatus() == InvoiceStatus.PAID) {
-                if ("00".equals(vnpResponseCode)) {
-                    payment.setStatus(PaymentStatus.REFUNDED);
-                    payment.setResponseCode("REFUNDED");
-                    payment.setPaidAt(LocalDateTime.now());
-                    paymentRepository.save(payment);
-                    invoice.setStatus(InvoiceStatus.REFUNDED);
-                    invoiceRepository.save(invoice);
-                    log.info("IPN REFUND: Refund thành công cho orderCode {}", orderCode);
-                    return new PaymentResponse.VnpayIpn("00", "Refund confirmed successfully");
-                } else {
-                    payment.setStatus(PaymentStatus.FAILED);
-                    payment.setResponseCode("REF_FAIL");
-                    paymentRepository.save(payment);
-                    log.warn("IPN REFUND: Refund thất bại cho orderCode {}", orderCode);
-                    return new PaymentResponse.VnpayIpn("99", "Refund failed");
-                }
-            } else {
-                log.warn("IPN REFUND: Không thể xử lý refund cho orderCode {}: trạng thái không hợp lệ", orderCode);
-                return new PaymentResponse.VnpayIpn("99", "Refund failed: trạng thái không hợp lệ");
-            }
-        } catch (Exception e) {
-            log.error("IPN REFUND: Lỗi không xác định", e);
-            return new PaymentResponse.VnpayIpn("99", "Unknown error");
-        }
-    }
-
-    /**
-     * Happy flow refund step 3: Kiểm tra trạng thái refund
-     */
-    public PaymentResponse.RefundResult checkRefundStatus(String orderCode) {
-        Payment payment = paymentRepository.findByOrderCode(orderCode)
-                .orElse(null);
-        if (payment == null) {
-            return new PaymentResponse.RefundResult(orderCode, false, "Order not found");
-        }
-        boolean isRefunded = payment.getStatus() == PaymentStatus.REFUNDED;
-        return new PaymentResponse.RefundResult(orderCode, isRefunded, payment.getResponseCode());
-    }
-
-    /**
-     * Happy flow refund step 4: Giả lập refund (stimulate)
-     */
-    @Override
-    @Transactional
-    public PaymentResponse.VnpayIpn stimulateRefund(String orderCode) {
-        log.info("Bắt đầu giả lập refund cho orderCode: {}", orderCode);
-        Payment payment = paymentRepository.findByOrderCode(orderCode)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy giao dịch với mã: " + orderCode));
-        Invoice invoice = payment.getInvoice();
-        // Chỉ giả lập refund nếu đã tạo yêu cầu refund (PENDING, REFUND_REQUESTED)
-        if (payment.getStatus() == PaymentStatus.PENDING && "REF_REQ".equals(payment.getResponseCode()) && invoice != null && invoice.getStatus() == InvoiceStatus.PAID) {
-            // Tạo dữ liệu giả lập IPN refund thành công
-            Map<String, String> fakeRefundParams = new TreeMap<>();
-            fakeRefundParams.put("vnp_TxnRef", orderCode);
-            fakeRefundParams.put("vnp_ResponseCode", "00"); // 00 = Refund thành công
-            // Gọi handleRefundIpn với dữ liệu giả lập
-            return handleRefundIpn(fakeRefundParams);
-        } else {
-            log.warn("Không thể giả lập refund: trạng thái payment/invoice không hợp lệ hoặc chưa tạo yêu cầu refund");
-            return new PaymentResponse.VnpayIpn("99", "Stimulate refund failed: trạng thái không hợp lệ");
-        }
-    }
-
-    // --- CÁC HÀM TIỆN ÍCH (HELPER METHODS) ---
 
     /**
      * Tạo chữ ký VNPAY (HMAC-SHA512)
@@ -530,13 +477,5 @@ public class PaymentService implements IPaymentService {
                 .build();
     }
 
-    @Override
-    public PaymentResponse.RefundResult createRefundByInvoiceId(Long invoiceId) {
-        invoiceRepository.findById(invoiceId)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy hóa đơn với ID: " + invoiceId));
-        Payment payment = paymentRepository.findFirstByInvoiceIdOrderByCreatedAtDesc(invoiceId)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy payment cho hóa đơn: " + invoiceId));
-        return createRefund(payment.getOrderCode());
-    }
 }
 

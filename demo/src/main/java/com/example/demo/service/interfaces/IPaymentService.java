@@ -15,12 +15,7 @@ public interface IPaymentService {
 
     PaymentResponse.VnpayIpn simulateIpnSuccess(String orderCode);
 
+    PaymentResponse.VnpayIpn simulateIpnFail(String orderCode);
+
     List<PaymentResponse.Transaction> getPaymentHistory(Long bookingId);
-
-    PaymentResponse.RefundResult createRefundByInvoiceId(Long invoiceId);
-
-    PaymentResponse.VnpayIpn stimulateRefund(String orderCode);
-
-    PaymentResponse.RefundResult checkRefundStatus(String orderCode);
-
 }
