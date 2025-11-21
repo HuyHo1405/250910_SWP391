@@ -33,8 +33,6 @@ public class UserProfileService implements IUserProfileService {
     private final UserValidationService userValidationService;
     private final AccessControlService accessControlService;
     private final IPasswordService passwordService;
-    private final IMailService mailService;
-    private final IVerificationCodeService verificationCodeService;
 
     private final UserRepo userRepo;
     private final RoleRepo roleRepo;
@@ -58,7 +56,7 @@ public class UserProfileService implements IUserProfileService {
         user.setHashedPassword(passwordEncoder.encode(request.getPassword()));
 
         // Xử lý role: nullable, mặc định CUSTOMER
-        String roleDisplayName = (request.getRoleDisplayName() != null) ? request.getRoleDisplayName() : "Customer";
+        String roleDisplayName = (request.getRoleDisplayName() != null) ? request.getRoleDisplayName() : "Khách hàng";
 
         Role role = roleRepo.findByDisplayName(roleDisplayName)
                 .orElseThrow(() -> new CommonException.NotFound("Tên hiển thị của Role", roleDisplayName));
