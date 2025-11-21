@@ -154,6 +154,7 @@ public class VehicleService implements IVehicleService {
 
     private User getUserOrThrow(Long userId) {
         User user = userRepo.findById(userId)
+                .filter(u -> u.getStatus() == EntityStatus.ACTIVE)
                 .orElseThrow(() -> new CommonException.NotFound("User", userId));
 
         if(!userContextService.isCustomer()) {
@@ -164,6 +165,7 @@ public class VehicleService implements IVehicleService {
 
     private VehicleModel getVehicleModelOrThrow(Long modelId) {
         return vehicleModelRepo.findById(modelId)
+                .filter(model -> model.getStatus() == EntityStatus.ACTIVE)
                 .orElseThrow(() -> new CommonException.NotFound("Mẫu xe", modelId));
     }
 
@@ -174,7 +176,7 @@ public class VehicleService implements IVehicleService {
                 .plateNumber(request.getPlateNumber())
                 .color(request.getColor())
                 .distanceTraveledKm(request.getDistanceTraveledKm())
-                .batteryDegration(request.getBatteryDegradation())
+                .batteryDegradation(request.getBatteryDegradation())
                 .purchasedAt(request.getPurchasedAt())
                 .createdAt(LocalDateTime.now())
                 .customer(user)
@@ -192,8 +194,8 @@ public class VehicleService implements IVehicleService {
             throw new CommonException.InvalidOperation("Màu xe không được phép thay đổi");
         }
 
-        if(request.getPlateNumber() != null && !request.getPlateNumber().equals(vehicle.getName())) {
-            throw new CommonException.InvalidOperation("Trường tên xe không được phép thay đổi");
+        if(request.getPlateNumber() != null && !request.getPlateNumber().equals(vehicle.getPlateNumber())) {
+            throw new CommonException.InvalidOperation("Biển số xe không được phép thay đổi");
         }
 
         if(request.getPurchasedAt() != null && !request.getPurchasedAt().isEqual(vehicle.getPurchasedAt())) {
@@ -205,13 +207,7 @@ public class VehicleService implements IVehicleService {
         }
 
         if (request.getBatteryDegradation() != null) {
-            vehicle.setBatteryDegration(request.getBatteryDegradation());
-        }
-    }
-
-    private void validatePlateNumberUniqueness(String plateNumber) {
-        if (vehicleRepo.existsByPlateNumberAndEntityStatus(plateNumber, EntityStatus.ACTIVE)) {
-            throw new CommonException.AlreadyExists("Xe", "Biển số xe", plateNumber);
+            vehicle.setBatteryDegradation(request.getBatteryDegradation());
         }
     }
 

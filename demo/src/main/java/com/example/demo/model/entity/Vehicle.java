@@ -36,7 +36,7 @@ public class Vehicle {
     private Double distanceTraveledKm;
 
     @Column(name = "battery_degradation")
-    private Double batteryDegration;
+    private Double batteryDegradation;
 
     @Column(name = "purchased_at", nullable = false)
     private LocalDateTime purchasedAt;

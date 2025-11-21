@@ -187,6 +187,10 @@ public class VehicleModelService implements IVehicleModelService{
             vehicleModel.setStatus(request.getStatus());
         }
 
+        if (request.getImageUrl() != null && !request.getImageUrl().equals(vehicleModel.getImageUrl())) {
+            vehicleModel.setImageUrl(request.getImageUrl());
+        }
+
         VehicleModel updated = vehicleModelRepo.save(vehicleModel);
         log.info("Vehicle model updated successfully with ID: {}", id);
         return mapToResponse(updated);

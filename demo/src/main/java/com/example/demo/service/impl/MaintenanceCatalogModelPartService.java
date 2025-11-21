@@ -27,7 +27,6 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
     private final MaintenanceCatalogModelRepo catalogModelRepo;
     private final MaintenanceCatalogModelPartRepo catalogModelPartRepo;
     private final MaintenanceCatalogRepo catalogRepo;
-    private final VehicleModelRepo vehicleModelRepo;
     private final PartRepo partRepo;
 
     @Override
@@ -153,7 +152,7 @@ public class MaintenanceCatalogModelPartService implements IMaintenanceCatalogMo
 
     private MaintenanceCatalogModelPart createNewEntity(MaintenanceCatalogModel catalog, CatalogModelPartRequest dto) {
         Part part = partRepo.findById(dto.getPartId())
-                .orElseThrow(() -> new CommonException.NotFound("Part with Id", dto.getPartId()));
+                .orElseThrow(() -> new CommonException.NotFound("Linh kiện với Id", dto.getPartId()));
         return MaintenanceCatalogModelPart.builder()
                 .maintenanceCatalogModel(catalog)
                 .part(part)

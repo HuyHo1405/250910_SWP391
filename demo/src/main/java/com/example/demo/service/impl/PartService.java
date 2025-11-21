@@ -149,6 +149,7 @@ public class PartService implements IPartService {
         part.setQuantity(request.getQuantity());
         part.setReserved(request.getReserved());
         part.setUsed(request.getUsed() != null ? request.getUsed() : part.getUsed());
+        part.setImageUrl(request.getImageUrl());
 
         Part updatedPart = partRepository.save(part);
         log.info("Part updated successfully: {}", id);

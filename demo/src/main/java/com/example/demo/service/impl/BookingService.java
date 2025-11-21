@@ -88,7 +88,10 @@ BookingService implements IBookingService {
     }
 
     private void checkBookingSingleDayLimit(Long id, LocalDate localDate) {
-        List<Booking> bookingsOnDate = bookingRepository.findByCustomerIdAndDate(id, localDate);
+        List<Booking> bookingsOnDate = bookingRepository.findByCustomerIdAndDate(id, localDate)
+                .stream()
+                .filter(b -> b.getBookingStatus() != BookingStatus.CANCELLED)
+                .collect(Collectors.toList());
         if(!bookingsOnDate.isEmpty()) {
             throw new CommonException.InvalidOperation("Khách hàng đã đạt giới hạn đặt lịch trong ngày: " + localDate);
         }

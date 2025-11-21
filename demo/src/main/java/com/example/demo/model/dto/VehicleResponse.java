@@ -46,7 +46,7 @@ public class VehicleResponse {
                 .plateNumber(vehicle.getPlateNumber())
                 .color(vehicle.getColor())
                 .distanceTraveledKm(vehicle.getDistanceTraveledKm())
-                .batteryDegradation(vehicle.getBatteryDegration())
+                .batteryDegradation(vehicle.getBatteryDegradation())
                 .purchasedAt(vehicle.getPurchasedAt())
                 .createdAt(vehicle.getCreatedAt())
                 .entityStatus(vehicle.getEntityStatus().name())
