@@ -1,5 +1,7 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.config.ChatConfig;
+import com.example.demo.exception.CommonException;
 import com.example.demo.service.interfaces.IChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,7 @@ import java.util.Map;
 @Slf4j
 public class ChatService implements IChatService {
 
-    private final String PYTHON_API_URL = "http://localhost:5000/chat";
+    private final ChatConfig chatConfig;
 
     public String getAnswerFromAI(String userMessage) {
         RestTemplate restTemplate = new RestTemplate();
@@ -32,7 +34,7 @@ public class ChatService implements IChatService {
 
         try {
             // Gửi POST request sang Python
-            Map response = restTemplate.postForObject(PYTHON_API_URL, entity, Map.class);
+            Map response = restTemplate.postForObject(chatConfig.getPythonApiUrl(), entity, Map.class);
 
             // Lấy câu trả lời từ JSON trả về (key là "reply")
             if (response != null && response.containsKey("reply")) {
@@ -40,9 +42,7 @@ public class ChatService implements IChatService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return "Lỗi: Không kết nối được với AI Server (Python).";
         }
-
-        return "Lỗi không xác định.";
+        throw new CommonException.ServiceUnavailable("Dịch vụ AI hiện không khả dụng. Vui lòng thử lại sau.");
     }
 }
