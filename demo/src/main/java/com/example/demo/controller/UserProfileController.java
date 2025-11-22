@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/userprofile")
-@Tag(name = "User Profile")
+@Tag(name = "User Profile", description = "Endpoints for managing user profiles - Admin, Staff, User")
 @RequiredArgsConstructor
 public class UserProfileController {
 
@@ -24,7 +24,7 @@ public class UserProfileController {
 
     // CREATE - Tạo user mới (admin)
     @PostMapping
-    @Operation(summary = "[PRIVATE] [ADMIN/STAFF] Create new user", description = "Allows an admin to create a new user profile.")
+    @Operation(summary = "Create new user", description = "Allows an admin to create a new user profile.")
     public ResponseEntity<UserProfileResponse> create(
             @RequestBody UserProfileRequest.CreateProfile request
     ) {
@@ -33,14 +33,14 @@ public class UserProfileController {
 
     // READ - Lấy user theo id
     @GetMapping("/{id}")
-    @Operation(summary = "[PRIVATE] [ADMIN/STAFF/OWNER] Get user by ID", description = "Returns user profile by user ID. Requires authentication.")
+    @Operation(summary = "Get user by ID", description = "Returns user profile by user ID. Requires authentication.")
     public ResponseEntity<UserProfileResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(userProfileService.getById(id));
     }
 
     // GET ALL - Danh sách user với filter
     @GetMapping
-    @Operation(summary = "[PRIVATE] [ADMIN/STAFF] Get all users with filters", description = "Returns all user profiles filtered by email, name, phone, role, or status. Requires authentication.")
+    @Operation(summary = "Get all users with filters", description = "Returns all user profiles filtered by email, name, phone, role, or status. Requires authentication.")
     public ResponseEntity<List<UserProfileResponse>> getAll(
             @RequestParam(required = false) String email,
             @RequestParam(required = false) String fullName,
@@ -55,7 +55,7 @@ public class UserProfileController {
 
     // UPDATE PROFILE - Cập nhật thông tin profile (KHÔNG BAO GỒM PASSWORD)
     @PutMapping("/{id}")
-    @Operation(summary = "[PRIVATE] [ADMIN/STAFF/OWNER/USER] Update user profile info", description = "Allows an authenticated user to update their profile info (email, name, phone, role, status).")
+    @Operation(summary = "Update user profile info", description = "Allows an authenticated user to update their profile info (email, name, phone, role, status).")
     public ResponseEntity<UserProfileResponse> updateProfile(
             @PathVariable Long id,
             @RequestBody UserProfileRequest.Profile request
@@ -65,7 +65,7 @@ public class UserProfileController {
 
     // UPDATE PASSWORD - Đổi mật khẩu (RIÊNG BIỆT)
     @PutMapping("/{id}/password")
-    @Operation(summary = "[PRIVATE] [ADMIN/STAFF/OWNER/USER] Change user password", description = "Allows an authenticated user to change their password.")
+    @Operation(summary = "Change user password", description = "Allows an authenticated user to change their password.")
     public ResponseEntity<MessageResponse> updatePassword(
             @PathVariable Long id,
             @RequestBody UserProfileRequest.Password request
@@ -75,7 +75,7 @@ public class UserProfileController {
 
     // DISABLE - Vô hiệu hóa user
     @PutMapping("/{id}/disable")
-    @Operation(summary = "[PRIVATE] [ADMIN/STAFF] Disable user", description = "Allows an admin to disable a user account.")
+    @Operation(summary = "Disable user", description = "Allows an admin to disable a user account.")
     public ResponseEntity<Void> disable(@PathVariable Long id) {
         userProfileService.disable(id);
         return ResponseEntity.noContent().build();
@@ -83,7 +83,7 @@ public class UserProfileController {
 
     // REACTIVE - Kích hoạt lại user
     @PutMapping("/{id}/reactive")
-    @Operation(summary = "[PRIVATE] [ADMIN/STAFF] Reactivate user", description = "Allows an admin to reactivate a user account.")
+    @Operation(summary = "Reactivate user", description = "Allows an admin to reactivate a user account.")
     public ResponseEntity<Void> reactive(@PathVariable Long id) {
         userProfileService.reactive(id);
         return ResponseEntity.noContent().build();
@@ -91,7 +91,7 @@ public class UserProfileController {
 
     // DELETE - Xóa user
     @DeleteMapping("/{id}")
-    @Operation(summary = "[PRIVATE] [ADMIN] Delete user", description = "Allows an admin to delete a user account.")
+    @Operation(summary = "Delete user", description = "Allows an admin to delete a user account.")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userProfileService.delete(id);
         return ResponseEntity.noContent().build();
@@ -99,7 +99,7 @@ public class UserProfileController {
 
     // GET ALL ROLES - Lấy danh sách tất cả role display names
     @GetMapping("/roles")
-    @Operation(summary = "[PRIVATE] [ADMIN/STAFF] Get all editable roles for current user (enum schema)", description = "Returns all editable roles for the current user as an enum schema. Requires authentication.")
+    @Operation(summary = "Get all editable roles for current user (enum schema)", description = "Returns all editable roles for the current user as an enum schema. Requires authentication.")
     public ResponseEntity<EnumSchemaResponse> getAllRoles() {
         return ResponseEntity.ok(userProfileService.getAllRoles());
     }

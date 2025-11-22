@@ -12,14 +12,14 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/invoices")
 @RequiredArgsConstructor
-@Tag(name = "Invoice")
+@Tag(name = "Invoice", description = "Endpoints for managing invoices - Customer, Staff")
 public class InvoiceController {
 
     private final IInvoiceService invoiceService;
 
     @PutMapping("/{invoiceId}")
     @Operation(
-        summary = "[PRIVATE] [OWNER/STAFF] Update invoice",
+        summary = "Update invoice",
         description = "Updates an invoice by its id. Requires authentication as owner or staff."
     )
     public ResponseEntity<InvoiceResponse> updateInvoice(
@@ -32,7 +32,7 @@ public class InvoiceController {
 
     @GetMapping("/{invoiceId}")
     @Operation(
-        summary = "[PRIVATE] [OWNER/STAFF] Get invoice by id",
+        summary = "Get invoice by id",
         description = "Returns an invoice by its id. Requires authentication as owner or staff."
     )
     public ResponseEntity<InvoiceResponse> getInvoice(@PathVariable Long invoiceId) {
@@ -42,7 +42,7 @@ public class InvoiceController {
 
     @DeleteMapping("/{invoiceId}")
     @Operation(
-        summary = "[PRIVATE] [OWNER/STAFF] Delete invoice",
+        summary = "Delete invoice",
         description = "Deletes an invoice by its id. Requires authentication as owner or staff."
     )
     public ResponseEntity<Void> deleteInvoice(@PathVariable Long invoiceId) {

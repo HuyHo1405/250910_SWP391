@@ -15,13 +15,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
-@Tag(name = "Dashboard")
+@Tag(name = "Dashboard", description = "Endpoints for dashboard statistics and reports - Admin")
 public class DashboardController {
     private final IReportService reportService;
 
     @GetMapping("/revenue")
     @Operation(
-        summary = "[PRIVATE] [ADMIN] Get dashboard revenue",
+        summary = "Get dashboard revenue",
         description = "Returns revenue statistics for the dashboard. Requires admin authentication."
     )
     public ResponseEntity<ReportResponse.DashboardRevenue> getDashboardRevenue() {
@@ -31,7 +31,7 @@ public class DashboardController {
 
     @GetMapping("/user-counts")
     @Operation(
-        summary = "[PRIVATE] [ADMIN] Get dashboard user counts",
+        summary = "Get dashboard user counts",
         description = "Returns active user counts for the dashboard. Requires admin authentication."
     )
     public ResponseEntity<ReportResponse.DashboardActiveUserCount> getDashboardUserCounts() {
@@ -41,7 +41,7 @@ public class DashboardController {
 
     @GetMapping("/booking-counts")
     @Operation(
-        summary = "[PRIVATE] [ADMIN] Get dashboard booking counts",
+        summary = "Get dashboard booking counts",
         description = "Returns active booking counts for the dashboard. Requires admin authentication."
     )
     public ResponseEntity<ReportResponse.DashboardActiveBookingCount> getDashboardBookingCounts() {
@@ -51,7 +51,7 @@ public class DashboardController {
 
     @GetMapping("/alert-counts")
     @Operation(
-        summary = "[PRIVATE] [ADMIN] Get dashboard alert counts",
+        summary = "Get dashboard alert counts",
         description = "Returns alert counts for the dashboard. Requires admin authentication."
     )
     public ResponseEntity<ReportResponse.DashboardAlertCount> getDashboardAlertCounts() {
@@ -61,7 +61,7 @@ public class DashboardController {
 
     @GetMapping("/alert")
     @Operation(
-        summary = "[PRIVATE] [ADMIN] Get dashboard alerts",
+        summary = "Get dashboard alerts",
         description = "Returns alert details for the dashboard. Requires admin authentication."
     )
     public ResponseEntity<List<ReportResponse.Alerts>> getAlerts() {
@@ -71,7 +71,7 @@ public class DashboardController {
 
     @GetMapping("/top-performance")
     @Operation(
-        summary = "[PRIVATE] [ADMIN] Get dashboard top performance",
+        summary = "Get dashboard top performance",
         description = "Returns top performance statistics for the dashboard. Requires admin authentication."
     )
     public ResponseEntity<List<?>> getTopPerformance() {
@@ -81,7 +81,7 @@ public class DashboardController {
 
     @GetMapping("/charts/revenue-last-6-months")
     @Operation(
-        summary = "[PRIVATE] [ADMIN] Get revenue chart for last 6 months",
+        summary = "Get revenue chart for last 6 months",
         description = "Returns monthly revenue data for the last 6 months for the dashboard. Requires admin authentication."
     )
     public ResponseEntity<List<ReportResponse.MonthlyRevenueData>> getRevenueChartLast6Months() {

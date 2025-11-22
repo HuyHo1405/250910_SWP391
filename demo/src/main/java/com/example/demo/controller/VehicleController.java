@@ -15,19 +15,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vehicles")
 @RequiredArgsConstructor
-@Tag(name = "Vehicle")
+@Tag(name = "Vehicle", description = "Endpoints for managing vehicles - Customer, Staff")
 public class VehicleController {
 
     private final IVehicleService vehicleService;
 
     @PostMapping
-    @Operation(summary = "[PRIVATE] [CUSTOMER] Create vehicle", description = "Allows a logged-in customer to register a new vehicle.")
+    @Operation(summary = "Create vehicle", description = "Allows a logged-in customer to register a new vehicle.")
     public ResponseEntity<VehicleResponse> createVehicle(@Valid @RequestBody VehicleRequest.Create request) {
         return ResponseEntity.ok(vehicleService.createVehicle(request));
     }
 
     @PutMapping("/{vin}")
-    @Operation(summary = "[PRIVATE] [OWNER/STAFF] Update vehicle", description = "Allows a logged-in customer to update their vehicle information.")
+    @Operation(summary = "Update vehicle", description = "Allows a logged-in customer to update their vehicle information.")
     public ResponseEntity<VehicleResponse> updateVehicle(
             @PathVariable String vin,
             @Valid @RequestBody VehicleRequest.Update request) {
@@ -35,25 +35,25 @@ public class VehicleController {
     }
 
     @DeleteMapping("/{vin}")
-    @Operation(summary = "[PRIVATE] [OWNER/STAFF] Delete vehicle", description = "Allows a logged-in customer to delete their vehicle.")
+    @Operation(summary = "Delete vehicle", description = "Allows a logged-in customer to delete their vehicle.")
     public ResponseEntity<VehicleResponse> deleteVehicle(@PathVariable String vin) {
         return ResponseEntity.ok(vehicleService.deleteVehicle(vin));
     }
 
     @GetMapping("/{vin}")
-    @Operation(summary = "[PRIVATE] [CUSTOMER] Get vehicle by VIN", description = "Returns vehicle details by VIN for the logged-in customer.")
+    @Operation(summary = "Get vehicle by VIN", description = "Returns vehicle details by VIN for the logged-in customer.")
     public ResponseEntity<VehicleResponse> getVehicleByVin(@PathVariable String vin) {
         return ResponseEntity.ok(vehicleService.getVehicleByVin(vin));
     }
 
     @GetMapping
-    @Operation(summary = "[PRIVATE] [CUSTOMER] Get all vehicles", description = "Returns all vehicles for the logged-in customer.")
+    @Operation(summary = "Get all vehicles", description = "Returns all vehicles for the logged-in customer.")
     public ResponseEntity<List<VehicleResponse>> getAllVehicles() {
         return ResponseEntity.ok(vehicleService.getAllVehicles());
     }
 
     @GetMapping("/user/{userId}")
-    @Operation(summary = "[PRIVATE] [OWNER/STAFF] Get vehicles by user", description = "Returns all vehicles for a specific user. Requires owner or staff authentication.")
+    @Operation(summary = "Get vehicles by user", description = "Returns all vehicles for a specific user. Requires owner or staff authentication.")
     public ResponseEntity<List<VehicleResponse>> getVehiclesByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(vehicleService.getVehiclesByUser(userId));
     }

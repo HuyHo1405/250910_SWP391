@@ -16,14 +16,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/maintenance-catalogs")
 @RequiredArgsConstructor
-@Tag(name = "Maintenance Catalog")
+@Tag(name = "Maintenance Catalog", description = "Endpoints for managing maintenance catalogs - Staff, Customer")
 public class CatalogController {
 
     private final IMaintenanceCatalogService catalogService;
 
     @GetMapping
     @Operation(
-        summary = "[PRIVATE] [OWNER/STAFF] Get all maintenance catalogs",
+        summary = "Get all maintenance catalogs",
         description = "Returns all maintenance catalogs, optionally filtered by category, VIN, or modelId. Requires authentication."
     )
     public ResponseEntity<List<CatalogResponse>> getAllCatalogs(
@@ -36,7 +36,7 @@ public class CatalogController {
 
     @GetMapping("/enum/category")
     @io.swagger.v3.oas.annotations.Operation(
-        summary = "[PRIVATE] [OWNER/STAFF] Get maintenance catalog category enum schema",
+        summary = "Get maintenance catalog category enum schema",
         description = "Returns enum schema for maintenance catalog categories."
     )
     public ResponseEntity<EnumSchemaResponse> getCategoryEnumSchema() {
@@ -45,7 +45,7 @@ public class CatalogController {
 
     @PostMapping
     @io.swagger.v3.oas.annotations.Operation(
-        summary = "[PRIVATE] [STAFF] Create a maintenance catalog",
+        summary = "Create a maintenance catalog",
         description = "Creates a new maintenance catalog. Requires staff permissions."
     )
     public ResponseEntity<CatalogResponse> createCatalog(
@@ -57,7 +57,7 @@ public class CatalogController {
 
     @PutMapping("/{id}")
     @io.swagger.v3.oas.annotations.Operation(
-        summary = "[PRIVATE] [STAFF] Update a maintenance catalog",
+        summary = "Update a maintenance catalog",
         description = "Updates an existing maintenance catalog by id. Requires staff permissions."
     )
     public ResponseEntity<CatalogResponse> updateCatalog(
@@ -69,7 +69,7 @@ public class CatalogController {
 
     @GetMapping("/{id}")
     @io.swagger.v3.oas.annotations.Operation(
-        summary = "[PRIVATE] [OWNER/STAFF] Get maintenance catalog by id",
+        summary = "Get maintenance catalog by id",
         description = "Returns a maintenance catalog by its id. Requires authentication."
     )
     public ResponseEntity<CatalogResponse> getCatalogById(
@@ -80,7 +80,7 @@ public class CatalogController {
 
     @DeleteMapping("/{id}")
     @io.swagger.v3.oas.annotations.Operation(
-        summary = "[PRIVATE] [STAFF] Delete a maintenance catalog",
+        summary = "Delete a maintenance catalog",
         description = "Deletes a maintenance catalog by id. Requires staff permissions."
     )
     public ResponseEntity<Void> deleteCatalog(@PathVariable Long id) {

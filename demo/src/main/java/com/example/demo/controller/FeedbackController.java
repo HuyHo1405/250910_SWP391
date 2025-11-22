@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/feedbacks")
 @RequiredArgsConstructor
-@Tag(name = "Feedbacks")
+@Tag(name = "Feedbacks", description = "Endpoints for managing feedbacks and tags - Customer, Staff")
 public class FeedbackController {
     private final IFeedbackService feedbackService;
 
@@ -54,7 +54,7 @@ public class FeedbackController {
 
     @PutMapping("/{feedbackId}")
     @Operation(
-        summary = "[PRIVATE] [CUSTOMER] Update feedback",
+        summary = "Update feedback",
         description = "Allows a logged-in customer to update their feedback."
     )
     public ResponseEntity<FeedbackResponse> updateFeedback(
@@ -66,7 +66,7 @@ public class FeedbackController {
 
     @DeleteMapping("/{feedbackId}")
     @Operation(
-        summary = "[PRIVATE] [CUSTOMER] Delete feedback",
+        summary = "Delete feedback",
         description = "Allows a logged-in customer to delete their feedback."
     )
     public ResponseEntity<Void> deleteFeedback(@PathVariable Long feedbackId) {
