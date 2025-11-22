@@ -1121,19 +1121,19 @@ VALUES
 -- Should trigger: YES (18,000 >= 18,000)
 
    IF
-NOT EXISTS (SELECT 1 FROM vehicles WHERE vin = 'VFVF51TEST000001')
+NOT EXISTS (SELECT 1 FROM vehicles WHERE vin = 'VFVF51TS3PA000001')
 INSERT INTO vehicles
 (name, plate_number, color, vin, customer_id, vehicle_model_id, entity_status, purchased_at, distance_traveled_km, battery_degradation, created_at)
 VALUES
-(N'VF 5 Test Reminder', '51K-001.01', N'Đỏ', 'VFVF51TEST000001', 19, 2, 'ACTIVE', '2024-01-01', 14000, 99.0, GETDATE());
+(N'VF 5 Test Reminder', '51K-001.01', N'Đỏ', 'VFVF51TS3PA000001', 19, 2, 'ACTIVE', '2024-01-01', 14000, 99.0, GETDATE());
 
 -- Booking for test vehicle (100 days ago) - This will be booking ID 27
       IF
-NOT EXISTS (SELECT 1 FROM bookings WHERE vin = 'VFVF51TEST000001')
+NOT EXISTS (SELECT 1 FROM bookings WHERE vin = 'VFVF51TS3PA000001')
 INSERT INTO bookings
 (customer_id, vin, schedule_date, booking_status, created_at, updated_at)
 VALUES
-(19, 'VFVF51TEST000001', DATEADD(HOUR, 9, DATEADD(DAY, -100, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'MAINTENANCE_COMPLETE', DATEADD(DAY, -101, GETDATE()), DATEADD(DAY, -100, GETDATE()));
+(19, 'VFVF51TS3PA000001', DATEADD(HOUR, 9, DATEADD(DAY, -100, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'MAINTENANCE_COMPLETE', DATEADD(DAY, -101, GETDATE()), DATEADD(DAY, -100, GETDATE()));
 
 -- Booking details for booking 27
          IF
@@ -1176,3 +1176,68 @@ INSERT INTO jobs
 (booking_id, technician_id, start_time, est_end_time, actual_end_time, notes, created_at, updated_at)
 VALUES
 (27, 9, DATEADD(HOUR, 9, DATEADD(DAY, -100, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -100, GETDATE())), DATEADD(MINUTE, 120, DATEADD(HOUR, 9, DATEADD(DAY, -100, GETDATE()))), N'Test booking - Hoàn thành bảo dưỡng', DATEADD(DAY, -101, GETDATE()), DATEADD(DAY, -100, GETDATE()));
+
+-- ================================================================
+-- DEMO DATA - ASSIGNED BOOKINGS (Ready to Start)
+-- ================================================================
+-- Add this at the END of data.sql (after reminder test data)
+-- 4 ASSIGNED bookings with staggered start times for job demo
+-- ================================================================
+-- === BOOKINGS ===
+IF NOT EXISTS (SELECT 1 FROM bookings WHERE id = 28)
+INSERT INTO bookings
+(customer_id, vin, schedule_date, booking_status, created_at, updated_at)
+VALUES
+(19, 'VFVF82AD3PA000101', DATEADD(HOUR, DATEPART(HOUR, GETDATE()) + 1, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'ASSIGNED', DATEADD(DAY, -1, GETDATE()), GETDATE()),
+(20, 'VFVFE34D3PA000201', DATEADD(HOUR, DATEPART(HOUR, GETDATE()) + 2, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'ASSIGNED', DATEADD(DAY, -1, GETDATE()), GETDATE()),
+(21, 'VFVF93EF3PA000301', DATEADD(HOUR, DATEPART(HOUR, GETDATE()) + 3, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'ASSIGNED', DATEADD(DAY, -1, GETDATE()), GETDATE()),
+(22, 'VFVF62KL3PA000401', DATEADD(HOUR, DATEPART(HOUR, GETDATE()) + 1, CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 'ASSIGNED', DATEADD(DAY, -1, GETDATE()), GETDATE());
+-- === BOOKING DETAILS ===
+IF NOT EXISTS (SELECT 1 FROM booking_details WHERE booking_id = 28)
+INSERT INTO booking_details
+(booking_id, maintenance_catalog_model_id, description)
+VALUES
+(28, 61, N'Chẩn đoán tổng thể xe'), (28, 26, N'Cập nhật phần mềm'),
+(29, 7, N'Kiểm tra pin điện áp cao'), (29, 35, N'Thay lọc gió cabin'),
+(30, 95, N'Thay gạt mưa'), (30, 102, N'Bổ sung nước rửa kính'),
+(31, 48, N'Kiểm tra hệ thống treo'), (31, 76, N'Kiểm tra ắc quy 12V');
+-- === INVOICES (PAID) ===
+IF NOT EXISTS (SELECT 1 FROM invoices WHERE booking_id = 28)
+INSERT INTO invoices
+(booking_id, invoice_number, issue_date, due_date, total_amount, status, created_at, updated_at, paid_at)
+VALUES
+(28, 'INV-2025-00028', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, DATEPART(HOUR, GETDATE()), CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 500000, 'PAID', DATEADD(DAY, -1, GETDATE()), GETDATE(), GETDATE()),
+(29, 'INV-2025-00029', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, DATEPART(HOUR, GETDATE()), CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 350000, 'PAID', DATEADD(DAY, -1, GETDATE()), GETDATE(), GETDATE()),
+(30, 'INV-2025-00030', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, DATEPART(HOUR, GETDATE()), CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 230000, 'PAID', DATEADD(DAY, -1, GETDATE()), GETDATE(), GETDATE()),
+(31, 'INV-2025-00031', DATEADD(DAY, -1, GETDATE()), DATEADD(HOUR, DATEPART(HOUR, GETDATE()), CAST(CAST(GETDATE() AS DATE) AS DATETIME)), 450000, 'PAID', DATEADD(DAY, -1, GETDATE()), GETDATE(), GETDATE());
+-- === INVOICE LINES ===
+IF NOT EXISTS (SELECT 1 FROM invoice_lines WHERE invoice_id = 28)
+INSERT INTO invoice_lines
+(invoice_id, item_description, item_type, quantity, unit_price, line_total)
+VALUES
+(28, N'DV: Chẩn đoán tổng thể xe', 'SERVICE', 1, 500000, 500000),
+(28, N'DV: Cập nhật phần mềm', 'SERVICE', 1, 0, 0),
+(29, N'DV: Kiểm tra pin điện áp cao', 'SERVICE', 1, 300000, 300000),
+(29, N'DV: Thay lọc gió cabin', 'SERVICE', 1, 50000, 50000),
+(30, N'DV: Thay gạt mưa', 'SERVICE', 1, 50000, 50000),
+(30, N'LK: Gạt mưa Bosch 24"', 'PART', 1, 180000, 180000),
+(31, N'DV: Kiểm tra hệ thống treo', 'SERVICE', 1, 350000, 350000),
+(31, N'DV: Kiểm tra ắc quy 12V', 'SERVICE', 1, 100000, 100000);
+-- === PAYMENTS (SUCCESSFUL) ===
+IF NOT EXISTS (SELECT 1 FROM payments WHERE invoice_id = 28)
+INSERT INTO payments
+(invoice_id, payment_method, amount, status, order_code, transaction_ref, response_code, paid_at, raw_response_data, created_at, updated_at)
+VALUES
+(28, 'VNPAY', 500000.00, 'SUCCESSFUL', 'PAY-INV-00028', '14533001', '00', GETDATE(), N'{"vnp_Amount":"50000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE()),
+(29, 'VNPAY', 350000.00, 'SUCCESSFUL', 'PAY-INV-00029', '14533002', '00', GETDATE(), N'{"vnp_Amount":"35000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE()),
+(30, 'VNPAY', 230000.00, 'SUCCESSFUL', 'PAY-INV-00030', '14533003', '00', GETDATE(), N'{"vnp_Amount":"23000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE()),
+(31, 'VNPAY', 450000.00, 'SUCCESSFUL', 'PAY-INV-00031', '14533004', '00', GETDATE(), N'{"vnp_Amount":"45000000","vnp_ResponseCode":"00"}', GETDATE(), GETDATE());
+-- === JOBS (ASSIGNED - No start_time, ready to start) ===
+IF NOT EXISTS (SELECT 1 FROM jobs WHERE booking_id = 28)
+INSERT INTO jobs
+(booking_id, technician_id, start_time, est_end_time, actual_end_time, notes, created_at, updated_at)
+VALUES
+(28, 9, NULL, NULL, NULL, N'Assigned - Ready to start', GETDATE(), GETDATE()),
+(29, 10, NULL, NULL, NULL, N'Assigned - Backup slot', GETDATE(), GETDATE()),
+(30, 11, NULL, NULL, NULL, N'Assigned - Second backup', GETDATE(), GETDATE()),
+(31, 12, NULL, NULL, NULL, N'Assigned - Alternative slot', GETDATE(), GETDATE());
