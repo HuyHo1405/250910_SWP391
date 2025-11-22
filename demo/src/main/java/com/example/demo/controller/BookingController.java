@@ -9,6 +9,7 @@ import com.example.demo.service.interfaces.IBookingSlotService;
 import com.example.demo.service.interfaces.IBookingStatusService;
 import com.example.demo.model.dto.EnumSchemaResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -30,24 +31,28 @@ public class BookingController {
     private static final String VIN_REGEX = "^[A-HJ-NPR-Z0-9]{17}$";
 
     @PostMapping
+    @Operation(summary = "[PRIVATE] [CUSTOMER] Create a new booking", description = "Allows a logged-in customer to create a new booking.")
     public ResponseEntity<BookingResponse> createBooking(@Valid @RequestBody BookingRequest request) {
         BookingResponse resp = bookingService.createBooking(request);
         return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "[PRIVATE] [OWNER/STAFF/CUSTOMER] Get booking by id", description = "Returns booking details by booking id.")
     public ResponseEntity<BookingResponse> getBooking(@PathVariable Long id) {
         BookingResponse resp = bookingService.getBookingById(id);
         return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/customer/{customerId}")
+    @Operation(summary = "[PRIVATE] [CUSTOMER] Get bookings by customer", description = "Returns all bookings for a specific customer.")
     public ResponseEntity<List<BookingResponse>> getBookingsByCustomer(@PathVariable Long customerId) {
         List<BookingResponse> responses = bookingService.getBookingsByCustomerId(customerId);
         return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/vehicle/{vin}")
+    @Operation(summary = "[PRIVATE] [OWNER/STAFF] Get bookings by vehicle VIN", description = "Returns all bookings for a specific vehicle by VIN.")
     public ResponseEntity<List<BookingResponse>> getBookingsByVehicle(
             @PathVariable
             @Pattern(regexp = VIN_REGEX, message = "Mã vin không đúng định dạng")
@@ -58,6 +63,7 @@ public class BookingController {
     }
 
     @GetMapping
+    @Operation(summary = "[PRIVATE] [OWNER/STAFF] Get all bookings (filtered)", description = "Returns all bookings, optionally filtered by status.")
     public ResponseEntity<List<BookingResponse>> getAllBookings(
             @RequestParam(required = false) BookingStatus bookingStatus
     ) {
@@ -68,6 +74,7 @@ public class BookingController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "[PRIVATE] [CUSTOMER] Update a booking", description = "Updates an existing booking by id.")
     public ResponseEntity<BookingResponse> updateBooking(
             @PathVariable Long id,
             @RequestBody @Valid BookingRequest request) {
@@ -76,6 +83,7 @@ public class BookingController {
     }
 
     @PutMapping("/{id}/cancel")
+    @Operation(summary = "[PRIVATE] [CUSTOMER] Cancel a booking", description = "Cancels a booking by id.")
     public ResponseEntity<BookingResponse> cancelBooking(
             @PathVariable Long id) {
         BookingResponse resp = bookingStatusService.cancelBooking(id);
@@ -83,6 +91,7 @@ public class BookingController {
     }
 
     @PutMapping("/{id}/rejected")
+    @Operation(summary = "[PRIVATE] [STAFF] Reject a booking", description = "Rejects a booking by id.")
     public ResponseEntity<BookingResponse> rejectBooking(
             @PathVariable Long id) {
         BookingResponse resp = bookingStatusService.rejectBooking(id);
@@ -90,30 +99,35 @@ public class BookingController {
     }
 
     @PutMapping("/{id}/confirm")
+    @Operation(summary = "[PRIVATE] [STAFF] Confirm a booking", description = "Confirms a booking by id.")
     public ResponseEntity<BookingResponse> confirmBooking(@PathVariable Long id) {
         BookingResponse resp = bookingStatusService.confirmBooking(id);
         return ResponseEntity.ok(resp);
     }
 
     @PutMapping("/{id}/assign-technician")
+    @Operation(summary = "[PRIVATE] [STAFF] Assign technician to booking", description = "Assigns a technician to a booking.")
     public ResponseEntity<BookingResponse> assignTechnician(@PathVariable Long id, @RequestParam Long technicianId) {
         BookingResponse resp = bookingStatusService.assignTechnician(id, technicianId);
         return ResponseEntity.ok(resp);
     }
 
     @PutMapping("/{id}/reassign-technician")
+    @Operation(summary = "[PRIVATE] [STAFF] Reassign technician to booking", description = "Reassigns a technician to a booking with a reason.")
     public ResponseEntity<BookingResponse> reassignTechnician(@PathVariable Long id, @RequestParam Long technicianId, @RequestParam String reason) {
         BookingResponse resp = bookingStatusService.reassignTechnician(id, technicianId, reason);
         return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/slots")
+    @Operation(summary = "[PRIVATE] [STAFF] Get booked slots", description = "Returns all booked slots for all days.")
     public ResponseEntity<List<DailyBookedSlot>> getBookedSlots() {
         List<DailyBookedSlot> slots = bookingSlotService.getBookedSlot();
         return ResponseEntity.ok(slots);
     }
 
     @GetMapping("/{id}/check-parts")
+    @Operation(summary = "[PRIVATE] [STAFF] Check available parts for booking", description = "Checks if there are enough parts for a booking.")
     public ResponseEntity<Boolean> checkAvailablePart(
             @PathVariable("id") Long bookingId
     ) {
@@ -122,6 +136,7 @@ public class BookingController {
     }
 
     @GetMapping("/working-hours")
+    @Operation(summary = "[PUBLIC] [CUSTOMER] Get working hours", description = "Returns the list of available working hours for booking.")
     public ResponseEntity<EnumSchemaResponse> getWorkingHours() {
         List<String> hours = new ArrayList<>();
         for (int i = 7; i <= 17; i++) {

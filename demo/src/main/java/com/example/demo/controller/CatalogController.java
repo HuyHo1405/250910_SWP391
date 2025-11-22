@@ -6,6 +6,7 @@ import com.example.demo.service.interfaces.IMaintenanceCatalogService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,10 @@ public class CatalogController {
     private final IMaintenanceCatalogService catalogService;
 
     @GetMapping
+    @Operation(
+        summary = "[PRIVATE] [OWNER/STAFF] Get all maintenance catalogs",
+        description = "Returns all maintenance catalogs, optionally filtered by category, VIN, or modelId. Requires authentication."
+    )
     public ResponseEntity<List<CatalogResponse>> getAllCatalogs(
             @RequestParam(required = false) MaintenanceCatalogCategory category,
             @RequestParam(required = false) String vin,
@@ -30,11 +35,19 @@ public class CatalogController {
     }
 
     @GetMapping("/enum/category")
+    @io.swagger.v3.oas.annotations.Operation(
+        summary = "[PRIVATE] [OWNER/STAFF] Get maintenance catalog category enum schema",
+        description = "Returns enum schema for maintenance catalog categories."
+    )
     public ResponseEntity<EnumSchemaResponse> getCategoryEnumSchema() {
         return ResponseEntity.ok(catalogService.getCategoryEnumSchema());
     }
 
     @PostMapping
+    @io.swagger.v3.oas.annotations.Operation(
+        summary = "[PRIVATE] [STAFF] Create a maintenance catalog",
+        description = "Creates a new maintenance catalog. Requires staff permissions."
+    )
     public ResponseEntity<CatalogResponse> createCatalog(
             @RequestBody @Valid CatalogRequest request
     ) {
@@ -43,6 +56,10 @@ public class CatalogController {
     }
 
     @PutMapping("/{id}")
+    @io.swagger.v3.oas.annotations.Operation(
+        summary = "[PRIVATE] [STAFF] Update a maintenance catalog",
+        description = "Updates an existing maintenance catalog by id. Requires staff permissions."
+    )
     public ResponseEntity<CatalogResponse> updateCatalog(
             @PathVariable Long id,
             @RequestBody @Valid CatalogRequest request
@@ -51,6 +68,10 @@ public class CatalogController {
     }
 
     @GetMapping("/{id}")
+    @io.swagger.v3.oas.annotations.Operation(
+        summary = "[PRIVATE] [OWNER/STAFF] Get maintenance catalog by id",
+        description = "Returns a maintenance catalog by its id. Requires authentication."
+    )
     public ResponseEntity<CatalogResponse> getCatalogById(
             @PathVariable Long id
     ) {
@@ -58,6 +79,10 @@ public class CatalogController {
     }
 
     @DeleteMapping("/{id}")
+    @io.swagger.v3.oas.annotations.Operation(
+        summary = "[PRIVATE] [STAFF] Delete a maintenance catalog",
+        description = "Deletes a maintenance catalog by id. Requires staff permissions."
+    )
     public ResponseEntity<Void> deleteCatalog(@PathVariable Long id) {
         catalogService.delete(id);
         return ResponseEntity.noContent().build();

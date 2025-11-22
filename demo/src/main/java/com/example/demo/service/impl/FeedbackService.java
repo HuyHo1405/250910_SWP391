@@ -141,7 +141,7 @@ public class FeedbackService implements IFeedbackService {
             @Nullable Integer rating,
             @Nullable Long tagId
     ) {
-        accessControlService.verifyResourceAccessWithoutOwnership("FEEDBACK", "read");
+        accessControlService.verifyCanAccessAllResources("FEEDBACK", "read");
 
         // 2. Gọi Repo (Truyền null thoải mái)
         List<Feedback> feedbacks = feedbackRepo.findWithFilters(

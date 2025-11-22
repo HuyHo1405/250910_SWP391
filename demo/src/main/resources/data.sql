@@ -484,7 +484,7 @@ VALUES
 ('PAYMENT', 'cancel', 1, 'Cancel payment'),
 ('PAYMENT', 'pay', 1, 'Pay booking'),
 ('PAYMENT', 'refund', 1, 'Refund payment'),
-('PAYMENT', 'void', 1, 'Void payment'),
+('PAYMENT', 'view', 1, 'View payment'),
 -- JOB
 ('JOB', 'READ', 1, 'Read job'),
 ('JOB', 'CREATE', 1, 'Assign job for technician'),
@@ -581,7 +581,7 @@ WHERE
     (p.resource = 'INVOICE' AND p.action IN ('read', 'create'))
    OR
 -- Quyền thanh toán
-    (p.resource = 'PAYMENT' AND p.action = 'pay')
+    (p.resource = 'PAYMENT' AND p.action IN ('pay', 'view'))
    OR
     (p.resource = 'FEEDBACK' AND p.action IN ('create', 'read', 'update', 'delete'))
    OR

@@ -11,6 +11,7 @@ import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.model.modelEnum.InvoiceStatus;
 import com.example.demo.model.modelEnum.PaymentMethod;
 import com.example.demo.model.modelEnum.PaymentStatus;
+import com.example.demo.repo.BookingRepo;
 import com.example.demo.repo.InvoiceRepo;
 import com.example.demo.repo.PaymentRepo;
 import com.example.demo.service.interfaces.IPaymentService;
@@ -40,6 +41,8 @@ public class PaymentService implements IPaymentService {
     private final InvoiceRepo invoiceRepository;
     private final VnpayConfig vnpayConfig;
     private final HttpServletRequest httpServletRequest; // Dùng để lấy IP
+    private final AccessControlService accessControlService;
+    private final BookingRepo bookingRepo;
 
     @Override
     @Transactional
@@ -382,6 +385,17 @@ public class PaymentService implements IPaymentService {
     @Override
     public List<PaymentResponse.Transaction> getPaymentHistory(Long bookingId) {
         log.info("Bắt đầu lấy lịch sử thanh toán cho booking ID: {}", bookingId);
+
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new CommonException.NotFound("Không tìm thấy booking với ID: " + bookingId));
+
+        if(booking.getBookingStatus() != BookingStatus.PAID
+            && booking.getBookingStatus() != BookingStatus.IN_PROGRESS
+            && booking.getBookingStatus() != BookingStatus.MAINTENANCE_COMPLETE) {
+            throw new CommonException.InvalidOperation("Chỉ có thể xem lịch sử thanh toán cho các booking đã thanh toán.");
+        }
+
+        accessControlService.verifyResourceAccess(booking.getCustomer().getId(), "PAYMENT", "view");
 
         // 1. Gọi PaymentRepo (sử dụng hàm bạn vừa thêm ở Bước 1)
         List<Payment> payments = paymentRepository.findByBookingId(bookingId);

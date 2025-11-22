@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.model.dto.PaymentRequest;
 import com.example.demo.model.dto.PaymentResponse;
 import com.example.demo.service.interfaces.IPaymentService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -21,6 +21,7 @@ public class PaymentController {
     private final IPaymentService paymentService;
 
     @PostMapping("/create-payment")
+    @Operation(summary = "[PRIVATE] [OWNER/STAFF] Create payment URL", description = "Allows a logged-in customer to create a payment URL for an order.")
     public ResponseEntity<PaymentResponse.PaymentURL> createPayment(
             @Valid @RequestBody PaymentRequest.CreatePayment request
     ) {
@@ -37,6 +38,7 @@ public class PaymentController {
 //     * @return DTO (VnpayIpn) chứa RspCode và Message để VNPAY biết kết quả.
 //     */
 //    @PostMapping("/vnpay-ipn")
+//    @Operation(summary = "[PUBLIC] [SYSTEM] Handle VNPAY IPN", description = "Handles VNPAY Instant Payment Notification (IPN) callback to update order status.")
 //    public ResponseEntity<PaymentResponse.VnpayIpn> handleVnpayIpn(
 //            @RequestParam Map<String, String> vnpayParams
 //    ) {
@@ -46,6 +48,7 @@ public class PaymentController {
 //    }
 
     @GetMapping("/history/{bookingId}")
+    @Operation(summary = "[PRIVATE] [OWNER/STAFF] Get payment history for booking", description = "Returns the payment transaction history for a specific booking. Requires customer authentication.")
     public ResponseEntity<List<PaymentResponse.Transaction>> getPaymentHistoryForBooking(
             @PathVariable("bookingId") Long bookingId
     ) {
@@ -57,6 +60,7 @@ public class PaymentController {
     }
 
     @GetMapping("/status")
+    @Operation(summary = "[PRIVATE] [OWNER/STAFF] Check payment status", description = "Checks the payment status for a given order code. Requires customer authentication.")
     public ResponseEntity<PaymentResponse.PaymentStatusDetail> checkPaymentStatus(
             @RequestParam("orderCode") String orderCode
     ) {
@@ -66,12 +70,14 @@ public class PaymentController {
     }
 
     @GetMapping("/simulate-ipn-success")
+    @Operation(summary = "[PRIVATE] [CUSTOMER] Simulate IPN success", description = "Simulates a successful IPN callback for payment. This endpoint is called by the system after customer payment to update order status.")
     public ResponseEntity<?> testSuccessIpn(@RequestParam String orderCode) {
         PaymentResponse.VnpayIpn response = paymentService.simulateIpnSuccess(orderCode);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/simulate-ipn-fail")
+    @Operation(summary = "[PRIVATE] [CUSTOMER] Simulate IPN fail", description = "Simulates a failed IPN callback for payment. This endpoint is called by the system after customer payment to update order status.")
     public ResponseEntity<?> testFailIpn(@RequestParam String orderCode) {
         PaymentResponse.VnpayIpn response = paymentService.simulateIpnFail(orderCode);
         return ResponseEntity.ok(response);
