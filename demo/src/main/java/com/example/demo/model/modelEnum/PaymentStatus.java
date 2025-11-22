@@ -5,5 +5,6 @@ public enum PaymentStatus {
     PENDING,      // Chưa thanh toán
     SUCCESSFUL,  // Đã thanh toán thành công
     FAILED,// Thanh toán lỗi
-    REFUNDED    // Đã hoàn tiền
+    REFUNDED,    // Đã hoàn tiền
+    CANCELLED    // Đã hủy (do tạo yêu cầu thanh toán mới)
 }

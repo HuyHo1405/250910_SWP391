@@ -1,6 +1,7 @@
 package com.example.demo.repo;
 
 import com.example.demo.model.entity.Payment;
+import com.example.demo.model.modelEnum.PaymentStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,4 +31,6 @@ public interface PaymentRepo extends JpaRepository<Payment, Long> {
     List<Payment> findByBookingId(@Param("bookingId") Long bookingId);
 
     Optional<Payment> findFirstByInvoiceIdOrderByCreatedAtDesc(Long invoiceId);
+
+    List<Payment> findByInvoiceIdAndStatus(Long invoiceId, PaymentStatus status);
 }

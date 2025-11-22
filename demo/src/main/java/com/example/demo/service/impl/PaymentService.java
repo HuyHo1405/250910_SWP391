@@ -60,7 +60,40 @@ public class PaymentService implements IPaymentService {
         BigDecimal amount = invoice.getTotalAmount();
         log.info("VNPAY AMOUNT: {}", amount);
 
-        // 2. Tạo một bản ghi Payment
+        // 2. Check for existing PENDING payment
+        Optional<Payment> existingPayment = paymentRepository.findFirstByInvoiceIdOrderByCreatedAtDesc(invoice.getId());
+        
+        if (existingPayment.isPresent() && existingPayment.get().getStatus() == PaymentStatus.PENDING) {
+            Payment pending = existingPayment.get();
+            
+            // Check if payment link is still valid (15 minutes expiry)
+            LocalDateTime expiryTime = pending.getCreatedAt().plusMinutes(15);
+            LocalDateTime now = LocalDateTime.now();
+            
+            if (now.isBefore(expiryTime)) {
+                // Payment link still valid, reuse it
+                log.info("Reusing existing PENDING payment: {} (expires at: {})", 
+                        pending.getOrderCode(), expiryTime);
+                
+                // Regenerate payment URL with existing orderCode
+                String orderCode = pending.getOrderCode();
+                String paymentUrl = generateVnpayUrl(orderCode, amount);
+                
+                return PaymentResponse.PaymentURL.builder()
+                        .paymentUrl(paymentUrl)
+                        .orderCode(orderCode)
+                        .build();
+            } else {
+                // Payment link expired, cancel it and create new one
+                log.info("Existing PENDING payment {} expired, creating new one", pending.getOrderCode());
+                pending.setStatus(PaymentStatus.CANCELLED);
+                pending.setResponseCode("99");
+                pending.setRawResponseData("Expired - Payment link timeout (15 minutes)");
+                paymentRepository.save(pending);
+            }
+        }
+
+        // 3. Create new Payment record
         String orderCode = "VNP" + System.currentTimeMillis();
         log.info("VNPAY ORDER CODE: {}", orderCode);
 
@@ -72,6 +105,20 @@ public class PaymentService implements IPaymentService {
                 .orderCode(orderCode)
                 .build();
         paymentRepository.save(payment);
+
+        // 4. Generate VNPay URL
+        String paymentUrl = generateVnpayUrl(orderCode, amount);
+
+        return PaymentResponse.PaymentURL.builder()
+                .paymentUrl(paymentUrl)
+                .orderCode(orderCode)
+                .build();
+    }
+
+    /**
+     * Generate VNPay payment URL
+     */
+    private String generateVnpayUrl(String orderCode, BigDecimal amount) {
 
         // 3. Chuẩn bị các tham số cho VNPAY
         Map<String, String> vnpParams = new TreeMap<>();
@@ -88,14 +135,10 @@ public class PaymentService implements IPaymentService {
 
         String ipAddr = getIpAddress(httpServletRequest);
         vnpParams.put("vnp_IpAddr", ipAddr);
-        log.info("VNPAY IP_ADDR: {}", ipAddr);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         vnpParams.put("vnp_CreateDate", formatter.format(cld.getTime()));
-
-        // Log all params
-        log.info("VNPAY PARAMS: {}", vnpParams);
 
         // 4. Tạo Query String
         List<String> fieldNames = new ArrayList<>(vnpParams.keySet());
@@ -122,22 +165,11 @@ public class PaymentService implements IPaymentService {
         String queryUrl = query.substring(0, query.length() - 1);
         String hashString = hashData.substring(0, hashData.length() - 1);
 
-        log.info("VNPAY HASH STRING: {}", hashString);
-
         String secureHash = createVnpayHash(hashString, vnpayConfig.getHashSecret());
-
-        log.info("VNPAY SECURE HASH: {}", secureHash);
 
         queryUrl += "&vnp_SecureHash=" + secureHash;
 
-        String paymentUrl = vnpayConfig.getUrl() + "?" + queryUrl;
-
-        log.info("VNPAY PAYMENT URL: {}", paymentUrl);
-
-        return PaymentResponse.PaymentURL.builder()
-                .paymentUrl(paymentUrl)
-                .orderCode(orderCode)
-                .build();
+        return vnpayConfig.getUrl() + "?" + queryUrl;
     }
 
     @Override
@@ -196,10 +228,24 @@ public class PaymentService implements IPaymentService {
                 return new PaymentResponse.VnpayIpn("04", "Invalid Amount");
             }
 
-            // 7. Kiểm tra trạng thái
+            // 7. Kiểm tra trạng thái payment
             if (payment.getStatus() != PaymentStatus.PENDING) {
                 log.info("IPN: Đơn hàng đã được xử lý (Order already confirmed): {}", orderCode);
                 return new PaymentResponse.VnpayIpn("02", "Order already confirmed");
+            }
+
+            // 7.5. Kiểm tra trạng thái invoice (prevent duplicate payment)
+            if (payment.getInvoice().getStatus() == InvoiceStatus.PAID) {
+                log.warn("IPN: Invoice {} already paid by another transaction. Rejecting duplicate payment {}", 
+                        payment.getInvoice().getId(), orderCode);
+                
+                payment.setStatus(PaymentStatus.FAILED);
+                payment.setResponseCode("02");
+                payment.setRawResponseData("Invoice already paid by another transaction");
+                paymentRepository.save(payment);
+                
+                // Return "02" = VNPay will NOT transfer money (auto-refund)
+                return new PaymentResponse.VnpayIpn("02", "Invoice already paid");
             }
 
             // 8. Cập nhật trạng thái
@@ -218,11 +264,32 @@ public class PaymentService implements IPaymentService {
 
                 Booking booking = invoice.getBooking();
                 booking.setBookingStatus(BookingStatus.PAID);
+                bookingRepo.save(booking); // Save booking to database
 
                 payment.setStatus(PaymentStatus.SUCCESSFUL);
                 payment.setPaidAt(LocalDateTime.now());
-
                 paymentRepository.save(payment);
+
+                // Cancel all other PENDING payments for this invoice
+                // Since one transaction covers the entire invoice
+                List<Payment> otherPendingPayments = paymentRepository.findByInvoiceIdAndStatus(
+                        invoice.getId(), 
+                        PaymentStatus.PENDING
+                );
+                
+                if (!otherPendingPayments.isEmpty()) {
+                    log.info("Cancelling {} other PENDING payment(s) for invoice {} after successful payment", 
+                            otherPendingPayments.size(), invoice.getId());
+                    
+                    for (Payment pendingPayment : otherPendingPayments) {
+                        pendingPayment.setStatus(PaymentStatus.CANCELLED);
+                        pendingPayment.setResponseCode("02");
+                        pendingPayment.setRawResponseData("Cancelled - Invoice already paid by order: " + orderCode);
+                        paymentRepository.save(pendingPayment);
+                        log.info("Cancelled pending payment: {}", pendingPayment.getOrderCode());
+                    }
+                }
+
                 return new PaymentResponse.VnpayIpn("00", "Payment Success");
             } else {
                 log.warn("IPN: Thanh toán thất bại (Failed) cho đơn hàng {}. Mã lỗi: {}", orderCode, vnpResponseCode);
@@ -317,7 +384,7 @@ public class PaymentService implements IPaymentService {
 
         // 1. Tìm payment trong DB
         Payment payment = paymentRepository.findByOrderCode(orderCode)
-                .orElseThrow(() -> new EntityNotFoundException("Test: Không tìm thấy " + orderCode));
+                .orElseThrow(() -> new CommonException.NotFound("Test: Không tìm thấy " + orderCode));
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
             log.warn("Test: Đơn hàng {} đã được xử lý rồi (Status: {})", orderCode, payment.getStatus());

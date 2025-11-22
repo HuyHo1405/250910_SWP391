@@ -226,9 +226,7 @@ BookingService implements IBookingService {
         accessControlService.verifyResourceAccess(booking.getCustomer().getId(), "BOOKING", "update");
 
         // Không cho update nếu đã được duyệt, đã hoàn thành hoặc đã hủy
-        if (booking.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE
-                || booking.getBookingStatus() == BookingStatus.CANCELLED
-                || booking.getBookingStatus() == BookingStatus.CONFIRMED) {
+        if (booking.getBookingStatus() != BookingStatus.PENDING) {
             throw new CommonException.InvalidOperation("Không được cập nhật đơn với trạng thái này: " + booking.getBookingStatus());
         }
 

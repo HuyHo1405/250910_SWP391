@@ -115,6 +115,7 @@ public class InvoiceService implements IInvoiceService {
     public InvoiceResponse findById(Long id) {
         Invoice invoice = invoiceRepo.findById(id)
                 .orElseThrow(() -> new CommonException.NotFound("Invoice id", id)); // ✅ Sửa
+        accessControlService.verifyResourceAccess(invoice.getBooking().getCustomer().getId(), "INVOICE", "read");
         return mapToResponse(invoice);
     }
 

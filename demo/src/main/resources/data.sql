@@ -1102,3 +1102,77 @@ VALUES
 
 -- Feedback 9 (thuộc Booking 10 - 2 Sao) -> Chọn tag 2 sao
 (9, 5);  -- Giá dịch vụ quá cao
+
+-- ================================================================
+-- ADDITIONAL DATA FOR REMINDER TESTING
+-- ================================================================
+-- Test Vehicle: Should trigger reminder
+-- Last maintenance: 50 days ago at 8,500 km
+-- Predicted: 8,500 + (50 × 40) = 10,500 km
+-- Next threshold: 10,000 km (already passed, should look for 20,000 km)
+-- Notify at: 18,000 km (20,000 - 2,000)
+-- Should trigger: NO (10,500 < 18,000)
+
+-- Let's create a better test case that WILL trigger:
+-- Last maintenance: 100 days ago at 14,000 km
+-- Predicted: 14,000 + (100 × 40) = 18,000 km
+-- Next threshold: 20,000 km
+-- Notify at: 18,000 km (20,000 - 2,000)
+-- Should trigger: YES (18,000 >= 18,000)
+
+   IF
+NOT EXISTS (SELECT 1 FROM vehicles WHERE vin = 'VFVF51TEST000001')
+INSERT INTO vehicles
+(name, plate_number, color, vin, customer_id, vehicle_model_id, entity_status, purchased_at, distance_traveled_km, battery_degradation, created_at)
+VALUES
+(N'VF 5 Test Reminder', '51K-001.01', N'Đỏ', 'VFVF51TEST000001', 19, 2, 'ACTIVE', '2024-01-01', 14000, 99.0, GETDATE());
+
+-- Booking for test vehicle (100 days ago) - This will be booking ID 27
+      IF
+NOT EXISTS (SELECT 1 FROM bookings WHERE vin = 'VFVF51TEST000001')
+INSERT INTO bookings
+(customer_id, vin, schedule_date, booking_status, created_at, updated_at)
+VALUES
+(19, 'VFVF51TEST000001', DATEADD(HOUR, 9, DATEADD(DAY, -100, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 'MAINTENANCE_COMPLETE', DATEADD(DAY, -101, GETDATE()), DATEADD(DAY, -100, GETDATE()));
+
+-- Booking details for booking 27
+         IF
+NOT EXISTS (SELECT 1 FROM booking_details WHERE booking_id = 27)
+INSERT INTO booking_details
+(booking_id, maintenance_catalog_model_id, description)
+VALUES
+(27, 9, N'Đảo lốp'),
+(27, 16, N'Kiểm tra hệ thống phanh');
+
+-- Invoice for booking 27
+            IF
+NOT EXISTS (SELECT 1 FROM invoices WHERE booking_id = 27)
+INSERT INTO invoices
+(booking_id, invoice_number, issue_date, due_date, total_amount, status, created_at, updated_at, paid_at)
+VALUES
+(27, 'INV-2025-TEST01', DATEADD(DAY, -100, GETDATE()), DATEADD(HOUR, 9, DATEADD(DAY, -100, CAST(CAST(GETDATE() AS DATE) AS DATETIME))), 300000, 'PAID', DATEADD(DAY, -101, GETDATE()), DATEADD(DAY, -100, GETDATE()), DATEADD(DAY, -100, GETDATE()));
+
+-- Invoice lines for invoice 27
+               IF
+NOT EXISTS (SELECT 1 FROM invoice_lines WHERE invoice_id = 27)
+INSERT INTO invoice_lines
+(invoice_id, item_description, item_type, quantity, unit_price, line_total)
+VALUES
+(27, N'DV: Đảo lốp', 'SERVICE', 1, 150000, 150000),
+(27, N'DV: Kiểm tra hệ thống phanh', 'SERVICE', 1, 150000, 150000);
+
+-- Payment for invoice 27
+                  IF
+NOT EXISTS (SELECT 1 FROM payments WHERE invoice_id = 27)
+INSERT INTO payments
+(invoice_id, payment_method, amount, status, order_code, transaction_ref, response_code, paid_at, raw_response_data, created_at, updated_at)
+VALUES
+(27, 'VNPAY', 300000.00, 'SUCCESSFUL', 'PAY-INV-TEST01', 'TEST14532456', '00', DATEADD(DAY, -100, GETDATE()), N'{"vnp_Amount":"30000000","vnp_ResponseCode":"00"}', DATEADD(DAY, -100, GETDATE()), DATEADD(DAY, -100, GETDATE()));
+
+-- Job for booking 27
+                     IF
+NOT EXISTS (SELECT 1 FROM jobs WHERE booking_id = 27)
+INSERT INTO jobs
+(booking_id, technician_id, start_time, est_end_time, actual_end_time, notes, created_at, updated_at)
+VALUES
+(27, 9, DATEADD(HOUR, 9, DATEADD(DAY, -100, GETDATE())), DATEADD(HOUR, 11, DATEADD(DAY, -100, GETDATE())), DATEADD(MINUTE, 120, DATEADD(HOUR, 9, DATEADD(DAY, -100, GETDATE()))), N'Test booking - Hoàn thành bảo dưỡng', DATEADD(DAY, -101, GETDATE()), DATEADD(DAY, -100, GETDATE()));
