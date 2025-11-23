@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.exception.CommonException;
+import com.example.demo.model.dto.EnumSchemaResponse;
 import com.example.demo.model.dto.JobResponse;
 import com.example.demo.model.dto.ScheduleDateTime;
 import com.example.demo.model.dto.TechnicianResponse;
@@ -91,5 +92,22 @@ public class JobController {
         return ResponseEntity.ok(
             jobService.getAvailableTechnicians(scheduleDateTime)
         );
+    }
+
+    @GetMapping("/status-schema")
+    @Operation(summary = "Get JobStatus enum schema", description = "Returns the schema of JobStatus enum with all possible values and their descriptions.")
+    public ResponseEntity<EnumSchemaResponse> getJobStatusSchema() {
+        List<String> values = List.of(
+            "UNASSIGNED - Chưa assign technician",
+            "PENDING - Đã assign nhưng chưa bắt đầu",
+            "IN_PROGRESS - Đang thực hiện",
+            "COMPLETED - Đã hoàn thành"
+        );
+        EnumSchemaResponse response = new EnumSchemaResponse(
+            "JobStatus",
+            values,
+            "Trạng thái của công việc: UNASSIGNED, PENDING, IN_PROGRESS, COMPLETED"
+        );
+        return ResponseEntity.ok(response);
     }
 }
