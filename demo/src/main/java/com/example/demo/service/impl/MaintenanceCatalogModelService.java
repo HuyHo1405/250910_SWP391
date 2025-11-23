@@ -210,6 +210,7 @@ public class MaintenanceCatalogModelService implements IMaintenanceCatalogModelS
             // `toDeleteIds` là List<Long> các PK của MaintenanceCatalogModel
             // Bạn cần thêm method này vào MaintenanceCatalogModelPartRepo
             catalogModelPartRepo.deleteAllByMaintenanceCatalogModelIdIn(delta.toDeleteIds);
+            catalogModelPartRepo.flush(); // Đảm bảo xóa ngay trên DB trước khi xóa model cha
 
             // Xóa MODEL (cha) sau
             maintenanceCatalogModelRepo.deleteAllByIdInBatch(delta.toDeleteIds);

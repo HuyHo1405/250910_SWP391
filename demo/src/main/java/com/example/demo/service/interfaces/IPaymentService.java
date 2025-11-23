@@ -18,4 +18,5 @@ public interface IPaymentService {
     PaymentResponse.VnpayIpn simulateIpnFail(String orderCode);
 
     List<PaymentResponse.Transaction> getPaymentHistory(Long bookingId);
+    List<PaymentResponse.Transaction> getCustomerPaymentHistory(Long customerId);
 }

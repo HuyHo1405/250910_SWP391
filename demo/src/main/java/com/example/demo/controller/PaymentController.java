@@ -47,13 +47,25 @@ public class PaymentController {
 //        return ResponseEntity.ok(response);
 //    }
 
-    @GetMapping("/history/{bookingId}")
+    @GetMapping("/history/bookings/{bookingId}")
     @Operation(summary = "Get payment history for booking", description = "Returns the payment transaction history for a specific booking. Requires customer authentication.")
     public ResponseEntity<List<PaymentResponse.Transaction>> getPaymentHistoryForBooking(
             @PathVariable("bookingId") Long bookingId
     ) {
         // 1. Gọi service method mà chúng ta đã định nghĩa
         List<PaymentResponse.Transaction> historyList = paymentService.getPaymentHistory(bookingId);
+
+        // 2. Trả về HTTP 200 OK cùng với danh sách lịch sử
+        return ResponseEntity.ok(historyList);
+    }
+
+    @GetMapping("/history/customers/{customerId}")
+    @Operation(summary = "Get payment history for customer", description = "Returns the payment transaction history for a specific customer. Requires customer authentication.")
+    public ResponseEntity<List<PaymentResponse.Transaction>> getPaymentHistoryForCustomer(
+            @PathVariable("customerId") Long customerId
+    ) {
+        // 1. Gọi service method mà chúng ta đã định nghĩa
+        List<PaymentResponse.Transaction> historyList = paymentService.getCustomerPaymentHistory(customerId);
 
         // 2. Trả về HTTP 200 OK cùng với danh sách lịch sử
         return ResponseEntity.ok(historyList);

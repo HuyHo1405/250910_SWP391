@@ -202,21 +202,15 @@ public class VehicleModelService implements IVehicleModelService{
     public void delete(Long id) {
         log.info("Deleting vehicle model with ID: {}", id);
 
-        // Check permission (only ADMIN has delete permission via database)
         accessControlService.verifyResourceAccessWithoutOwnership("VEHICLE_MODEL", "delete");
 
-        if (!vehicleModelRepo.existsById(id)) {
-            throw new CommonException.NotFound("Mẫu xe", id);
-        }
+        VehicleModel model = vehicleModelRepo.findById(id)
+            .orElseThrow(() -> new CommonException.NotFound("Mẫu xe", id));
 
-        // Optional: Check if model is in use before deletion
-        // Uncomment when you want to enforce this rule
-        // if (vehicleRepo.existsByModelId(id)) {
-        //     throw new VehicleException.ModelInUse(id);
-        // }
+        model.setStatus(EntityStatus.INACTIVE); // Soft delete
+        vehicleModelRepo.save(model);
 
-        vehicleModelRepo.deleteById(id);
-        log.info("Vehicle model deleted successfully with ID: {}", id);
+        log.info("Vehicle model soft-deleted (status=INACTIVE) with ID: {}", id);
     }
 
     //

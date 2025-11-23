@@ -157,6 +157,24 @@ public class FeedbackService implements IFeedbackService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public FeedbackResponse getFeedbackByBookingId(Long bookingId) {
+        Booking booking = bookingRepo.findById(bookingId)
+                .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId));
+
+        accessControlService.verifyResourceAccess(booking.getCustomer().getId(), "FEEDBACK", "read");
+        Feedback feedback = feedbackRepo.findByBookingId(bookingId)
+                .orElseThrow(() -> new CommonException.NotFound("Feedback", bookingId));
+        return mapToResponse(feedback);
+    }
+
+    @Override
+    public List<FeedbackResponse> getUserFeedbackHistory(Long customerId) {
+        accessControlService.verifyResourceAccess(customerId, "FEEDBACK", "read");
+        List<Feedback> feedbacks = feedbackRepo.findByCustomerId(customerId);
+        return feedbacks.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
     private Set<FeedbackTag> validateAndGetTags(Integer rating, Set<Long> tagIds) {
         // Nếu không gửi tag gì -> Trả về rỗng (hợp lệ)
         if (tagIds == null || tagIds.isEmpty()) {

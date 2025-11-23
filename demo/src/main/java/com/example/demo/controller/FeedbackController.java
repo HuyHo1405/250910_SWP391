@@ -22,7 +22,7 @@ public class FeedbackController {
 
     @GetMapping("/tags")
     @Operation(
-        summary = "[PRIVATE] [USER] Get all feedback tags",
+        summary = "Get all feedback tags",
         description = "Returns all available feedback tags. Accessible to all users."
     )
     public ResponseEntity<List<TagResponse>> getAllTags() {
@@ -31,16 +31,34 @@ public class FeedbackController {
 
     @PostMapping
     @Operation(
-        summary = "[PRIVATE] [CUSTOMER] Create feedback",
+        summary = "Create feedback",
         description = "Allows a logged-in customer to create feedback for a booking."
     )
     public ResponseEntity<FeedbackResponse> createFeedback(@RequestBody @Valid FeedbackRequest request) {
         return ResponseEntity.ok(feedbackService.createFeedback(request));
     }
 
+    @GetMapping("/booking/{bookingId}")
+    @Operation(
+        summary = "Get feedback by booking id",
+        description = "Returns feedback for a specific booking. Requires staff/owner authentication."
+    )
+    public ResponseEntity<FeedbackResponse> getFeedbackByBookingId(@PathVariable Long bookingId) {
+        return ResponseEntity.ok(feedbackService.getFeedbackByBookingId(bookingId));
+    }
+
+    @GetMapping("/user/{customerId}")
+    @Operation(
+        summary = "Get feedback history by user",
+        description = "Returns all feedbacks of a specific user (customer). Requires staff/owner authentication."
+    )
+    public ResponseEntity<List<FeedbackResponse>> getUserFeedbackHistory(@PathVariable Long customerId) {
+        return ResponseEntity.ok(feedbackService.getUserFeedbackHistory(customerId));
+    }
+
     @GetMapping
     @Operation(
-        summary = "[PRIVATE] [STAFF] Get feedbacks with filters",
+        summary = "Get feedbacks with filters",
         description = "Returns feedbacks filtered by booking, customer, rating, or tag. Requires staff/owner authentication."
     )
     public ResponseEntity<List<FeedbackResponse>> getFeedbackWithFilters(

@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface FeedbackRepo extends JpaRepository<Feedback, Long> {
     Optional<Feedback> findByBookingId(Long bookingId);
 
+    List<Feedback> findByCustomerId(Long customerId);
+
     @Query("SELECT DISTINCT f FROM Feedback f " +
             "LEFT JOIN f.feedbackTags t " +  // Join để lọc theo Tag nếu cần
             "WHERE " +
@@ -26,4 +28,3 @@ public interface FeedbackRepo extends JpaRepository<Feedback, Long> {
     );
 
 }
-

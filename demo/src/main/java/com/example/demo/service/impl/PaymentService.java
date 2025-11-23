@@ -7,6 +7,7 @@ import com.example.demo.model.dto.PaymentResponse;
 import com.example.demo.model.entity.Booking;
 import com.example.demo.model.entity.Invoice;
 import com.example.demo.model.entity.Payment;
+import com.example.demo.model.entity.User;
 import com.example.demo.model.modelEnum.BookingStatus;
 import com.example.demo.model.modelEnum.InvoiceStatus;
 import com.example.demo.model.modelEnum.PaymentMethod;
@@ -14,6 +15,7 @@ import com.example.demo.model.modelEnum.PaymentStatus;
 import com.example.demo.repo.BookingRepo;
 import com.example.demo.repo.InvoiceRepo;
 import com.example.demo.repo.PaymentRepo;
+import com.example.demo.repo.UserRepo;
 import com.example.demo.service.interfaces.IPaymentService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,6 +45,7 @@ public class PaymentService implements IPaymentService {
     private final HttpServletRequest httpServletRequest; // Dùng để lấy IP
     private final AccessControlService accessControlService;
     private final BookingRepo bookingRepo;
+    private final UserRepo userRepo;
 
     @Override
     @Transactional
@@ -475,6 +478,44 @@ public class PaymentService implements IPaymentService {
         // 2. Chuyển đổi (map) từ List<Payment> sang List<PaymentResponse.Transaction>
         return payments.stream()
                 .map(this::toTransactionDTO) // Gọi hàm helper bên dưới
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PaymentResponse.Transaction> getCustomerPaymentHistory(Long customerId) {
+        log.info("Bắt đầu lấy lịch sử thanh toán cho customer ID: {}", customerId);
+
+        User customer = userRepo.findById(customerId)
+                .orElseThrow(() -> new CommonException.NotFound("Không tìm thấy user với ID: " + customerId));
+
+        accessControlService.verifyResourceAccess(customer.getId(), "PAYMENT", "view");
+
+        // Lấy danh sách booking của customer với trạng thái hợp lệ
+        List<Booking> bookings = bookingRepo.findByCustomerId(customerId);
+        List<Long> validBookingIds = bookings.stream()
+                .filter(b -> b.getBookingStatus() == BookingStatus.PAID
+                        || b.getBookingStatus() == BookingStatus.IN_PROGRESS
+                        || b.getBookingStatus() == BookingStatus.MAINTENANCE_COMPLETE)
+                .map(Booking::getId)
+                .toList();
+        if (validBookingIds.isEmpty()) {
+            log.info("Không có booking hợp lệ để lấy lịch sử thanh toán cho customer ID: {}", customerId);
+            return Collections.emptyList();
+        }
+
+        // Lấy tất cả payment liên quan đến các booking hợp lệ
+        List<Payment> payments = paymentRepository.findByCustomerId(customerId).stream()
+                .filter(p -> validBookingIds.contains(p.getInvoice().getBooking().getId()))
+                .toList();
+
+        if (payments.isEmpty()) {
+            log.info("Không tìm thấy lịch sử thanh toán nào cho customer ID: {}", customerId);
+            return Collections.emptyList();
+        }
+
+        // Chuyển đổi sang DTO
+        return payments.stream()
+                .map(this::toTransactionDTO)
                 .collect(Collectors.toList());
     }
 
