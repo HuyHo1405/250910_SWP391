@@ -12,7 +12,7 @@ public interface IPartService {
     // ================================
     // CREATE - Tạo mới part
     // ================================
-    PartResponse createPart(PartRequest request);
+    PartResponse createPart(PartRequest.PartCreate request);
 
     // ================================
     // READ - Lấy thông tin part
@@ -28,7 +28,7 @@ public interface IPartService {
     // ================================
     // UPDATE - Cập nhật part
     // ================================
-    PartResponse updatePart(Long id, PartRequest request);
+    PartResponse updatePart(Long id, PartRequest.PartUpdate request);
 
     PartResponse updatePartStatus(Long id, EntityStatus status);
 

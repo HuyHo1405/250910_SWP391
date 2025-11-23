@@ -1,5 +1,6 @@
 package com.example.demo.model.modelEnum;
 
+import com.example.demo.exception.CommonException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
@@ -46,6 +47,6 @@ public enum PartCategory {
             }
         }
 
-        throw new IllegalArgumentException("Không tìm thấy loại linh kiện: " + vietnameseName);
+        throw new CommonException.InvalidOperation("Không tìm thấy loại linh kiện: " + vietnameseName);
     }
 }

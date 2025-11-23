@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -149,6 +150,20 @@ public class BookingController {
                 "Danh sách giờ làm việc có thể đặt lịch (từ 07:00 đến 17:00)"
         );
 
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/status")
+    @Operation(summary = "Get all booking statuses", description = "Returns all possible booking statuses as enum schema.")
+    public ResponseEntity<EnumSchemaResponse> getAllBookingStatuses() {
+        List<String> statuses = Arrays.stream(BookingStatus.values())
+            .map(Enum::name)
+            .toList();
+        EnumSchemaResponse response = new EnumSchemaResponse(
+            "BookingStatusEnum",
+            statuses,
+            "Danh sách trạng thái booking hiện tại"
+        );
         return ResponseEntity.ok(response);
     }
 }

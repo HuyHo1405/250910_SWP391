@@ -35,7 +35,7 @@ public class PartService implements IPartService {
     // ================================
 
     @Override
-    public PartResponse createPart(PartRequest request) {
+    public PartResponse createPart(PartRequest.PartCreate request) {
         log.info("Creating new part: {}", request.getName());
         accessControlService.verifyResourceAccessWithoutOwnership("PART", "create");
         if (partRepository.existsByPartNumber(request.getPartNumber())) {
@@ -52,8 +52,8 @@ public class PartService implements IPartService {
                 .category(category)
                 .currentUnitPrice(request.getCurrentUnitPrice())
                 .quantity(request.getQuantity())
-                .reserved(request.getReserved())
-                .used(request.getUsed() != null ? request.getUsed() : BigDecimal.ZERO)
+                .reserved(BigDecimal.ZERO)
+                .used(BigDecimal.ZERO)
                 .imageUrl(request.getImageUrl())
                 .status(EntityStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
@@ -101,24 +101,9 @@ public class PartService implements IPartService {
     public List<PartResponse> getAllPartsFiltered(String manufacturer, EntityStatus status, String searchKeyword) {
         log.info("Fetching parts with filters - manufacturer: {}, status: {}, search: {}", manufacturer, status, searchKeyword);
         accessControlService.verifyResourceAccessWithoutOwnership("PART", "read");
-        List<Part> parts = partRepository.findAll();
-
-        if (manufacturer != null && !manufacturer.trim().isEmpty()) {
-            parts = parts.stream()
-                    .filter(p -> p.getManufacturer().equalsIgnoreCase(manufacturer))
-                    .collect(Collectors.toList());
-        }
-        if (status != null) {
-            parts = parts.stream()
-                    .filter(p -> p.getStatus() == status)
-                    .collect(Collectors.toList());
-        }
-        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-            String keyword = searchKeyword.toLowerCase();
-            parts = parts.stream()
-                    .filter(p -> p.getName().toLowerCase().contains(keyword))
-                    .collect(Collectors.toList());
-        }
+        String search = (searchKeyword != null && !searchKeyword.trim().isEmpty()) ? searchKeyword.toLowerCase() : null;
+        String manu = (manufacturer != null && !manufacturer.trim().isEmpty()) ? manufacturer : null;
+        List<Part> parts = partRepository.findFilteredAll(manu, status, search);
         log.info("Found {} parts matching filters", parts.size());
         return parts.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
@@ -128,7 +113,7 @@ public class PartService implements IPartService {
     // ================================
 
     @Override
-    public PartResponse updatePart(Long id, PartRequest request) {
+    public PartResponse updatePart(Long id, PartRequest.PartUpdate request) {
         log.info("Updating part with ID: {}", id);
         accessControlService.verifyResourceAccessWithoutOwnership("PART", "update");
         Part part = findPartById(id);

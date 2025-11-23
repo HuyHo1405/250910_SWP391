@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.dto.EnumSchemaResponse;
 import com.example.demo.model.dto.PartRequest;
 import com.example.demo.model.dto.PartResponse;
 import com.example.demo.model.modelEnum.EntityStatus;
+import com.example.demo.model.modelEnum.PartCategory;
 import com.example.demo.service.interfaces.IPartService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -25,7 +28,7 @@ public class PartController {
 
     @PostMapping
     @Operation(summary = "Create part", description = "Allows staff to create a new part.")
-    public ResponseEntity<PartResponse> createPart(@Valid @RequestBody PartRequest request) {
+    public ResponseEntity<PartResponse> createPart(@Valid @RequestBody PartRequest.PartCreate request) {
         PartResponse response = partService.createPart(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -66,7 +69,7 @@ public class PartController {
     @Operation(summary = "Update part", description = "Allows staff to update part details by id.")
     public ResponseEntity<PartResponse> updatePart(
             @PathVariable Long id,
-            @Valid @RequestBody PartRequest request) {
+            @Valid @RequestBody PartRequest.PartUpdate request) {
         PartResponse response = partService.updatePart(id, request);
         return ResponseEntity.ok(response);
     }
@@ -100,6 +103,20 @@ public class PartController {
     @Operation(summary = "Reactivate part", description = "Allows staff to reactivate a part by id.")
     public ResponseEntity<PartResponse> reactivatePart(@PathVariable Long id) {
         PartResponse response = partService.reactivatePart(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/categories")
+    @Operation(summary = "Get all part categories", description = "Returns all available part categories as enum schema.")
+    public ResponseEntity<EnumSchemaResponse> getAllPartCategories() {
+        List<String> categories = Arrays.stream(PartCategory.values())
+            .map(PartCategory::getVietnameseName)
+            .toList();
+        EnumSchemaResponse response = new EnumSchemaResponse(
+            "PartCategoryEnum",
+            categories,
+            "Danh sách loại linh kiện hiện tại"
+        );
         return ResponseEntity.ok(response);
     }
 
