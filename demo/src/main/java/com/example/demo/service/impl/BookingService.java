@@ -230,18 +230,28 @@ BookingService implements IBookingService {
             throw new CommonException.InvalidOperation("Không được cập nhật đơn với trạng thái này: " + booking.getBookingStatus());
         }
 
-        if(request.getCustomerId() != null || !request.getCustomerId().equals(booking.getCustomer().getId())) {
+        if(request.getCustomerId() != null && !request.getCustomerId().equals(booking.getCustomer().getId())) {
             throw new CommonException.InvalidOperation("Không thể thay đổi khách hàng của đơn đặt lịch");
         }
-
-        if(request.getVehicleVin() != null || !request.getVehicleVin().equals(booking.getVehicle().getVin())) {
+        if (request.getVehicleVin() != null && !request.getVehicleVin().equals(booking.getVehicle().getVin())) {
             throw new CommonException.InvalidOperation("Không thể thay đổi xe của đơn đặt lịch");
         }
 
         boolean catalogDetailsUpdated = false;
-
         if (request.getScheduleDateTime() != null) {
+            final Long currentBookingId = booking.getId();
             LocalDateTime scheduleDate = checkFutureScheduleDate(request.getScheduleDateTime());
+            // Kiểm tra slot thời gian
+            checkAvailableSlot(scheduleDate);
+            // Kiểm tra giới hạn 1 booking/ngày cho customer (trừ booking hiện tại)
+            List<Booking> bookingsOnDate = bookingRepository.findByCustomerIdAndDate(booking.getCustomer().getId(), scheduleDate.toLocalDate())
+                .stream()
+                .filter(b -> !b.getId().equals(currentBookingId))
+                .filter(b -> b.getBookingStatus() != BookingStatus.CANCELLED)
+                .toList();
+            if (!bookingsOnDate.isEmpty()) {
+                throw new CommonException.InvalidOperation("Khách hàng đã đạt giới hạn đặt lịch trong ngày: " + scheduleDate.toLocalDate());
+            }
             booking.setScheduleDate(scheduleDate);
         }
 

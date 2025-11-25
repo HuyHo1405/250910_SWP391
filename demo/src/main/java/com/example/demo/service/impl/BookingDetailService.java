@@ -1,5 +1,6 @@
 package com.example.demo.service.impl;
 
+import com.example.demo.exception.CommonException;
 import com.example.demo.model.dto.BookingRequest;
 import com.example.demo.model.entity.*;
 import com.example.demo.repo.*;
@@ -28,17 +29,22 @@ public class BookingDetailService implements IBookingDetailService {
         log.info("Adding service ID: {} to booking ID: {}", serviceDetail.getCatalogId(), bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đặt lịch với ID: " + bookingId));
+                .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId));
 
         catalogRepository.findById(serviceDetail.getCatalogId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy dịch vụ với ID: " + serviceDetail.getCatalogId()));
+                .orElseThrow(() -> new CommonException.NotFound("MaintenanceCatalog", serviceDetail.getCatalogId()));
 
-        vehicleModelRepository.findById(serviceDetail.getModelId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy mẫu xe với ID: " + serviceDetail.getModelId()));
+        // Lấy modelId từ booking.getVehicle().getModel().getId()
+        Long modelId = (booking.getVehicle() != null && booking.getVehicle().getModel() != null) ? booking.getVehicle().getModel().getId() : null;
+        if (modelId == null) {
+            throw new CommonException.NotFound("VehicleModel", null);
+        }
+        vehicleModelRepository.findById(modelId)
+                .orElseThrow(() -> new CommonException.NotFound("VehicleModel", modelId));
 
         MaintenanceCatalogModel catalogModel = maintenanceCatalogModelRepository
-                .findByMaintenanceCatalogIdAndVehicleModelId(serviceDetail.getCatalogId(), serviceDetail.getModelId())
-                .orElseThrow(() -> new RuntimeException("Dịch vụ dành cho xe không tồn tại"));
+                .findByMaintenanceCatalogIdAndVehicleModelId(serviceDetail.getCatalogId(), modelId)
+                .orElseThrow(() -> new CommonException.NotFound("MaintenanceCatalogModel", serviceDetail.getCatalogId() + "-" + modelId));
 
         BookingDetail bookingDetail = BookingDetail.builder()
                 .booking(booking)
@@ -58,10 +64,10 @@ public class BookingDetailService implements IBookingDetailService {
         log.info("Removing detail ID: {} from booking ID: {}", bookingDetailId, bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đặt lịch với ID: " + bookingId));
+                .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId));
 
         BookingDetail bookingDetail = bookingDetailRepository.findById(bookingDetailId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết đặt lịch"));
+                .orElseThrow(() -> new CommonException.NotFound("BookingDetail", bookingDetailId));
 
         booking.removeBookingDetail(bookingDetail);
         bookingDetailRepository.delete(bookingDetail);
@@ -74,7 +80,7 @@ public class BookingDetailService implements IBookingDetailService {
         log.info("Updating services for booking ID: {}", bookingId);
 
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đặt lịch với ID: " + bookingId));
+                .orElseThrow(() -> new CommonException.NotFound("Booking", bookingId));
 
         // Clear existing booking details
         List<BookingDetail> existingDetails = booking.getBookingDetails();
@@ -101,7 +107,7 @@ public class BookingDetailService implements IBookingDetailService {
         log.info("Updating description for booking detail ID: {}", detailId);
 
         BookingDetail bookingDetail = bookingDetailRepository.findById(detailId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy chi tiết đặt lịch với ID: " + detailId));
+                .orElseThrow(() -> new CommonException.NotFound("BookingDetail", detailId));
 
         bookingDetail.setDescription(description);
         bookingDetail = bookingDetailRepository.save(bookingDetail);
